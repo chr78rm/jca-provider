@@ -250,7 +250,6 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     
     try {
       final BigInteger p = this.schnorrPrivateKey.getSchnorrParams().getP();
-      final BigInteger q = this.schnorrPrivateKey.getSchnorrParams().getQ();
       final BigInteger g = this.schnorrPrivateKey.getSchnorrParams().getG();
       
       BigInteger s;
