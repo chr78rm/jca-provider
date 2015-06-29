@@ -3,3 +3,6 @@
 /.project
 /nb-configuration.xml
 /.settings/
+/log/
+*~
+
