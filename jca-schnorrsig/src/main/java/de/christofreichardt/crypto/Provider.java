@@ -7,6 +7,7 @@ package de.christofreichardt.crypto;
  * @author Christof Reichardt
  */
 public class Provider extends java.security.Provider {
+  private static final long serialVersionUID = 1L;
   static public final String NAME = "CryptoChr";
 
   public Provider() {

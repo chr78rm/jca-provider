@@ -15,8 +15,9 @@ import java.security.PrivateKey;
  * @author Christof Reichardt
  */
 public class SchnorrPrivateKey extends SchnorrKey implements PrivateKey {
-
+  private static final long serialVersionUID = 1L;
   private final BigInteger x;
+  
   /**
    * Creates a private key for the Schnorr signature scheme.
    * 

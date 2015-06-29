@@ -14,6 +14,7 @@ import java.security.Key;
  * @author Christof Reichardt
  */
 public abstract class SchnorrKey implements Key {
+  private static final long serialVersionUID = 1L;
   final private SchnorrParams schnorrParams;
 
   /**

@@ -15,7 +15,7 @@ import java.security.PublicKey;
  * @author Christof Reichardt
  */
 public class SchnorrPublicKey extends SchnorrKey implements PublicKey {
-
+  private static final long serialVersionUID = 1L;
   private final BigInteger h;
   
   /**
