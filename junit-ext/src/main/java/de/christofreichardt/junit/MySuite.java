@@ -29,7 +29,7 @@ public class MySuite extends Runner implements Traceable {
   
   final private Suite suite;
 
-  public MySuite(Class testClass) throws InitializationError {
+  public MySuite(Class<?> testClass) throws InitializationError {
     try {
       initTracerFactory();
       this.suite = new Suite(testClass, new MyRunnerBuilder(readProperties()));
