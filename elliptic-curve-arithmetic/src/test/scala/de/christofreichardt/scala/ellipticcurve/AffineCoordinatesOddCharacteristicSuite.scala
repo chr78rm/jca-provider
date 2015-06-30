@@ -137,6 +137,17 @@ package affine {
       }
     }
 
+    testWithTracing(this, "Point Multiplication order(P)*P=0 (3)") {
+      val tracer = getCurrentTracer()
+      val coefficients = this.groupLaw.OddCharCoefficients(10, BigInt("1343632762150092499701637438970764818528075565078"))
+      val primeField = this.groupLaw.PrimeField(BigInt(2).pow(160) + 7)
+      val curve = this.groupLaw.makeCurve(coefficients, primeField)
+      val point = curve.randomPoint
+      val order = BigInt("1461501637330902918203683518218126812711137002561")
+      val element = point multiply order
+      assert(element.isNeutralElement, "Expected the NeutralElement.")
+    }
+
     testWithTracing(this, "Random Point") {
       val tracer = getCurrentTracer()
       val coordinates = List(
