@@ -16,7 +16,8 @@ import org.junit.runners.Suite;
 @RunWith(MySuite.class)
 @Suite.SuiteClasses({
   DummyUnit.class,
-  ExperimentalUnit.class
+  ExperimentalUnit.class,
+  ECSchnorrKeyPairGeneratorUnit.class
 })
 public class ECSchnorrSignatureSuite {
 }
