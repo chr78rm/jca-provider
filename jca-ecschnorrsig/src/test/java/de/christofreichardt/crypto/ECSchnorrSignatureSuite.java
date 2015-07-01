@@ -5,7 +5,9 @@
  */
 package de.christofreichardt.crypto;
 
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrKeyPairGeneratorUnit;
 import de.christofreichardt.junit.MySuite;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 

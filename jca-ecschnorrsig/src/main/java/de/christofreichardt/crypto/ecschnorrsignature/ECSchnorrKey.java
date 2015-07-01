@@ -10,6 +10,10 @@ public class ECSchnorrKey implements Key {
     super();
     this.ecSchnorrParams = ecSchnorrParams;
   }
+  
+  public ECSchnorrParams getEcSchnorrParams() {
+    return this.ecSchnorrParams;
+  }
 
   @Override
   public String getAlgorithm() {

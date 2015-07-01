@@ -13,6 +13,10 @@ public class ECSchnorrPublicKey extends ECSchnorrKey implements PublicKey {
     this.hPoint = hPoint;
   }
 
+  public AffinePoint gethPoint() {
+    return hPoint;
+  }
+
   @Override
   public String toString() {
     return "ECSchnorrPublicKey[hPoint=" + hPoint + "]";

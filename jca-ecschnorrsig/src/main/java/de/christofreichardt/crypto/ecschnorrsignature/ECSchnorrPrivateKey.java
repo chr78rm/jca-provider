@@ -12,6 +12,10 @@ public class ECSchnorrPrivateKey extends ECSchnorrKey implements PrivateKey {
     this.x = x;
   }
 
+  public BigInteger getX() {
+    return x;
+  }
+
   @Override
   public String toString() {
     return "ECSchnorrPrivateKey[x=" + x +"]";
