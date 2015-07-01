@@ -1,6 +1,7 @@
 package de.christofreichardt.crypto.ecschnorrsignature;
 
 import java.math.BigInteger;
+import java.security.InvalidParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGeneratorSpi;
 import java.security.SecureRandom;
@@ -11,13 +12,16 @@ import scala.math.BigInt;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
+import de.christofreichardt.scala.ellipticcurve.RandomGenerator;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffineCurve;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffinePoint;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.OddCharCoefficients;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.PrimeField;
 
 public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
-  static public final Map<Integer, CurveGroup> nistCurves = new HashMap<>();
+  static public final Map<Integer, CurveSpec> nistCurves = new HashMap<>();
   static {
     BigInteger a = BigInteger.valueOf(-3);
     Integer[] sizes = {192, 224, 256, 384, 521};
@@ -46,17 +50,54 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b[i]));
       PrimeField primeField = new PrimeField(new BigInt(p[i]));
       AffineCurve curve = AffineCoordinatesOddCharacteristic.makeCurve(coefficients, primeField);
-      CurveGroup curveGroup = new CurveGroup(curve, orders[i], BigInteger.ONE);
-      nistCurves.put(sizes[i], curveGroup);
+      CurveSpec curveSpec = new CurveSpec(curve, orders[i], BigInteger.ONE);
+      nistCurves.put(sizes[i], curveSpec);
     }
   }
+  static public final int DEFAULT_KEYSIZE = 256;
   
   private SecureRandom secureRandom = new SecureRandom();
+  private int keySize = DEFAULT_KEYSIZE;
 
   @Override
   public KeyPair generateKeyPair() {
-    // TODO Auto-generated method stub
-    return null;
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("KeyPair", this, "generateKeyPair()");
+
+    try {
+      CurveSpec curveSpec = nistCurves.get(this.keySize);
+      AffinePoint gPoint;
+      do {
+        AffinePoint randomPoint = curveSpec.getCurve().randomPoint(new RandomGenerator(this.secureRandom));
+        Element element = randomPoint.multiply(new BigInt(curveSpec.getCoFactor()));
+        if (!element.isNeutralElement()) {
+          gPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
+          break;
+        }
+      } while (true);
+      
+      BigInteger x;
+      do {
+        x = new BigInteger(curveSpec.getOrder().bitLength()*2, this.secureRandom).mod(curveSpec.getOrder());
+      } while(x.equals(BigInteger.ZERO));
+      
+      Element element = gPoint.multiply(new BigInt(x));
+      assert !element.isNeutralElement();
+      AffinePoint hPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
+      
+      tracer.out().printfIndentln("gPoint = %s", gPoint);
+      tracer.out().printfIndentln("x = %s", x);
+      tracer.out().printfIndentln("hPoint = %s", hPoint);
+      
+      ECSchnorrParams ecSchnorrParams = new ECSchnorrParams(curveSpec, gPoint);
+      ECSchnorrPrivateKey ecSchnorrPrivateKey = new ECSchnorrPrivateKey(ecSchnorrParams, x);
+      ECSchnorrPublicKey ecSchnorrPublicKey = new ECSchnorrPublicKey(ecSchnorrParams, hPoint);
+      
+      return new KeyPair(ecSchnorrPublicKey, ecSchnorrPrivateKey);
+    }
+    finally {
+      tracer.wayout();
+    }
   }
 
   @Override
@@ -66,6 +107,12 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
 
     try {
       tracer.out().printfIndentln("keySize = %d", keySize);
+      
+      this.secureRandom = secureRandom;
+      if (nistCurves.containsKey(keySize))
+        this.keySize = keySize;
+      else
+        throw new InvalidParameterException("Unsupported keysize: " + keySize + ".");
     }
     finally {
       tracer.wayout();

@@ -28,13 +28,15 @@ package affine {
     class AffineCurve(val a: BigInt, val b: BigInt, val p: BigInt) extends Curve {
       require(p.isProbablePrime(Constants.CERTAINTY), p + " isn't prime.")
       require(isCurve(a, b, p))
-//      val discriminant = -16 * (4 * a.pow(3) + 27 * b.pow(2))
-//      require(this.discriminant != 0, "Discriminant is zero.")
       val legendreSymbol: LegendreSymbol = new EulersCriterion(this.p)
       val solver = new QuadraticResidue(this.p)
 
       def randomPoint: AffinePoint = {
         val randomGenerator = new RandomGenerator
+        randomPoint(randomGenerator)
+      }
+      
+      def randomPoint(randomGenerator: RandomGenerator): AffinePoint = {
         val x = randomGenerator.bigIntStream(this.p.bitLength * 2, p).find(x => {
           val test = evaluateCurveEquation(x)
           test == BigInt(0)  ||  this.legendreSymbol.isQuadraticResidue(test)

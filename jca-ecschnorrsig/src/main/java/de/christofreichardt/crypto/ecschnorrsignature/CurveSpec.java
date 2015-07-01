@@ -4,12 +4,12 @@ import java.math.BigInteger;
 
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffineCurve;
 
-public class CurveGroup {
+public class CurveSpec {
   private final AffineCurve curve;
   private final BigInteger order;
   private final BigInteger coFactor;
   
-  public CurveGroup(AffineCurve curve, BigInteger order, BigInteger coFactor) {
+  public CurveSpec(AffineCurve curve, BigInteger order, BigInteger coFactor) {
     this.curve = curve;
     this.order = order;
     this.coFactor = coFactor;

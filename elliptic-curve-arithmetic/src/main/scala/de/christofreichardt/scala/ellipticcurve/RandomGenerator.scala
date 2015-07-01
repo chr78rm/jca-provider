@@ -7,8 +7,10 @@ import scala.util.Random
 /**
  * @author Christof Reichardt
  */
-class RandomGenerator {
-  val random = new Random(new java.security.SecureRandom)
+class RandomGenerator(secureRandom: java.security.SecureRandom) {
+  val random = new Random(secureRandom)
+  
+  def this() = this(new java.security.SecureRandom)
   
   final def bigIntStream(numberOfBits: Int, p: BigInt): Stream[BigInt] = {
     val next = BigInt(numberOfBits, random).mod(p)

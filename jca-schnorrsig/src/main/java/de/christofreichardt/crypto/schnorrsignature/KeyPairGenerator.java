@@ -167,7 +167,6 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       tracer.out().printfIndentln("y(%d) = %d", h.bitLength(), h);
       
       SchnorrGroup schnorrGroup = new SchnorrGroup(p, q);
-//      SchnorrParams schnorrParams = new SchnorrParams(p, q, g);
       SchnorrParams schnorrParams = new SchnorrParams(schnorrGroup, g);
       SchnorrPrivateKey schnorrPrivateKey = new SchnorrPrivateKey(schnorrParams, x);
       SchnorrPublicKey schnorrPublicKey = new SchnorrPublicKey(schnorrParams, h);
