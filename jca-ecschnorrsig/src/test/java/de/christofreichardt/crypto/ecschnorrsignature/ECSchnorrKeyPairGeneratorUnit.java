@@ -53,7 +53,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
         tracer.out().printfIndentln("curve(%d) = %s", keySize, curve);
         tracer.out().printfIndentln("point = %s", point);
         
-        Element element = point.multiply(new BigInt(curveSpec.getOrder()));
+        Element element = point.multiply(curveSpec.getOrder());
         
         tracer.out().printfIndentln("element = %s", element);
         Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());
@@ -118,7 +118,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       Assert.assertTrue("Expected a prime group order.", ecSchnorrParams.getCurveSpec().getOrder().isProbablePrime(CERTAINTY));
       tracer.out().printfIndentln("ecSchnorrParams.getCurveSpec().getOrder().bitLength() = %d", ecSchnorrParams.getCurveSpec().getOrder().bitLength());
       
-      Element element = ecSchnorrParams.getgPoint().multiply(new BigInt(ecSchnorrPrivateKey.getX()));
+      Element element = ecSchnorrParams.getgPoint().multiply(ecSchnorrPrivateKey.getX());
       AffinePoint hPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
       
       Assert.assertTrue("Expected the public h point.", hPoint.equals(ecSchnorrPublicKey.gethPoint()));

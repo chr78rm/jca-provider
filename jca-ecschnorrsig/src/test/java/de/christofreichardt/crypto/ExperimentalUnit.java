@@ -88,7 +88,7 @@ public class ExperimentalUnit implements Traceable {
       tracer.out().printfIndentln("curve = %s", curve);
       tracer.out().printfIndentln("point = %s", point);
       
-      Element element = point.multiply(new BigInt(order));
+      Element element = point.multiply(order);
       
       tracer.out().printfIndentln("element = %s", element);
       Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());

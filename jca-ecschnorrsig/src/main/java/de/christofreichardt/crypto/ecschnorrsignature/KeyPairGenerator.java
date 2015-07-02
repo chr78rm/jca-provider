@@ -69,7 +69,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       AffinePoint gPoint;
       do {
         AffinePoint randomPoint = curveSpec.getCurve().randomPoint(new RandomGenerator(this.secureRandom));
-        Element element = randomPoint.multiply(new BigInt(curveSpec.getCoFactor()));
+        Element element = randomPoint.multiply(curveSpec.getCoFactor());
         if (!element.isNeutralElement()) {
           gPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
           break;
@@ -81,7 +81,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
         x = new BigInteger(curveSpec.getOrder().bitLength()*2, this.secureRandom).mod(curveSpec.getOrder());
       } while(x.equals(BigInteger.ZERO));
       
-      Element element = gPoint.multiply(new BigInt(x));
+      Element element = gPoint.multiply(x);
       assert !element.isNeutralElement();
       AffinePoint hPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
       
