@@ -11,6 +11,9 @@ for random [Schnorr Groups](https://en.wikipedia.org/wiki/Schnorr_group) satisfy
 
 `mvn clean install`
 
+Experimental test cases for determing the group order and multiplication of a fixed point may sometimes fail due to their probabilistic character. 
+However this is rather unlikely and repetition of the build will suffice in most cases.
+
 ## Schnorr Signature
 
 <table summary="">
