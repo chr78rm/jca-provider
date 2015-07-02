@@ -1,7 +1,10 @@
 package de.christofreichardt.crypto.ecschnorrsignature;
 
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -10,7 +13,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import scala.math.BigInt;
+import de.christofreichardt.crypto.Provider;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
@@ -21,6 +24,8 @@ import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddChara
 
 public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
   final private Properties properties;
+  final String ALGORITHM_NAME = "ECSchnorrSignature";
+  final Provider provider = new Provider();
 
   public ECSchnorrKeyPairGeneratorUnit(Properties properties) {
     this.properties = properties;
@@ -32,6 +37,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
     tracer.entry("void", this, "init()");
     
     try {
+      Security.addProvider(this.provider);
     }
     finally {
       tracer.wayout();
@@ -98,6 +104,62 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
     }
   }
   
+  @Test
+  public void providerByAlgorithmName() throws NoSuchAlgorithmException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "providerByAlgorithmName()");
+    
+    try {
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME);
+      
+      Assert.assertTrue("Expected a keyPairGenerator for the " + ALGORITHM_NAME + ".", keyPairGenerator.getAlgorithm().equals(ALGORITHM_NAME));
+      
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      validateKeyPair(keyPair, KeyPairGenerator.DEFAULT_KEYSIZE);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void providerByAlgorithmAndProvidername() throws NoSuchAlgorithmException, NoSuchProviderException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "providerByAlgorithmAndProvidername()");
+    
+    try {
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME, Provider.NAME);
+      
+      Assert.assertTrue("Expected a keyPairGenerator for the " + ALGORITHM_NAME + ".", keyPairGenerator.getAlgorithm().equals(ALGORITHM_NAME));
+      Assert.assertTrue("Expected a keyPairGenerator from the " + Provider.NAME + ".", keyPairGenerator.getProvider().getName().equals(Provider.NAME));
+      
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      validateKeyPair(keyPair, KeyPairGenerator.DEFAULT_KEYSIZE);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void providerByAlgorithmAndProvider() throws NoSuchAlgorithmException, NoSuchProviderException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "providerByAlgorithmAndProvider()");
+    
+    try {
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME, this.provider);
+      
+      Assert.assertTrue("Expected a keyPairGenerator for the " + ALGORITHM_NAME + ".", keyPairGenerator.getAlgorithm().equals(ALGORITHM_NAME));
+      Assert.assertTrue("Expected a keyPairGenerator from the " + Provider.NAME + ".", keyPairGenerator.getProvider().getName().equals(Provider.NAME));
+      
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      validateKeyPair(keyPair, KeyPairGenerator.DEFAULT_KEYSIZE);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
   private void validateKeyPair(KeyPair keyPair, int expectedBitLength) {
     AbstractTracer tracer = getCurrentTracer();
     tracer.entry("void", this, "validateKeyPair(KeyPair keyPair)");
@@ -134,6 +196,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
     tracer.entry("void", this, "exit()");
     
     try {
+      Security.removeProvider(Provider.NAME);
     }
     finally {
       tracer.wayout();

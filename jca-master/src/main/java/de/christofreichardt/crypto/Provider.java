@@ -21,5 +21,6 @@ public class Provider extends java.security.Provider {
   private void init() {
     put("KeyPairGenerator.SchnorrSignature", "de.christofreichardt.crypto.schnorrsignature.KeyPairGenerator");
     put("Signature.SchnorrSignatureWithSHA256", "de.christofreichardt.crypto.schnorrsignature.SignatureWithSHA256");
+    put("KeyPairGenerator.ECSchnorrSignature", "de.christofreichardt.crypto.ecschnorrsignature.KeyPairGenerator");
   }
 }
