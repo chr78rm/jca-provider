@@ -40,7 +40,7 @@ public class SignatureUnit implements Traceable {
     
     try {
       File blindTextFile = new File(this.properties.getProperty("de.christofreichardt.crypto.schnorrsignature.SignatureUnit.blindtext", 
-          "./data/loremipsum.txt"));
+          "../data/loremipsum.txt"));
       byte[] bytes = Files.readAllBytes(blindTextFile.toPath());
       traceMsgBytes(bytes);
       return bytes;
