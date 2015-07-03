@@ -6,6 +6,7 @@
 package de.christofreichardt.crypto;
 
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrKeyPairGeneratorUnit;
+import de.christofreichardt.crypto.ecschnorrsignature.SignatureUnit;
 import de.christofreichardt.junit.MySuite;
 
 import org.junit.runner.RunWith;
@@ -19,7 +20,8 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
   DummyUnit.class,
   ExperimentalUnit.class,
-  ECSchnorrKeyPairGeneratorUnit.class
+  ECSchnorrKeyPairGeneratorUnit.class,
+  SignatureUnit.class
 })
 public class ECSchnorrSignatureSuite {
 }
