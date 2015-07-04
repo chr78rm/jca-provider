@@ -11,7 +11,7 @@ for random [Schnorr Groups](https://en.wikipedia.org/wiki/Schnorr_group) satisfy
 
 `mvn clean install`
 
-Experimental test cases concerning the calculation of the group order may sometimes fail due to their probabilistic character. 
+Experimental test cases concerning the group order of elliptic curves over prime fields may sometimes fail due to their probabilistic character. 
 However this is rather unlikely and a repetition of the build will suffice in most cases.
 
 ## Schnorr Signature on prime fields
