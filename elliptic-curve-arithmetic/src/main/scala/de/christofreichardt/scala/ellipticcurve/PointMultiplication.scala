@@ -19,8 +19,8 @@ package affine {
     type AffinePoint = AffineCoordinatesOddCharacteristic.AffinePoint
     type Element = AffineCoordinatesOddCharacteristic.Element
     
-    def twoPowerPointStream: Stream[(Int, AffinePoint)] = {
-      def pointStream(exp: Int, power: BigInt, point: AffinePoint): Stream[(Int, AffinePoint)] = {
+    def twoPowerPointStream: Stream[(Int, Element)] = {
+      def pointStream(exp: Int, power: BigInt, element: Element): Stream[(Int, Element)] = {
         if (exp == 0) Stream.cons((exp, this.fixedPoint), pointStream(1, BigInt(1), this.fixedPoint))
         else if (exp == 1) {
           val nextPoint = this.fixedPoint add this.fixedPoint
@@ -29,11 +29,11 @@ package affine {
         else {
           val nextPower = power*BigInt(2)
           if (nextPower < this.fixedPoint.curve.p) {
-            val nextPoint = point add point
+            val nextPoint = element add element
             Stream.cons((exp, nextPoint), pointStream(exp + 1, nextPower, nextPoint))
           }
           else 
-            Stream.empty[(Int, AffinePoint)]
+            Stream.empty[(Int, Element)]
         }
       }
       pointStream(0, BigInt(1), this.fixedPoint)
