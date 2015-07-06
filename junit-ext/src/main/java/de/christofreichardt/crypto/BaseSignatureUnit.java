@@ -138,10 +138,10 @@ public class BaseSignatureUnit implements Traceable {
     tracer.entry("void", this, "providerByAlgorithmAndProvider()");
 
     try {
-      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance("ECSchnorrSignature");
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-      Signature signature = Signature.getInstance("ECSchnorrSignatureWithSHA256", this.provider);
+      Signature signature = Signature.getInstance(this.signatureAlgorithmName, this.provider);
       byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
       boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
 
@@ -162,10 +162,10 @@ public class BaseSignatureUnit implements Traceable {
     tracer.entry("void", this, "providerByAlgorithmAndProvidername()");
 
     try {
-      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance("ECSchnorrSignature");
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-      Signature signature = Signature.getInstance("ECSchnorrSignatureWithSHA256", this.provider.getName());
+      Signature signature = Signature.getInstance(this.signatureAlgorithmName, this.provider.getName());
       byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
       boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
 
@@ -186,10 +186,10 @@ public class BaseSignatureUnit implements Traceable {
     tracer.entry("void", this, "falseKey()");
 
     try {
-      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance("ECSchnorrSignature");
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-      Signature signature = Signature.getInstance("ECSchnorrSignatureWithSHA256", this.provider.getName());
+      Signature signature = Signature.getInstance(this.signatureAlgorithmName, this.provider.getName());
       byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
       boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
 
