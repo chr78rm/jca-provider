@@ -1,5 +1,6 @@
 package de.christofreichardt.crypto.ecschnorrsignature;
 
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -31,6 +32,11 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       SignatureWithSHA256 signatureWithSHA256 = new SignatureWithSHA256();
       KeyPairGenerator keyPairGenerator = new KeyPairGenerator();
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      
+      ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+      BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
+      
+      tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
       
       signatureWithSHA256.engineInitSign(keyPair.getPrivate());
       signatureWithSHA256.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
