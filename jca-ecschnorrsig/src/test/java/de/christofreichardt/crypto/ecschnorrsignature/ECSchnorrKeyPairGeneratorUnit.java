@@ -190,6 +190,32 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
     }
   }
   
+  @Test
+  public void brainPoolCurves() {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "brainPoolCurves()");
+    
+    try {
+      for (Entry<String, CurveSpec> entry : BrainPool.curves.entrySet()) {
+        String curveId = entry.getKey();
+        CurveSpec curveSpec = entry.getValue();
+        AffineCurve curve = curveSpec.getCurve();
+        AffinePoint point = curve.randomPoint();
+        
+        tracer.out().printfIndentln("curve(%s) = %s", curveId, curve);
+        tracer.out().printfIndentln("point = %s", point);
+        
+        Element element = point.multiply(curveSpec.getOrder());
+        
+        tracer.out().printfIndentln("element = %s", element);
+        Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
   @After
   public void exit() {
     AbstractTracer tracer = getCurrentTracer();
