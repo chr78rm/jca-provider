@@ -4,8 +4,11 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Properties;
+import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,6 +54,43 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       signatureWithSHA256.engineInitVerify(keyPair.getPublic());
       signatureWithSHA256.engineUpdate(this.spoiledMsgBytes, 0, this.spoiledMsgBytes.length);
       verified = signatureWithSHA256.engineVerify(signatureBytes);
+      
+      Assert.assertTrue("Expected an invalid signature.", !verified);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void customKeySizes() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "customKeySizes()");
+    
+    try {
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
+      Integer[] keySizes = KeyPairGenerator.nistCurves.keySet().toArray(new Integer[0]);
+      Random random = new Random();
+      int index = random.nextInt(keySizes.length);
+      keyPairGenerator.initialize(keySizes[index], new SecureRandom());
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+      BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
+      
+      tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
+      
+      Signature signature = Signature.getInstance(this.signatureAlgorithmName);
+      byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
+      boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+      
+      Assert.assertTrue("Expected a valid signature.", verified);
+      
+      verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
+      
+      Assert.assertTrue("Expected an invalid signature.", !verified);
+      
+      keyPair = keyPairGenerator.generateKeyPair();
+      verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
       
       Assert.assertTrue("Expected an invalid signature.", !verified);
     }

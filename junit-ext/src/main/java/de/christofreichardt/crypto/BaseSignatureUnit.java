@@ -205,7 +205,7 @@ public class BaseSignatureUnit implements Traceable {
     }
   }
   
-  private byte[] sign(Signature signature, PrivateKey privateKey, byte[] msgBytes) throws InvalidKeyException, SignatureException {
+  protected byte[] sign(Signature signature, PrivateKey privateKey, byte[] msgBytes) throws InvalidKeyException, SignatureException {
     AbstractTracer tracer = getCurrentTracer();
     tracer.entry("byte[]", this, "sign(Signature signature, PrivateKey privateKey, byte[] msgBytes)");
     
@@ -221,7 +221,7 @@ public class BaseSignatureUnit implements Traceable {
     }
   }
   
-  private boolean verify(Signature signature, PublicKey publicKey, byte[] msgBytes, byte[] signatureBytes) throws InvalidKeyException, SignatureException {
+  protected boolean verify(Signature signature, PublicKey publicKey, byte[] msgBytes, byte[] signatureBytes) throws InvalidKeyException, SignatureException {
     AbstractTracer tracer = getCurrentTracer();
     tracer.entry("boolean", this, "verify(Signature signature, PublicKey publicKey, byte[] msgBytes, byte[] signatureBytes)");
     
