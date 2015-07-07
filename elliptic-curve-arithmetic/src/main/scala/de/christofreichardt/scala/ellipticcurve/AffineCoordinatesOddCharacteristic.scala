@@ -10,6 +10,7 @@ import java.io.PrintStream
 import scala.util.Random
 import java.math.MathContext
 import java.math.RoundingMode
+import scala.language.implicitConversions
 
 package affine {
   object AffineCoordinatesOddCharacteristic extends GroupLaw with Tracing {
