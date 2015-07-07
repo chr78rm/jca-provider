@@ -13,6 +13,7 @@ import java.security.SignatureSpi;
 import java.util.Arrays;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.diagnosis.LogLevel;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
@@ -26,7 +27,6 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   private SecureRandom secureRandom = new SecureRandom();
   private ECSchnorrPrivateKey ecSchnorrPrivateKey;
   private ECSchnorrPublicKey ecSchnorrPublicKey;
-  private BigInteger r;
   private boolean initialisedForSigning;
   private boolean initialisedForVerification;
 
@@ -53,10 +53,10 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
         throw new InvalidKeyException("Need a ECSchnorrPrivateKey instance.");
       this.ecSchnorrPrivateKey = (ECSchnorrPrivateKey) privateKey;
       
-      CurveSpec curveSpec = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec();
-      do {
-        this.r = new BigInteger(curveSpec.getOrder().bitLength()*2, this.secureRandom).mod(curveSpec.getOrder());
-      } while (r.equals(BigInteger.ZERO));
+//      CurveSpec curveSpec = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec();
+//      do {
+//        this.r = new BigInteger(curveSpec.getOrder().bitLength()*2, this.secureRandom).mod(curveSpec.getOrder());
+//      } while (r.equals(BigInteger.ZERO));
       
       this.messageDigest.reset();
       
@@ -107,15 +107,22 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     tracer.entry("byte[]", this, "engineSign()");
     
     try {
-      concatForSigning();
-      byte[] digestBytes = this.messageDigest.digest();
-      
-      assert digestBytes.length == DIGEST_LENGTH;
-      
       BigInteger order = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec().getOrder();
       BigInteger x = this.ecSchnorrPrivateKey.getX();
-      BigInteger e = new BigInteger(digestBytes).mod(order);
-      BigInteger y = e.multiply(x).add(this.r);
+      
+      BigInteger e, r;
+      byte[] digestBytes;
+      do {
+        do {
+          r = new BigInteger(order.bitLength()*2, this.secureRandom).mod(order);
+        } while (r.equals(BigInteger.ZERO));
+        
+        digestBytes = concatForSigning(r);
+        assert digestBytes.length == DIGEST_LENGTH;
+        e = new BigInteger(digestBytes).mod(order);
+      } while(e.equals(BigInteger.ZERO));
+      
+      BigInteger y = e.multiply(x).add(r);
       byte[] yBytes = y.toByteArray();
       
       tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
@@ -133,23 +140,30 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   }
   
   
-  private void concatForSigning() {
+  private byte[] concatForSigning(BigInteger r) throws SignatureException {
     AbstractTracer tracer = getCurrentTracer();
-    tracer.entry("void", this, "concatForSigning()");
+    tracer.entry("byte[]", this, "concatForSigning(BigInteger r)");
     
     try {
       AffinePoint gPoint = this.ecSchnorrPrivateKey.getEcSchnorrParams().getgPoint();
-      AffinePoint sPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(gPoint.multiply(this.r));
+      AffinePoint sPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(gPoint.multiply(r));
       
       tracer.out().printfIndentln("sPoint = %s", sPoint);
       
-      CurveSpec curveSpec = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec();
-      int length = curveSpec.getCurve().p().toByteArray().length;
-      
-      assert sPoint.x().toByteArray().length <= length  &&  sPoint.y().toByteArray().length <= length;
-      
-      this.messageDigest.update(Arrays.copyOf(sPoint.x().toByteArray(), length));
-      this.messageDigest.update(Arrays.copyOf(sPoint.y().toByteArray(), length));
+      try {
+        MessageDigest messageDigest = (MessageDigest) this.messageDigest.clone();
+        CurveSpec curveSpec = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec();
+        int length = curveSpec.getCurve().p().toByteArray().length;
+        assert sPoint.x().toByteArray().length <= length  &&  sPoint.y().toByteArray().length <= length;
+        messageDigest.update(Arrays.copyOf(sPoint.x().toByteArray(), length));
+        messageDigest.update(Arrays.copyOf(sPoint.y().toByteArray(), length));
+        
+        return messageDigest.digest();
+      }
+      catch (CloneNotSupportedException ex) {
+        tracer.logException(LogLevel.ERROR, ex, getClass(), "byte[] concatForSigning(BigInteger r)");
+        throw new SignatureException(ex);
+      }
     }
     finally {
       tracer.wayout();

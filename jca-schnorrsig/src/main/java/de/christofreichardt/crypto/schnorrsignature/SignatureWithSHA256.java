@@ -7,8 +7,10 @@
 package de.christofreichardt.crypto.schnorrsignature;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.diagnosis.LogLevel;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+
 import java.math.BigInteger;
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
@@ -82,7 +84,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   final private MessageDigest messageDigest;
   private SecureRandom secureRandom = new SecureRandom();
   private SchnorrPrivateKey schnorrPrivateKey;
-  private BigInteger r;
+//  private BigInteger r;
   private SchnorrPublicKey schnorrPublicKey;
   private boolean initialisedForSigning;
   private boolean initialisedForVerification;
@@ -144,10 +146,10 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       this.schnorrPrivateKey = (SchnorrPrivateKey) privateKey;
       this.messageDigest.reset();
       
-      final BigInteger q = this.schnorrPrivateKey.getSchnorrParams().getQ();
-      do {
-        this.r = new BigInteger(q.bitLength()*2, this.secureRandom).mod(q);
-      } while (this.r.equals(BigInteger.ZERO));
+//      final BigInteger q = this.schnorrPrivateKey.getSchnorrParams().getQ();
+//      do {
+//        this.r = new BigInteger(q.bitLength()*2, this.secureRandom).mod(q);
+//      } while (this.r.equals(BigInteger.ZERO));
       
       this.initialisedForSigning = true;
       this.initialisedForVerification = false;
@@ -218,16 +220,22 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       if (!this.initialisedForSigning)
         throw new SignatureException("Signature scheme hasn't been initialized for signing.");
       
-      concatForSigning();
-      byte[] digestBytes = this.messageDigest.digest();
-      
-      assert digestBytes.length == DIGEST_LENGTH;
-      
       final BigInteger q = this.schnorrPrivateKey.getSchnorrParams().getQ();
       final BigInteger x = this.schnorrPrivateKey.getX();
       
-      BigInteger e = new BigInteger(digestBytes).mod(q);
-      BigInteger y = e.multiply(x).add(this.r).mod(q);
+      BigInteger e, r;
+      byte[] digestBytes;
+      do {
+        do {
+          r = new BigInteger(q.bitLength()*2, this.secureRandom).mod(q);
+        } while (r.equals(BigInteger.ZERO));
+
+        digestBytes = concatForSigning(r);
+        assert digestBytes.length==DIGEST_LENGTH;
+        e = new BigInteger(digestBytes).mod(q);
+      } while (e.equals(BigInteger.ZERO));
+      
+      BigInteger y = e.multiply(x).add(r).mod(q);
       byte[] yBytes = y.toByteArray();
       
       tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
@@ -244,20 +252,29 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     }
   }
   
-  private void concatForSigning() {
+  private byte[] concatForSigning(BigInteger r) throws SignatureException {
     AbstractTracer tracer = getCurrentTracer();
-    tracer.entry("void", this, "concatForSigning()");
+    tracer.entry("byte[]", this, "concatForSigning(BigInteger r)");
     
     try {
       final BigInteger p = this.schnorrPrivateKey.getSchnorrParams().getP();
       final BigInteger g = this.schnorrPrivateKey.getSchnorrParams().getG();
       
       BigInteger s;
-      s = g.modPow(this.r, p);
+      s = g.modPow(r, p);
       
       tracer.out().printfIndentln("s(%d) = %d", s.bitLength(), s);
       
-      this.messageDigest.update(s.toByteArray());
+      try {
+        MessageDigest messageDigest = (MessageDigest) this.messageDigest.clone();
+        messageDigest.update(s.toByteArray());
+        
+        return messageDigest.digest();
+      }
+      catch (CloneNotSupportedException ex) {
+        tracer.logException(LogLevel.ERROR, ex, getClass(), "byte[] concatForSigning(BigInteger r)");
+        throw new SignatureException(ex);
+      }
     }
     finally {
       tracer.wayout();
