@@ -11,12 +11,14 @@ import de.christofreichardt.diagnosis.TracerFactory
 import de.christofreichardt.scala.diagnosis.Tracing
 import de.christofreichardt.scalatest.MyDummySuite
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristicSuite
+import de.christofreichardt.scala.ellipticcurve.affine.MontgomerySuite
 
 
 class MySuites extends Suites(
     new MyDummySuite(),
     new AffineCoordinatesOddCharacteristicSuite(),
-    new QuadraticResidueSuite()
+    new QuadraticResidueSuite(),
+    new MontgomerySuite()
     ) with Tracing with BeforeAndAfterAll with SequentialNestedSuiteExecution {
   
   override def run(testName: Option[String], args: Args): Status = {
