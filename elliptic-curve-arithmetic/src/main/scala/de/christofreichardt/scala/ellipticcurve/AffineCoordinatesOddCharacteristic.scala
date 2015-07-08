@@ -175,7 +175,7 @@ package affine {
     }
 
     def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): AffineCurve = new AffineCurve(coefficients.a, coefficients.b, finiteField.p)
-    def makePoint(coordinates: TheCoordinates, curve: TheCurve): AffinePoint = new AffinePoint(coordinates.x, coordinates.y, curve)
+    def makePoint(coordinates: TheCoordinates, curve: TheCurve): AffinePoint = new AffinePoint(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
 
     trait PointMultiplication {
       def multiply(m: BigInt, point: AffinePoint): Element
