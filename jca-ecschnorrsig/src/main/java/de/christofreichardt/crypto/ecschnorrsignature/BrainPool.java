@@ -12,10 +12,13 @@ import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddChara
 
 public class BrainPool {
   static public final Map<String, CurveSpec> curves = new HashMap<>();
+  static public final String[] curveIds = {"brainpoolP160r1", "brainpoolP160t1", "brainpoolP192r1", "brainpoolP192t1", "brainpoolP224r1", "brainpoolP224t1",
+    "brainpoolP256r1", "brainpoolP256t1", "brainpoolP320r1", "brainpoolP320t1", "brainpoolP384r1", "brainpoolP384t1", "brainpoolP512r1",
+    "brainpoolP512t1"};
   static {
-    String[] ids = {"brainpoolP160r1", "brainpoolP160t1", "brainpoolP192r1", "brainpoolP192t1", "brainpoolP224r1", "brainpoolP224t1",
-        "brainpoolP256r1", "brainpoolP256t1", "brainpoolP320r1", "brainpoolP320t1", "brainpoolP384r1", "brainpoolP384t1", "brainpoolP512r1",
-        "brainpoolP512t1"};
+//    String[] ids = {"brainpoolP160r1", "brainpoolP160t1", "brainpoolP192r1", "brainpoolP192t1", "brainpoolP224r1", "brainpoolP224t1",
+//        "brainpoolP256r1", "brainpoolP256t1", "brainpoolP320r1", "brainpoolP320t1", "brainpoolP384r1", "brainpoolP384t1", "brainpoolP512r1",
+//        "brainpoolP512t1"};
     BigInteger[] orders = { 
         new BigInteger("E95E4A5F737059DC60DF5991D45029409E60FC09", 16),
         new BigInteger("E95E4A5F737059DC60DF5991D45029409E60FC09", 16),
@@ -80,12 +83,12 @@ public class BrainPool {
         new BigInteger("3DF91610A83441CAEA9863BC2DED5D5AA8253AA10A2EF1C98B9AC8B57F1117A72BF2C7B9E7C1AC4D77FC94CADC083E67984050B75EBAE5DD2809BD638016F723", 16),
         new BigInteger("7CBBBCF9441CFAB76E1890E46884EAE321F70C0BCB4981527897504BEC3E36A62BCDFA2304976540F6450085F2DAE145C22553B465763689180EA2571867423E", 16),
         };
-    for (int i=0; i<ids.length; i++) {
+    for (int i=0; i<curveIds.length; i++) {
       OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a[i]), new BigInt(b[i]));
       PrimeField primeField = new PrimeField(new BigInt(p[i]));
       AffineCurve curve = AffineCoordinatesOddCharacteristic.makeCurve(coefficients, primeField);
       CurveSpec curveSpec = new CurveSpec(curve, orders[i], BigInteger.ONE);
-      curves.put(ids[i], curveSpec);
+      curves.put(curveIds[i], curveSpec);
     }
   }
 }

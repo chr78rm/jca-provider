@@ -1,5 +1,6 @@
 package de.christofreichardt.crypto.ecschnorrsignature;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -14,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.christofreichardt.crypto.Provider;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigGenParameterSpec.CurveCompilation;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
@@ -23,6 +25,7 @@ import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddChara
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffinePoint;
 
 public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
+  public final static int DEFAULT_KEYSIZE = 256;
   final private Properties properties;
   final String ALGORITHM_NAME = "ECSchnorrSignature";
   final Provider provider = new Provider();
@@ -50,13 +53,13 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
     tracer.entry("void", this, "nistCurves()");
     
     try {
-      for (Entry<Integer, CurveSpec> entry : KeyPairGenerator.nistCurves.entrySet()) {
-        int keySize = entry.getKey();
+      for (Entry<String, CurveSpec> entry : NIST.curves.entrySet()) {
+        String curveId = entry.getKey();
         CurveSpec curveSpec = entry.getValue();
         AffineCurve curve = curveSpec.getCurve();
         AffinePoint point = curve.randomPoint();
         
-        tracer.out().printfIndentln("curve(%d) = %s", keySize, curve);
+        tracer.out().printfIndentln("curve(%s) = %s", curveId, curve);
         tracer.out().printfIndentln("point = %s", point);
         
         Element element = point.multiply(curveSpec.getOrder());
@@ -78,7 +81,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
     try {
       KeyPairGenerator keyPairGenerator = new KeyPairGenerator();
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
-      validateKeyPair(keyPair, KeyPairGenerator.DEFAULT_KEYSIZE);
+      validateKeyPair(keyPair, DEFAULT_KEYSIZE);
     }
     finally {
       tracer.wayout();
@@ -86,17 +89,42 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
   }
   
   @Test
-  public void customParams() {
+  public void customKeySizes() {
     AbstractTracer tracer = getCurrentTracer();
-    tracer.entry("void", this, "customParams()");
+    tracer.entry("void", this, "customKeySizes()");
     
     try {
+      int[] keySizes = {192, 224, 256, 384, 521};
       KeyPairGenerator keyPairGenerator = new KeyPairGenerator();
-      for (Entry<Integer, CurveSpec> entry : KeyPairGenerator.nistCurves.entrySet()) {
-        int keySize = entry.getKey();
+      for (int keySize : keySizes) {
         keyPairGenerator.initialize(keySize, new SecureRandom());
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         validateKeyPair(keyPair, keySize);
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void customParams() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "customParams()");
+
+    try {
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME);
+      
+      for (String curveId : NIST.curveIds) {
+        keyPairGenerator.initialize(new ECSchnorrSigGenParameterSpec(CurveCompilation.NIST, curveId, true));
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        validateKeyPair(keyPair, NIST.curves.get(curveId).getCurve().p().bitLength());
+      }
+      
+      for (String curveId : BrainPool.curveIds) {
+        keyPairGenerator.initialize(new ECSchnorrSigGenParameterSpec(CurveCompilation.BRAINPOOL, curveId, true));
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        validateKeyPair(keyPair, BrainPool.curves.get(curveId).getCurve().p().bitLength());
       }
     }
     finally {
@@ -115,7 +143,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       Assert.assertTrue("Expected a keyPairGenerator for the " + ALGORITHM_NAME + ".", keyPairGenerator.getAlgorithm().equals(ALGORITHM_NAME));
       
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
-      validateKeyPair(keyPair, KeyPairGenerator.DEFAULT_KEYSIZE);
+      validateKeyPair(keyPair, DEFAULT_KEYSIZE);
     }
     finally {
       tracer.wayout();
@@ -134,7 +162,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       Assert.assertTrue("Expected a keyPairGenerator from the " + Provider.NAME + ".", keyPairGenerator.getProvider().getName().equals(Provider.NAME));
       
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
-      validateKeyPair(keyPair, KeyPairGenerator.DEFAULT_KEYSIZE);
+      validateKeyPair(keyPair, DEFAULT_KEYSIZE);
     }
     finally {
       tracer.wayout();
@@ -153,7 +181,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       Assert.assertTrue("Expected a keyPairGenerator from the " + Provider.NAME + ".", keyPairGenerator.getProvider().getName().equals(Provider.NAME));
       
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
-      validateKeyPair(keyPair, KeyPairGenerator.DEFAULT_KEYSIZE);
+      validateKeyPair(keyPair, DEFAULT_KEYSIZE);
     }
     finally {
       tracer.wayout();
@@ -178,7 +206,8 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       Assert.assertTrue("Expected the same ECSchnorrParams instance.", ecSchnorrParams == ecSchnorrPublicKey.getEcSchnorrParams());
       final int CERTAINTY = 100;
       Assert.assertTrue("Expected a prime group order.", ecSchnorrParams.getCurveSpec().getOrder().isProbablePrime(CERTAINTY));
-      tracer.out().printfIndentln("ecSchnorrParams.getCurveSpec().getOrder().bitLength() = %d", ecSchnorrParams.getCurveSpec().getOrder().bitLength());
+      tracer.out().printfIndentln("ecSchnorrParams.getCurveSpec().getCurve().p().bitLength() = %d", ecSchnorrParams.getCurveSpec().getCurve().p().bitLength());
+      Assert.assertTrue("Wrong keysize.", ecSchnorrParams.getCurveSpec().getCurve().p().bitLength() == expectedBitLength);
       
       Element element = ecSchnorrParams.getgPoint().multiply(ecSchnorrPrivateKey.getX());
       AffinePoint hPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
