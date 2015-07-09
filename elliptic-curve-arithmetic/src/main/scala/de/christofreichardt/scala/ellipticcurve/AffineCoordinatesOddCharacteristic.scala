@@ -142,8 +142,6 @@ package affine {
         multiplicationMethod.multiply(scalar, this)
       }
       
-      def multiply (scalar: java.math.BigInteger): Element = multiply(BigInt(scalar))
-
       def canEqual(other: Any) = {
         other.isInstanceOf[AffinePoint]
       }

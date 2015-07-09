@@ -9,6 +9,7 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
+import de.christofreichardt.scala.ellipticcurve.GroupLaw.Point;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffinePoint;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.OddCharCoefficients;
@@ -83,7 +84,7 @@ public class ExperimentalUnit implements Traceable {
       OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b));
       PrimeField primeField = new PrimeField(new BigInt(p));
       AffineCurve curve = AffineCoordinatesOddCharacteristic.makeCurve(coefficients, primeField);
-      AffinePoint point = curve.randomPoint();
+      Point point = curve.randomPoint();
       
       tracer.out().printfIndentln("curve = %s", curve);
       tracer.out().printfIndentln("point = %s", point);

@@ -1,5 +1,7 @@
 package de.christofreichardt.scala.ellipticcurve
 
+import java.math.BigInteger
+
 abstract class GroupLaw {
   trait Curve
   trait Coordinates
@@ -24,6 +26,7 @@ abstract class GroupLaw {
     def add(element: ThePoint): Element
     def add(element: NeutralElement) = this
     def multiply(scalar: BigInt): Element
+    def multiply(scalar: BigInteger): Element = multiply(BigInt(scalar))
   }
 
   class NeutralElement extends Element {
