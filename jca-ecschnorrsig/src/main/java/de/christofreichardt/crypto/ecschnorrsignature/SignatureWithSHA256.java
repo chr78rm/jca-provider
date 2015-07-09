@@ -53,11 +53,6 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
         throw new InvalidKeyException("Need a ECSchnorrPrivateKey instance.");
       this.ecSchnorrPrivateKey = (ECSchnorrPrivateKey) privateKey;
       
-//      CurveSpec curveSpec = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec();
-//      do {
-//        this.r = new BigInteger(curveSpec.getOrder().bitLength()*2, this.secureRandom).mod(curveSpec.getOrder());
-//      } while (r.equals(BigInteger.ZERO));
-      
       this.messageDigest.reset();
       
       this.initialisedForSigning = true;
