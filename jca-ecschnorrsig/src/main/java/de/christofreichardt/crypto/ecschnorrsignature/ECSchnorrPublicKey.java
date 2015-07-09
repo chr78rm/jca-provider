@@ -2,7 +2,7 @@ package de.christofreichardt.crypto.ecschnorrsignature;
 
 import java.security.PublicKey;
 
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffinePoint;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
 
 public class ECSchnorrPublicKey extends ECSchnorrKey implements PublicKey {
   private static final long serialVersionUID = 1L;

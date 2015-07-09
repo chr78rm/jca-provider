@@ -10,13 +10,13 @@ import de.christofreichardt.diagnosis.AbstractTracer
 import de.christofreichardt.diagnosis.TracerFactory
 import de.christofreichardt.scala.diagnosis.Tracing
 import de.christofreichardt.scalatest.MyDummySuite
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristicSuite
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrassSuite
 import de.christofreichardt.scala.ellipticcurve.affine.MontgomerySuite
 
 
 class MySuites extends Suites(
     new MyDummySuite(),
-    new AffineCoordinatesOddCharacteristicSuite(),
+    new ShortWeierstrassSuite(),
     new QuadraticResidueSuite(),
     new MontgomerySuite()
     ) with Tracing with BeforeAndAfterAll with SequentialNestedSuiteExecution {

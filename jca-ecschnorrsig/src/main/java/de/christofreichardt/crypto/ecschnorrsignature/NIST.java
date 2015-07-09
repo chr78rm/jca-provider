@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import scala.math.BigInt;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffineCurve;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.OddCharCoefficients;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.PrimeField;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffineCurve;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.OddCharCoefficients;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.PrimeField;
 
 public class NIST {
   static public final Map<String, CurveSpec> curves = new HashMap<>();
@@ -40,7 +40,7 @@ public class NIST {
     for (int i=0; i<curveIds.length; i++) {
       OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b[i]));
       PrimeField primeField = new PrimeField(new BigInt(p[i]));
-      AffineCurve curve = AffineCoordinatesOddCharacteristic.makeCurve(coefficients, primeField);
+      AffineCurve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
       CurveSpec curveSpec = new CurveSpec(curve, orders[i], BigInteger.ONE);
       curves.put(curveIds[i], curveSpec);
     }

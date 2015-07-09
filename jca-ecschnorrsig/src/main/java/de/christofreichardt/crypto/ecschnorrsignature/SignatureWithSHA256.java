@@ -17,8 +17,8 @@ import de.christofreichardt.diagnosis.LogLevel;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffinePoint;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
 
 public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   static final public int DIGEST_LENGTH = 32;
@@ -141,7 +141,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     
     try {
       AffinePoint gPoint = this.ecSchnorrPrivateKey.getEcSchnorrParams().getgPoint();
-      AffinePoint sPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(gPoint.multiply(r));
+      AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(gPoint.multiply(r));
       
       tracer.out().printfIndentln("sPoint = %s", sPoint);
       
@@ -222,7 +222,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       AffinePoint gPoint = this.ecSchnorrPublicKey.getEcSchnorrParams().getgPoint();
       AffinePoint hPoint = this.ecSchnorrPublicKey.gethPoint();
       Element element = (gPoint.multiply(y)).add(hPoint.multiply(e.negate().mod(curveSpec.getOrder())));
-      AffinePoint sPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
+      AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(element);
       
       tracer.out().printfIndentln("sPoint = %s", sPoint);
       

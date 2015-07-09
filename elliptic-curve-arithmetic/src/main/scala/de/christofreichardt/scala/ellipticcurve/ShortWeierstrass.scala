@@ -13,7 +13,7 @@ import java.math.RoundingMode
 import scala.language.implicitConversions
 
 package affine {
-  object AffineCoordinatesOddCharacteristic extends GroupLaw with Tracing {
+  object ShortWeierstrass extends GroupLaw with Tracing {
     type TheCurve = AffineCurve
     type ThePoint = AffinePoint
     type TheCoefficients = OddCharCoefficients
@@ -227,7 +227,7 @@ package affine {
     }
 
     trait GroupOrderCalculus {
-      val groupLaw = AffineCoordinatesOddCharacteristic
+      val groupLaw = ShortWeierstrass
       
       def squareRoot(a: BigDecimal): BigDecimal = {
         withTracer("BigDecimal", this, "squareRoot(a: BigDecimal)") {

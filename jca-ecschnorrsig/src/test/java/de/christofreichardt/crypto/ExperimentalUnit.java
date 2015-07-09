@@ -10,11 +10,11 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Point;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffinePoint;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.OddCharCoefficients;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.PrimeField;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffineCurve;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.OddCharCoefficients;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.PrimeField;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffineCurve;
 
 import java.math.BigInteger;
 import java.util.Properties;
@@ -60,7 +60,7 @@ public class ExperimentalUnit implements Traceable {
       BigInteger p = new BigInteger("93139");
       OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b));
       PrimeField primeField = new PrimeField(new BigInt(p));
-      AffineCurve curve = AffineCoordinatesOddCharacteristic.makeCurve(coefficients, primeField);
+      AffineCurve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
       AffinePoint point = curve.randomPoint();
       
       tracer.out().printfIndentln("curve = %s", curve);
@@ -83,7 +83,7 @@ public class ExperimentalUnit implements Traceable {
       BigInteger order = new BigInteger("6277101735386680763835789423176059013767194773182842284081");
       OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b));
       PrimeField primeField = new PrimeField(new BigInt(p));
-      AffineCurve curve = AffineCoordinatesOddCharacteristic.makeCurve(coefficients, primeField);
+      AffineCurve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
       Point point = curve.randomPoint();
       
       tracer.out().printfIndentln("curve = %s", curve);

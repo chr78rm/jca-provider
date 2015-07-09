@@ -5,19 +5,19 @@ package affine {
   import de.christofreichardt.diagnosis.AbstractTracer
   import de.christofreichardt.diagnosis.TracerFactory
   import de.christofreichardt.scala.diagnosis.Tracing
-  import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.elemToAffinePoint
+  import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass
 
   import scala.BigInt
   import scala.Stream
   import scala.annotation.tailrec
 
-  import AffineCoordinatesOddCharacteristic.NeutralElement
+  import ShortWeierstrass.NeutralElement
 
-  class FixedPointBinaryMethod(val fixedPoint: AffineCoordinatesOddCharacteristic.AffinePoint)
-      extends AffineCoordinatesOddCharacteristic.PointMultiplication with Tracing {
+  class FixedPointBinaryMethod(val fixedPoint: ShortWeierstrass.AffinePoint)
+      extends ShortWeierstrass.PointMultiplication with Tracing {
 
-    type AffinePoint = AffineCoordinatesOddCharacteristic.AffinePoint
-    type Element = AffineCoordinatesOddCharacteristic.Element
+    type AffinePoint = ShortWeierstrass.AffinePoint
+    type Element = ShortWeierstrass.Element
     
     def twoPowerPointStream: Stream[(Int, Element)] = {
       def pointStream(exp: Int, power: BigInt, element: Element): Stream[(Int, Element)] = {

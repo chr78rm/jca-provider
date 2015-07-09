@@ -7,7 +7,7 @@ package affine {
     
     testWithTracing(this, "Montgomery2Weierstrass") {
       val tracer = getCurrentTracer()
-      val groupLaw = AffineCoordinatesOddCharacteristic
+      val groupLaw = ShortWeierstrass
       
       def convertCoefficients(coefficients: (BigInt, BigInt), prime: BigInt): (BigInt, BigInt) = {
         val A = coefficients._1

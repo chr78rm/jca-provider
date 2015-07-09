@@ -20,9 +20,9 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffineCurve;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffinePoint;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffineCurve;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
 
 public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
   public final static int DEFAULT_KEYSIZE = 256;
@@ -210,7 +210,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       Assert.assertTrue("Wrong keysize.", ecSchnorrParams.getCurveSpec().getCurve().p().bitLength() == expectedBitLength);
       
       Element element = ecSchnorrParams.getgPoint().multiply(ecSchnorrPrivateKey.getX());
-      AffinePoint hPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
+      AffinePoint hPoint = ShortWeierstrass.elemToAffinePoint(element);
       
       Assert.assertTrue("Expected the public h point.", hPoint.equals(ecSchnorrPublicKey.gethPoint()));
     }

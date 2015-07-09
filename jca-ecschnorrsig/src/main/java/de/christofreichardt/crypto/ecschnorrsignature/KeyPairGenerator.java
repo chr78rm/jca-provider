@@ -14,8 +14,8 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
 import de.christofreichardt.scala.ellipticcurve.RandomGenerator;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic;
-import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesOddCharacteristic.AffinePoint;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
 
 public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
   
@@ -47,7 +47,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
         AffinePoint randomPoint = curveSpec.getCurve().randomPoint(new RandomGenerator(this.secureRandom));
         Element element = randomPoint.multiply(curveSpec.getCoFactor());
         if (!element.isNeutralElement()) {
-          gPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
+          gPoint = ShortWeierstrass.elemToAffinePoint(element);
           break;
         }
       } while (true);
@@ -59,7 +59,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       
       Element element = gPoint.multiply(x);
       assert !element.isNeutralElement();
-      AffinePoint hPoint = AffineCoordinatesOddCharacteristic.elemToAffinePoint(element);
+      AffinePoint hPoint = ShortWeierstrass.elemToAffinePoint(element);
       
       tracer.out().printfIndentln("gPoint = %s", gPoint);
       tracer.out().printfIndentln("x = %s", x);

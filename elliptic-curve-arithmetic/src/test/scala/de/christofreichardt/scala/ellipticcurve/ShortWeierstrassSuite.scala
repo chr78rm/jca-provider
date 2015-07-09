@@ -11,12 +11,12 @@ import scala.collection.mutable.HashSet
 import de.christofreichardt.diagnosis.LogLevel
 
 package affine {
-  import AffineCoordinatesOddCharacteristic.AffineCurve
-  import AffineCoordinatesOddCharacteristic.AffinePoint
-  import AffineCoordinatesOddCharacteristic.elemToAffinePoint
+  import ShortWeierstrass.AffineCurve
+  import ShortWeierstrass.AffinePoint
+  import ShortWeierstrass.elemToAffinePoint
   
-  class AffineCoordinatesOddCharacteristicSuite extends MyFunSuite {
-    val groupLaw = AffineCoordinatesOddCharacteristic
+  class ShortWeierstrassSuite extends MyFunSuite {
+    val groupLaw = ShortWeierstrass
     val curve1 = groupLaw.makeCurve(groupLaw.OddCharCoefficients(4, 20), groupLaw.PrimeField(29))
     val curve2 = groupLaw.makeCurve(groupLaw.OddCharCoefficients(71, 602), groupLaw.PrimeField(1009))
     val curve3 = groupLaw.makeCurve(groupLaw.OddCharCoefficients(146, 33), groupLaw.PrimeField(173))
@@ -112,7 +112,7 @@ package affine {
         intercept[groupLaw.NeutralElementException] {
           val element = point1.multiply(scalar)
           tracer.out().printfIndentln("%s*%s = %s", scalar, point1, element)
-          val point2: AffineCoordinatesOddCharacteristic.AffinePoint = element
+          val point2: ShortWeierstrass.AffinePoint = element
         }
       }
       catch {
@@ -129,7 +129,7 @@ package affine {
         intercept[groupLaw.NeutralElementException] {
           val element = point1.multiply(scalar)
           tracer.out().printfIndentln("%s*%s = %s", scalar, point1, element)
-          val point2: AffineCoordinatesOddCharacteristic.AffinePoint = element
+          val point2: ShortWeierstrass.AffinePoint = element
         }
       }
       catch {
