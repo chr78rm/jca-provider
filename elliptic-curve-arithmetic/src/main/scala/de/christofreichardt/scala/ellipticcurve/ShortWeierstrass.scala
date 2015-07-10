@@ -186,46 +186,6 @@ package affine {
       }
     }
 
-    class BinaryMethod extends PointMultiplication with Tracing {
-      def multiply(m: BigInt, point: AffinePoint): Element = {
-        val tracer = getCurrentTracer()
-        withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {
-          tracer.out().printfIndentln("m = %s", m)
-          tracer.out().printfIndentln("point = %s", point)
-
-          @tailrec
-          def multiply(q: Element, i: Int): Element = {
-            tracer.out().printfIndentln("i = %d", int2Integer(i))
-            tracer.out().printfIndentln("q = %s", q)
-            tracer.out().flush()
-
-            if (i == 0) {
-              q
-            }
-            else {
-              val double = q.add(q)
-              val sum =
-                if (m.testBit(i - 1)) double add point
-                else double
-              multiply(sum, i - 1)
-            }
-          }
-
-          if (m == BigInt(0)) new NeutralElement
-          else multiply(new NeutralElement, m.bitLength)
-        }
-      }
-
-      override def getCurrentTracer(): AbstractTracer = {
-        try {
-          TracerFactory.getInstance().getDefaultTracer
-        }
-        catch {
-          case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
-        }
-      }
-    }
-
     trait GroupOrderCalculus {
       val groupLaw = ShortWeierstrass
       

@@ -12,13 +12,54 @@ package affine {
   import scala.annotation.tailrec
 
   import ShortWeierstrass.NeutralElement
+  import ShortWeierstrass.PointMultiplication
+  import ShortWeierstrass.AffinePoint
+  import ShortWeierstrass.Element
+  
+      class BinaryMethod extends PointMultiplication with Tracing {
+      def multiply(m: BigInt, point: AffinePoint): Element = {
+        val tracer = getCurrentTracer()
+        withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {
+          tracer.out().printfIndentln("m = %s", m)
+          tracer.out().printfIndentln("point = %s", point)
+
+          @tailrec
+          def multiply(q: Element, i: Int): Element = {
+            tracer.out().printfIndentln("i = %d", int2Integer(i))
+            tracer.out().printfIndentln("q = %s", q)
+            tracer.out().flush()
+
+            if (i == 0) {
+              q
+            }
+            else {
+              val double = q.add(q)
+              val sum =
+                if (m.testBit(i - 1)) double add point
+                else double
+              multiply(sum, i - 1)
+            }
+          }
+
+          if (m == BigInt(0)) new NeutralElement
+          else multiply(new NeutralElement, m.bitLength)
+        }
+      }
+
+      override def getCurrentTracer(): AbstractTracer = {
+        try {
+          TracerFactory.getInstance().getDefaultTracer
+        }
+        catch {
+          case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
+        }
+      }
+    }
+
 
   class FixedPointBinaryMethod(val fixedPoint: ShortWeierstrass.AffinePoint)
       extends ShortWeierstrass.PointMultiplication with Tracing {
 
-    type AffinePoint = ShortWeierstrass.AffinePoint
-    type Element = ShortWeierstrass.Element
-    
     def twoPowerPointStream: Stream[(Int, Element)] = {
       def pointStream(exp: Int, power: BigInt, element: Element): Stream[(Int, Element)] = {
         if (exp == 0) Stream.cons((exp, this.fixedPoint), pointStream(1, BigInt(1), this.fixedPoint))
