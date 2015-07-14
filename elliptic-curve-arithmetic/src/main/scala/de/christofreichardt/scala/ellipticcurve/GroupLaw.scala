@@ -13,14 +13,14 @@ abstract class GroupLaw {
   type TheCoefficients <: Coefficients
   type TheFiniteField <: FiniteField
   type TheCoordinates <: Coordinates
-  
+
   trait Element {
     def isNeutralElement: Boolean
     def negate: Element
     def add(element: Element): Element = {
       element match {
         case neutralElement: NeutralElement => add(neutralElement)
-        case point: ThePoint                => add(point)
+        case point: ThePoint @unchecked     => add(point)
       }
     }
     def add(element: ThePoint): Element
@@ -29,12 +29,28 @@ abstract class GroupLaw {
     def multiply(scalar: BigInteger): Element = multiply(BigInt(scalar))
   }
 
-  class NeutralElement extends Element {
+  class NeutralElement extends Element with Equals {
     override def isNeutralElement = true
     override def negate = this
     override def add(element: ThePoint) = element
     override def multiply(scalar: BigInt) = this
     override def toString() = "NeutralElement"
+
+    def canEqual(other: Any) = {
+      other.isInstanceOf[GroupLaw.this.NeutralElement]
+    }
+
+    override def equals(other: Any) = {
+      other match {
+        case that: GroupLaw.this.NeutralElement => that.canEqual(NeutralElement.this)
+        case _ => false
+      }
+    }
+
+    override def hashCode() = {
+      val prime = 41
+      prime
+    }
   }
   
   trait Point extends Element {
