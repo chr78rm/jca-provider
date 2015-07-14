@@ -367,7 +367,7 @@ package affine {
 
       val test = fixedPointMultiplication.multiplies.forall({
         case (index, multiply) => {
-          val power = BigInt(2).modPow(index, this.curve2.p)
+          val power = BigInt(2).pow(index)
           val checkPoint = point multiply power
           tracer.out().printfIndentln("(2^%d, %s) =?= (%s, %s)", index: Integer, multiply, power, checkPoint)
           checkPoint == multiply        
@@ -384,6 +384,33 @@ package affine {
       tracer.out().printfIndentln("%s*%s = %s", point, scalar, productByFixedPointMultiplication)
       tracer.out().printfIndentln("(%s == %s) = %b", productByFixedPointMultiplication, product, (product == productByFixedPointMultiplication): java.lang.Boolean)
       assert(product == productByFixedPointMultiplication, "Wrong product.")
+      
+      val order = 1060
+      assert(fixedPointMultiplication.multiply(order) == point.multiply(order), "Expected the NeutralElement.")
+    }
+    
+    testWithTracing(this, "Montgomery Ladder") {
+      val tracer = getCurrentTracer()
+      
+      val point = this.curve2.randomPoint
+      val montgomeryLadder = new MontgomeryLadder
+      val binaryMethod = new BinaryMethod
+      val randomGenerator = new RandomGenerator
+      val TESTS = 5
+      
+      tracer.out().printfIndentln("this.curve2 = %s", this.curve2)
+      tracer.out().printfIndentln("point = %s", point)
+      
+      (0 until TESTS).foreach(i => {
+        tracer.out().printfIndentln("i = %d", i: Integer)
+        val scalar = randomGenerator.bigIntStream(this.curve2.p.bitLength*2, this.curve2.p).head
+        val productByLadder = montgomeryLadder.multiply(scalar, point)      
+        val productByBinary = binaryMethod.multiply(scalar, point)
+        
+        tracer.out().printfIndentln("%s*%s = %s", point, scalar, productByLadder)
+        tracer.out().printfIndentln("(%s == %s) = %b", productByLadder, productByBinary, (productByBinary == productByLadder): java.lang.Boolean)
+        assert(productByBinary == productByLadder, "Wrong product.")
+      })
     }
   }
 }
