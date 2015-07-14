@@ -5,10 +5,10 @@ import scala.annotation.tailrec
 
 class ExperimentalSuite extends MyFunSuite {
   
-  testWithTracing(this, "Montgomery Ladder") {
+  testWithTracing(this, "Simple Ladder") {
     val tracer = getCurrentTracer()
     
-    val multiplier = BigInt(15)
+    val multiplier = BigInt(13)
     val multiplicand = BigInt(5)
     
     tracer.out().printfIndentln("bitLength(%s) = %d, %s", multiplier, multiplier.bitLength: Integer, multiplier.toString(2))
@@ -20,7 +20,8 @@ class ExperimentalSuite extends MyFunSuite {
         
         @tailrec
         def multiply(s: BigInt, t: BigInt, i: Int): BigInt = {
-          tracer.out().printfIndentln("i = %d", i: Integer)
+          tracer.out().printfIndentln("------------------")
+          if (i >= 0) tracer.out().printfIndentln("testBit(%d) = %b", i: Integer, multiplier.testBit(i): java.lang.Boolean)
           tracer.out().printfIndentln("s = %s", s)
           tracer.out().printfIndentln("t = %s", t)
           
@@ -47,7 +48,8 @@ class ExperimentalSuite extends MyFunSuite {
         
         @tailrec
         def multiply(s: BigInt, i: Int): BigInt = {
-          tracer.out().printfIndentln("i = %d", i: Integer)
+          tracer.out().printfIndentln("------------------")
+          if (i >= 0) tracer.out().printfIndentln("testBit(%d) = %b", i: Integer, multiplier.testBit(i): java.lang.Boolean)
           tracer.out().printfIndentln("s = %s", s)
 
           if (i < 0)
