@@ -15,8 +15,12 @@ import java.security.spec.AlgorithmParameterSpec;
  * @author Christof Reichardt
  */
 public class SchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
+  final public static int L_MINIMAL = 1024;
+  final public static int T_MINIMAL = 160;
   final public static int L = 2048;
   final public static int T = 512;
+  final public static int L_STRONG = 4096;
+  final public static int T_STRONG = 1024;
   public enum Strength {MINIMAL, DEFAULT, STRONG, CUSTOM};
   
   final private Strength strength;
@@ -62,16 +66,16 @@ public class SchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
       case CUSTOM:
         throw new IllegalArgumentException("This constructor doesn't evaluate custom security parameters.");
       case MINIMAL:
-        this.l = 1024;
-        this.t = 160;
+        this.l = L_MINIMAL;
+        this.t = T_MINIMAL;
         break;
       case DEFAULT:
         this.l = L;
         this.t = T;
         break;
       case STRONG:
-        this.l = 4096;
-        this.t = 1024;
+        this.l = L_STRONG;
+        this.t = T_STRONG;
         break;
       default:
         throw new IllegalArgumentException("Unknown strength.");
