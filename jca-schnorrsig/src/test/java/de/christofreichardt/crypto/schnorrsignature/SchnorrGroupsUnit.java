@@ -58,6 +58,45 @@ public class SchnorrGroupsUnit implements Traceable {
     }
   }
   
+  @Test
+  public void groupsWithMinimalStrength() {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "groupsWithMinimalStrength()");
+    
+    try {
+      for (SchnorrGroup schnorrGroup : SchnorrGroups.MINIMAL) {
+        tracer.out().printfIndentln("schnorrGroup = %s", schnorrGroup);
+        
+        Assert.assertTrue("q | (p - 1) doesn't hold.", ((schnorrGroup.getP().subtract(BigInteger.ONE)).mod(schnorrGroup.getQ())).equals(BigInteger.ZERO));
+        Assert.assertTrue("p expected to have " + SchnorrSigGenParameterSpec.L_MINIMAL + " bits.", schnorrGroup.getP().bitLength() == SchnorrSigGenParameterSpec.L_MINIMAL);
+        Assert.assertTrue("q expected to have " + SchnorrSigGenParameterSpec.T_MINIMAL + " bits.", schnorrGroup.getQ().bitLength() == SchnorrSigGenParameterSpec.T_MINIMAL);
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void groupsWithStrongStrength() {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "groupsWithStrongStrength()");
+    
+    try {
+      final int EPSILON = 5;
+      for (SchnorrGroup schnorrGroup : SchnorrGroups.STRONG) {
+        tracer.out().printfIndentln("schnorrGroup = %s", schnorrGroup);
+        
+        Assert.assertTrue("q | (p - 1) doesn't hold.", ((schnorrGroup.getP().subtract(BigInteger.ONE)).mod(schnorrGroup.getQ())).equals(BigInteger.ZERO));
+        Assert.assertTrue("p expected to have at least " + (SchnorrSigGenParameterSpec.L_STRONG - EPSILON) + " bits.", schnorrGroup.getP().bitLength() >= SchnorrSigGenParameterSpec.L_STRONG - EPSILON);
+        Assert.assertTrue("q expected to have " + SchnorrSigGenParameterSpec.T_STRONG + " bits.", schnorrGroup.getQ().bitLength() == SchnorrSigGenParameterSpec.T_STRONG);
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
   @After
   public void exit() {
     AbstractTracer tracer = getCurrentTracer();
