@@ -9,6 +9,7 @@ package de.christofreichardt.crypto.schnorrsignature;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidParameterException;
@@ -135,12 +136,15 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
           do {
             BigInteger r = new BigInteger(bitDiff, this.secureRandom);
             p = q.multiply(r).add(BigInteger.ONE);
-            if (this.secureRandom.nextInt(this.schnorrSigGenParameterSpec.getL()) == 0) {
+            if (this.schnorrSigGenParameterSpec.isExact() && p.bitLength() != this.schnorrSigGenParameterSpec.getL())
+              continue;
+            if (p.isProbablePrime(CERTAINTY))
+              break;
+            if (this.secureRandom.nextInt(this.schnorrSigGenParameterSpec.getL()) < this.schnorrSigGenParameterSpec.getL()/1000) {
               groupFound = false;
               break;
             }
-          } while(!p.isProbablePrime(CERTAINTY)  ||  
-              (p.bitLength() != this.schnorrSigGenParameterSpec.getL()  &&  this.schnorrSigGenParameterSpec.isExact()));
+          } while(true);
         } while(!groupFound);
       }
       
@@ -183,10 +187,24 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
     tracer.entry("SchnorrGroup", this, "selectPrecomputedGroup()");
     
     try {
-      if (this.schnorrSigGenParameterSpec.getStrength() != SchnorrSigGenParameterSpec.Strength.DEFAULT)
-        throw new UnsupportedOperationException("Not implemented yet.");
+      SchnorrGroup schnorrGroup;
+      switch (this.schnorrSigGenParameterSpec.getStrength()) {
+      case DEFAULT:
+        schnorrGroup = SchnorrGroups.DEFAULT[this.secureRandom.nextInt(SchnorrGroups.DEFAULT.length)];
+        break;
+      case MINIMAL:
+        schnorrGroup = SchnorrGroups.MINIMAL[this.secureRandom.nextInt(SchnorrGroups.MINIMAL.length)];
+        break;
+      case STRONG:
+        schnorrGroup = SchnorrGroups.STRONG[this.secureRandom.nextInt(SchnorrGroups.STRONG.length)];
+        break;
+      case CUSTOM:
+        throw new IllegalStateException("Not allowed here.");
+      default:
+        throw new UnsupportedOperationException("Unknown strength.");
+      }
       
-      return SchnorrGroups.DEFAULT[this.secureRandom.nextInt(SchnorrGroups.DEFAULT.length)];
+      return schnorrGroup;
     }
     finally {
       tracer.wayout();
