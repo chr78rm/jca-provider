@@ -7,9 +7,11 @@
 package de.christofreichardt.crypto.schnorrsignature;
 
 import de.christofreichardt.crypto.Provider;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigGenParameterSpec.Strength;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
@@ -17,7 +19,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.util.EnumSet;
 import java.util.Properties;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +36,6 @@ public class SchnorrKeyGeneratorUnit implements Traceable {
   
   final private Properties properties;
   
-//  final String PROVIDER_NAME = "CryptoChr";
   final String ALGORITHM_NAME = "SchnorrSignature";
   final Provider provider = new Provider();
 
@@ -60,8 +63,9 @@ public class SchnorrKeyGeneratorUnit implements Traceable {
     
     try {
       SchnorrSigGenParameterSpec[] specs = {
-        new SchnorrSigGenParameterSpec(1024, 160),
-        new SchnorrSigGenParameterSpec(2048, 512),
+        new SchnorrSigGenParameterSpec(1024, 160, false),
+        new SchnorrSigGenParameterSpec(2048, 512, false),
+//        new SchnorrSigGenParameterSpec(4096, 1024, false),
       };
       for (SchnorrSigGenParameterSpec schnorrSigGenParameterSpec : specs) {
         tracer.out().printfIndentln("schnorrSigGenParameterSpec = %s", schnorrSigGenParameterSpec);
@@ -78,7 +82,7 @@ public class SchnorrKeyGeneratorUnit implements Traceable {
   }
   
   @Test
-  public void defaultSecParams() throws InvalidAlgorithmParameterException {
+  public void defaultSecParams() {
     AbstractTracer tracer = getCurrentTracer();
     tracer.entry("void", this, "defaultSecParams()");
     
@@ -86,6 +90,30 @@ public class SchnorrKeyGeneratorUnit implements Traceable {
       KeyPairGenerator keyPairGenerator = new KeyPairGenerator();
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
       validateKeyPair(keyPair);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void predefinedStrengths() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "predefinedStrengths()");
+    
+    try {
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME);
+      
+      EnumSet<Strength> strengths = EnumSet.allOf(Strength.class);
+      for (Strength strength : strengths) {
+        if (strength != Strength.CUSTOM) {
+          tracer.out().printfIndentln("strength = %s", strength);
+          SchnorrSigGenParameterSpec schnorrSigGenParameterSpec = new SchnorrSigGenParameterSpec(strength);
+          keyPairGenerator.initialize(schnorrSigGenParameterSpec);
+          KeyPair keyPair = keyPairGenerator.generateKeyPair();
+          validateKeyPair(keyPair);
+        }
+      }
     }
     finally {
       tracer.wayout();
