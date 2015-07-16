@@ -138,6 +138,10 @@ package affine {
     }
 
     testWithTracing(this, "Point Multiplication order(P)*P=0 (3)") {
+      //
+      // curve taken from "Elliptic Curves in Cryptography" (Blake, Seroussi, Smart), Cambridge University Press, 1999
+      // Example 3, page 182
+      //
       val tracer = getCurrentTracer()
       val coefficients = this.groupLaw.OddCharCoefficients(10, BigInt("1343632762150092499701637438970764818528075565078"))
       val primeField = this.groupLaw.PrimeField(BigInt(2).pow(160) + 7)
