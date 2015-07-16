@@ -280,7 +280,7 @@ public class BaseSignatureUnit implements Traceable {
         }
         
         boolean verified = signature.verify(signatureBytes);
-        Assert.assertTrue("Expected a valid signature.", file.exists());
+        Assert.assertTrue("Expected a valid signature.", verified);
       }
       else
         tracer.logMessage(LogLevel.INFO, "Nio testcase skipped.", getClass(), "void nio()");
