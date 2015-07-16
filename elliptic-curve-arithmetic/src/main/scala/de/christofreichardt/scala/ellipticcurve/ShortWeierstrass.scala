@@ -138,7 +138,7 @@ package affine {
       }
 
       override def multiply(scalar: BigInt) = {
-        val multiplicationMethod: PointMultiplication = new BinaryMethod
+        val multiplicationMethod: PointMultiplication = new MontgomeryLadder
         multiplicationMethod.multiply(scalar, this)
       }
       
