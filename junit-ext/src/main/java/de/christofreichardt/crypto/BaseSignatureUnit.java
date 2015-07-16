@@ -1,8 +1,12 @@
 package de.christofreichardt.crypto;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -23,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.diagnosis.LogLevel;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
@@ -199,6 +204,86 @@ public class BaseSignatureUnit implements Traceable {
       verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
 
       Assert.assertTrue("Expected an invalid signature.", !verified);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+
+  @Test
+  public void nio() throws NoSuchAlgorithmException, NoSuchProviderException, IOException, InvalidKeyException, SignatureException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "nio()");
+
+    try {
+      if (this.properties.containsKey("de.christofreichardt.crypto.BaseSignatureUnit.document")) {
+        java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        Signature signature = Signature.getInstance(this.signatureAlgorithmName, this.provider.getName());
+        signature.initSign(keyPair.getPrivate());
+        
+        File file = new File(this.properties.getProperty("de.christofreichardt.crypto.BaseSignatureUnit.document"));
+        Assert.assertTrue("Specified file '" + file.getPath() + "' doesn't exist.", file.exists());
+        
+        int bufferSize = 512;
+        ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+        byte[] bytes = new byte[bufferSize];
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+          FileChannel fileChannel = fileInputStream.getChannel();
+          do {
+            int read = fileChannel.read(buffer);
+            
+            tracer.out().printfIndentln("read = %d", read);
+            
+            if (read == -1)
+              break;
+            buffer.flip();
+            buffer.get(bytes, 0, read);
+            
+            tracer.out().printIndent("bytes: ");
+            for (int i=0; i<read; i++) {
+              tracer.out().print(bytes[i] & 255);
+              tracer.out().print(" ");
+            }
+            tracer.out().println();
+            
+            signature.update(bytes, 0, read);
+            buffer.clear();
+          } while(true);
+        }
+        
+        byte[] signatureBytes = signature.sign();
+        signature.initVerify(keyPair.getPublic());
+        
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+          FileChannel fileChannel = fileInputStream.getChannel();
+          do {
+            int read = fileChannel.read(buffer);
+            
+            tracer.out().printfIndentln("read = %d", read);
+            
+            if (read == -1)
+              break;
+            buffer.flip();
+            buffer.get(bytes, 0, read);
+            
+            tracer.out().printIndent("bytes: ");
+            for (int i=0; i<read; i++) {
+              tracer.out().print(bytes[i] & 255);
+              tracer.out().print(" ");
+            }
+            tracer.out().println();
+            
+            signature.update(bytes, 0, read);
+            buffer.clear();
+          } while(true);
+        }
+        
+        boolean verified = signature.verify(signatureBytes);
+        Assert.assertTrue("Expected a valid signature.", file.exists());
+      }
+      else
+        tracer.logMessage(LogLevel.INFO, "Nio testcase skipped.", getClass(), "void nio()");
     }
     finally {
       tracer.wayout();
