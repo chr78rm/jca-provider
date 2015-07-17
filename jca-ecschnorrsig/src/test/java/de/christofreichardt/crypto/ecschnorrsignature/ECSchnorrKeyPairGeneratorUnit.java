@@ -20,9 +20,9 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffineCurve;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
 import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
-import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffineCurve;
-import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
 
 public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
   public final static int DEFAULT_KEYSIZE = 256;

@@ -9,13 +9,13 @@ package affine {
   import de.christofreichardt.diagnosis.TracerFactory
   import java.math.MathContext
   import java.math.RoundingMode
-  import ShortWeierstrass.AffineCurve
-  import ShortWeierstrass.AffinePoint
+  import ShortWeierstrass.Curve
+  import ShortWeierstrass.Point
   import ShortWeierstrass.Element
   import ShortWeierstrass.elemToAffinePoint
 
   class LegendreMethod extends ShortWeierstrass.GroupOrderCalculus {
-    def computeOrder(curve: this.groupLaw.AffineCurve): BigInt = {
+    def computeOrder(curve: this.groupLaw.Curve): BigInt = {
       val legendreSymbol: LegendreSymbol = new EulersCriterion(curve.p)
       val range = BigInt(0) until curve.p
       val ap = range.foldLeft(BigInt(0))((result, x) => {
@@ -30,7 +30,7 @@ package affine {
   }
 
   class ShanksMestre extends ShortWeierstrass.GroupOrderCalculus with Tracing {
-    def computeOrder(curve: AffineCurve): BigInt = {
+    def computeOrder(curve: Curve): BigInt = {
       withTracer("BigInt", this, "computeOrder(curve: this.groupLaw.AffineCurve)") {
         val tracer = getCurrentTracer()
         

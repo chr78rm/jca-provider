@@ -17,8 +17,8 @@ import de.christofreichardt.diagnosis.LogLevel;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
 import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
-import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
 
 public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   static final public int DIGEST_LENGTH = 32;

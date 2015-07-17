@@ -1,6 +1,6 @@
 package de.christofreichardt.crypto.ecschnorrsignature;
 
-import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
 
 public class ECSchnorrParams {
   final private CurveSpec curveSpec;

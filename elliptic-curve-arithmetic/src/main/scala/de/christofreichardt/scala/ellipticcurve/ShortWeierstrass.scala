@@ -13,31 +13,28 @@ import java.math.RoundingMode
 import scala.language.implicitConversions
 
 package affine {
-  object ShortWeierstrass extends GroupLaw with Tracing {
-    type TheCurve = AffineCurve
-    type ThePoint = AffinePoint
+  object ShortWeierstrass extends AffineCoordinatesWithPrimeField with Tracing {
+    override type TheCurve = Curve
     type TheCoefficients = OddCharCoefficients
-    type TheFiniteField = PrimeField
     type TheCoordinates = AffineCoordinates
 
     case class OddCharCoefficients(a: BigInt, b: BigInt) extends Coefficients
-    case class PrimeField(p: BigInt) extends FiniteField
     case class AffineCoordinates(x: BigInt, y: BigInt) extends Coordinates
     
     def isCurve(a: BigInt, b: BigInt, p: BigInt): Boolean = (-16 * (4 * a.pow(3) + 27 * b.pow(2))) != 0
 
-    class AffineCurve(val a: BigInt, val b: BigInt, val p: BigInt) extends Curve {
+    class Curve(val a: BigInt, val b: BigInt, p: BigInt) extends AffineCurve(p) {
       require(p.isProbablePrime(Constants.CERTAINTY), p + " isn't prime.")
       require(isCurve(a, b, p))
       val legendreSymbol: LegendreSymbol = new EulersCriterion(this.p)
       val solver = new QuadraticResidue(this.p)
 
-      def randomPoint: AffinePoint = {
+      def randomPoint: Point = {
         val randomGenerator = new RandomGenerator
         randomPoint(randomGenerator)
       }
       
-      def randomPoint(randomGenerator: RandomGenerator): AffinePoint = {
+      def randomPoint(randomGenerator: RandomGenerator): Point = {
         val x = randomGenerator.bigIntStream(this.p.bitLength * 2, p).find(x => {
           val test = evaluateCurveEquation(x)
           test == BigInt(0)  ||  this.legendreSymbol.isQuadraticResidue(test)
@@ -45,11 +42,11 @@ package affine {
         val value = evaluateCurveEquation(x)
         if (value != BigInt(0)) {
           val (y1, y2) = this.solver.solve(evaluateCurveEquation(x))
-          if (randomGenerator.bitStream.head) new AffinePoint(x, y1, this)
-          else new AffinePoint(x, y2, this)
+          if (randomGenerator.bitStream.head) new Point(x, y1, this)
+          else new Point(x, y2, this)
         }
         else
-          new AffinePoint(x, 0, this)
+          new Point(x, 0, this)
       }
 
       def evaluateCurveEquation(x: BigInt): BigInt = (x.modPow(3, this.p) + (this.a * x).mod(this.p) + this.b).mod(this.p)
@@ -114,12 +111,12 @@ package affine {
       }
     }
 
-    class AffinePoint(val x: BigInt, val y: BigInt, val curve: TheCurve) extends Point with Equals with Tracing {
-      override def negate = new AffinePoint(this.x, (-this.y).mod(this.curve.p), this.curve)
+    class Point(x: BigInt, y: BigInt, val curve: Curve) extends AffinePoint(x,y) with Equals with Tracing {
+      override def negate = new Point(this.x, (-this.y).mod(this.curve.p), this.curve)
 
-      override def add(point: AffinePoint): Element = {
+      override def add(point: ThePoint): Element = {
         val tracer = getCurrentTracer()
-        withTracer("Element", this, "add(point: AffinePoint)") {
+        withTracer("Element", this, "add(point: AffinePoint)") ({
           tracer.out().printfIndentln("this = %s", this)
           tracer.out().printfIndentln("point = %s", point)
           tracer.out().printfIndentln("point.negate = %s", point.negate)
@@ -130,25 +127,25 @@ package affine {
               else (3 * this.x.pow(2) + this.curve.a).mod(this.curve.p) * (2 * this.y).modInverse(this.curve.p)
             val x = (lambda.modPow(2, this.curve.p) - this.x - point.x).mod(this.curve.p)
             val y = ((this.x - x) * lambda - this.y).mod(this.curve.p)
-            new AffinePoint(x, y, this.curve)
+            new Point(x, y, this.curve)
           }
           else
             new NeutralElement
-        }
+        })
       }
 
-      override def multiply(scalar: BigInt) = {
-        val multiplicationMethod: PointMultiplication = new MontgomeryLadder
+      override def multiply(scalar: BigInt): Element = {
+        val multiplicationMethod: PointMultiplication = new BinaryMethod
         multiplicationMethod.multiply(scalar, this)
       }
       
       def canEqual(other: Any) = {
-        other.isInstanceOf[AffinePoint]
+        other.isInstanceOf[Point]
       }
 
       override def equals(other: Any) = {
         other match {
-          case that: AffinePoint => that.canEqual(AffinePoint.this) && x == that.x && y == that.y
+          case that: Point => that.canEqual(Point.this) && x == that.x && y == that.y
           case _                 => false
         }
       }
@@ -172,17 +169,13 @@ package affine {
       }
     }
 
-    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): AffineCurve = new AffineCurve(coefficients.a, coefficients.b, finiteField.p)
-    def makePoint(coordinates: TheCoordinates, curve: TheCurve): AffinePoint = new AffinePoint(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
+    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): TheCurve = new Curve(coefficients.a, coefficients.b, finiteField.p)
+    def makePoint(coordinates: TheCoordinates, curve: TheCurve): Point = new Point(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
 
-    trait PointMultiplication {
-      def multiply(m: BigInt, point: AffinePoint): Element
-    }
-
-    implicit def elemToAffinePoint(elem: Element): AffinePoint = {
+    implicit def elemToAffinePoint(elem: Element): Point = {
       elem match {
         case el: NeutralElement => throw new NeutralElementException("Neutral element has been trapped.")
-        case ap: AffinePoint    => ap
+        case ap: Point    => ap
       }
     }
 
@@ -205,8 +198,8 @@ package affine {
         }
       }
       
-      def computeOrder(curve: AffineCurve): BigInt
-      def hasseTheorem(curve: AffineCurve): (BigInt, BigInt, BigDecimal) = {
+      def computeOrder(curve: Curve): BigInt
+      def hasseTheorem(curve: Curve): (BigInt, BigInt, BigDecimal) = {
         val pSquared = squareRoot(BigDecimal(curve.p))
         val lowerLimit = curve.p + BigInt(1) - BigInt(2)*pSquared.round(new MathContext(1, RoundingMode.CEILING)).toBigInt()
         val upperLimit = curve.p + BigInt(1) + BigInt(2)*pSquared.round(new MathContext(1, RoundingMode.CEILING)).toBigInt()

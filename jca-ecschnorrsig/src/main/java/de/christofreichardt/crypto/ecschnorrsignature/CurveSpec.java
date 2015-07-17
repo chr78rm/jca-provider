@@ -2,7 +2,7 @@ package de.christofreichardt.crypto.ecschnorrsignature;
 
 import java.math.BigInteger;
 
-import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffineCurve;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffineCurve;
 
 public class CurveSpec {
   private final AffineCurve curve;

@@ -3,13 +3,13 @@ package de.christofreichardt.scala.ellipticcurve
 import java.math.BigInteger
 
 abstract class GroupLaw {
-  trait Curve
+  trait AbstractCurve
   trait Coordinates
   trait Coefficients
   trait FiniteField
   
-  type ThePoint <: Point
-  type TheCurve <: Curve
+  type ThePoint <: AbstractPoint
+  type TheCurve <: AbstractCurve
   type TheCoefficients <: Coefficients
   type TheFiniteField <: FiniteField
   type TheCoordinates <: Coordinates
@@ -53,7 +53,7 @@ abstract class GroupLaw {
     }
   }
   
-  trait Point extends Element {
+  trait AbstractPoint extends Element {
     override def isNeutralElement = false
   }
   

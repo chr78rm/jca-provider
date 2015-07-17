@@ -14,8 +14,8 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
 import de.christofreichardt.scala.ellipticcurve.RandomGenerator;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
 import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
-import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.AffinePoint;
 
 public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
   
