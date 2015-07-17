@@ -10,21 +10,33 @@ package affine {
     type TheFiniteField = PrimeField
     type ThePoint = AffinePoint
     type TheCurve <: AffineCurve
+    type TheCoordinates = AffineCoordinates
+    
+    case class AffineCoordinates(x: BigInt, y: BigInt) extends Coordinates
     
     case class PrimeField(p: BigInt) extends FiniteField
     def makePrimeField(p: BigInt): PrimeField = new PrimeField(p)
     
-    abstract class AffinePoint(val x: BigInt, val y: BigInt) extends AbstractPoint
+    abstract class AffinePoint(val x: BigInt, val y: BigInt, val curve: TheCurve) extends AbstractPoint
     abstract class AffineCurve(val p: BigInt) extends AbstractCurve {
       def randomPoint: AffinePoint
       def randomPoint(randomGenerator: RandomGenerator): AffinePoint
     }
 
-    trait PointMultiplication {
+    trait PointMultiplication extends Tracing {
       def multiply(m: BigInt, point: ThePoint): Element
+      
+      override def getCurrentTracer(): AbstractTracer = {
+        try {
+          TracerFactory.getInstance().getDefaultTracer
+        }
+        catch {
+          case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
+        }
+      }
     }
 
-    class BinaryMethod extends PointMultiplication with Tracing {
+    class BinaryMethod extends PointMultiplication {
       def multiply(m: BigInt, point: ThePoint): Element = {
         val tracer = getCurrentTracer()
         withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {
@@ -53,19 +65,10 @@ package affine {
           else multiply(new NeutralElement, m.bitLength)
         }
       }
-
-      override def getCurrentTracer(): AbstractTracer = {
-        try {
-          TracerFactory.getInstance().getDefaultTracer
-        }
-        catch {
-          case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
-        }
-      }
     }
 
-    class FixedPointBinaryMethod(val fixedPoint: ThePoint, val primeField: PrimeField)
-        extends PointMultiplication with Tracing {
+    class FixedPointBinaryMethod(val fixedPoint: ThePoint)
+        extends PointMultiplication {
 
       def twoPowerPointStream: Stream[(Int, Element)] = {
         def pointStream(exp: Int, power: BigInt, element: Element): Stream[(Int, Element)] = {
@@ -76,7 +79,7 @@ package affine {
           }
           else {
             val nextPower = power * BigInt(2)
-            if (nextPower < primeField.p * 2) {
+            if (nextPower < this.fixedPoint.curve.p * 2) {
               val nextPoint = element add element
               Stream.cons((exp, nextPoint), pointStream(exp + 1, nextPower, nextPoint))
             }
@@ -124,7 +127,7 @@ package affine {
       }
     }
 
-    class MontgomeryLadder extends PointMultiplication with Tracing {
+    class MontgomeryLadder extends PointMultiplication {
       def multiply(multiplier: BigInt, point: ThePoint): Element = {
         val tracer = getCurrentTracer()
         withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {

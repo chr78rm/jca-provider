@@ -14,12 +14,10 @@ import scala.language.implicitConversions
 
 package affine {
   object ShortWeierstrass extends AffineCoordinatesWithPrimeField with Tracing {
-    override type TheCurve = Curve
+    type TheCurve = Curve
     type TheCoefficients = OddCharCoefficients
-    type TheCoordinates = AffineCoordinates
 
     case class OddCharCoefficients(a: BigInt, b: BigInt) extends Coefficients
-    case class AffineCoordinates(x: BigInt, y: BigInt) extends Coordinates
     
     def isCurve(a: BigInt, b: BigInt, p: BigInt): Boolean = (-16 * (4 * a.pow(3) + 27 * b.pow(2))) != 0
 
@@ -111,7 +109,7 @@ package affine {
       }
     }
 
-    class Point(x: BigInt, y: BigInt, val curve: Curve) extends AffinePoint(x,y) with Equals with Tracing {
+    class Point(x: BigInt, y: BigInt, curve: Curve) extends AffinePoint(x,y, curve) with Equals with Tracing {
       override def negate = new Point(this.x, (-this.y).mod(this.curve.p), this.curve)
 
       override def add(point: ThePoint): Element = {
