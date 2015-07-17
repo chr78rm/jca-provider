@@ -24,15 +24,10 @@ package affine {
     class Curve(val a: BigInt, val b: BigInt, p: BigInt) extends AffineCurve(p) {
       require(p.isProbablePrime(Constants.CERTAINTY), p + " isn't prime.")
       require(isCurve(a, b, p))
-      val legendreSymbol: LegendreSymbol = new EulersCriterion(this.p)
-      val solver = new QuadraticResidue(this.p)
 
-      def randomPoint: Point = {
-        val randomGenerator = new RandomGenerator
-        randomPoint(randomGenerator)
-      }
+      override def randomPoint: ThePoint = super.randomPoint
       
-      def randomPoint(randomGenerator: RandomGenerator): Point = {
+      def randomPoint(randomGenerator: RandomGenerator): ThePoint = {
         val x = randomGenerator.bigIntStream(this.p.bitLength * 2, p).find(x => {
           val test = evaluateCurveEquation(x)
           test == BigInt(0)  ||  this.legendreSymbol.isQuadraticResidue(test)
@@ -114,7 +109,7 @@ package affine {
 
       override def add(point: ThePoint): Element = {
         val tracer = getCurrentTracer()
-        withTracer("Element", this, "add(point: AffinePoint)") ({
+        withTracer("Element", this, "add(point: AffinePoint)") {
           tracer.out().printfIndentln("this = %s", this)
           tracer.out().printfIndentln("point = %s", point)
           tracer.out().printfIndentln("point.negate = %s", point.negate)
@@ -129,7 +124,7 @@ package affine {
           }
           else
             new NeutralElement
-        })
+        }
       }
 
       override def multiply(scalar: BigInt): Element = {
@@ -151,10 +146,6 @@ package affine {
       override def hashCode() = {
         val prime = 41
         prime * (prime + x.hashCode) + y.hashCode
-      }
-
-      override def toString() = {
-        "AffinePoint(" + this.x + ", " + this.y + ")"
       }
 
       override def getCurrentTracer(): AbstractTracer = {

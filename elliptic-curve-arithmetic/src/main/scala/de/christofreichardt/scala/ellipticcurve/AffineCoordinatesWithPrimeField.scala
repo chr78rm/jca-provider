@@ -17,10 +17,20 @@ package affine {
     case class PrimeField(p: BigInt) extends FiniteField
     def makePrimeField(p: BigInt): PrimeField = new PrimeField(p)
     
-    abstract class AffinePoint(val x: BigInt, val y: BigInt, val curve: TheCurve) extends AbstractPoint
+    abstract class AffinePoint(val x: BigInt, val y: BigInt, val curve: TheCurve) extends AbstractPoint {
+      override def toString() = {
+        "AffinePoint(" + this.x + ", " + this.y + ")"
+      }
+    }
     abstract class AffineCurve(val p: BigInt) extends AbstractCurve {
-      def randomPoint: AffinePoint
-      def randomPoint(randomGenerator: RandomGenerator): AffinePoint
+      val legendreSymbol: LegendreSymbol = new EulersCriterion(this.p)
+      val solver = new QuadraticResidue(this.p)
+      def evaluateCurveEquation(x: BigInt): BigInt
+      def randomPoint: ThePoint = {
+        val randomGenerator = new RandomGenerator
+        randomPoint(randomGenerator)
+      }
+      def randomPoint(randomGenerator: RandomGenerator): ThePoint
     }
 
     trait PointMultiplication extends Tracing {

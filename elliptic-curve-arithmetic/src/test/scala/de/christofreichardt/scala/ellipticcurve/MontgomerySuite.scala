@@ -45,5 +45,14 @@ package affine {
       
       tracer.out().printfIndentln("point = %s", point)
     }
+    
+    testWithTracing(this, "Random point") {
+      val tracer = getCurrentTracer()
+      val groupLaw = Montgomery
+      val curve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(117050, 1), groupLaw.PrimeField(BigInt(2).pow(221) - 3))
+      val randomPoint = curve.randomPoint
+      
+      tracer.out().printfIndentln("randomPoint = %s", randomPoint)
+    }
   }
 }
