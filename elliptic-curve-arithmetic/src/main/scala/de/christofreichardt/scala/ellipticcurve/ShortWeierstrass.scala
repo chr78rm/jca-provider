@@ -16,6 +16,7 @@ package affine {
   object ShortWeierstrass extends AffineCoordinatesWithPrimeField with Tracing {
     type TheCurve = Curve
     type TheCoefficients = OddCharCoefficients
+    type ThePoint = Point
 
     case class OddCharCoefficients(a: BigInt, b: BigInt) extends Coefficients
     
@@ -25,9 +26,8 @@ package affine {
       require(p.isProbablePrime(Constants.CERTAINTY), p + " isn't prime.")
       require(isCurve(a, b, p))
 
-      override def randomPoint: ThePoint = super.randomPoint
-      
-      def randomPoint(randomGenerator: RandomGenerator): ThePoint = {
+      override def randomPoint: Point = super.randomPoint
+      def randomPoint(randomGenerator: RandomGenerator): Point = {
         val x = randomGenerator.bigIntStream(this.p.bitLength * 2, p).find(x => {
           val test = evaluateCurveEquation(x)
           test == BigInt(0)  ||  this.legendreSymbol.isQuadraticResidue(test)
@@ -107,7 +107,7 @@ package affine {
     class Point(x: BigInt, y: BigInt, curve: Curve) extends AffinePoint(x,y, curve) with Equals with Tracing {
       override def negate = new Point(this.x, (-this.y).mod(this.curve.p), this.curve)
 
-      override def add(point: ThePoint): Element = {
+      override def add(point: Point): Element = {
         val tracer = getCurrentTracer()
         withTracer("Element", this, "add(point: AffinePoint)") {
           tracer.out().printfIndentln("this = %s", this)
@@ -158,8 +158,8 @@ package affine {
       }
     }
 
-    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): TheCurve = new Curve(coefficients.a, coefficients.b, finiteField.p)
-    def makePoint(coordinates: TheCoordinates, curve: TheCurve): Point = new Point(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
+    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): Curve = new Curve(coefficients.a, coefficients.b, finiteField.p)
+    def makePoint(coordinates: TheCoordinates, curve: Curve): Point = new Point(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
 
     implicit def elemToAffinePoint(elem: Element): Point = {
       elem match {

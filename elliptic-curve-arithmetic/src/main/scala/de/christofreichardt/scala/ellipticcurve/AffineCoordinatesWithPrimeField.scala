@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 package affine {
   abstract class AffineCoordinatesWithPrimeField extends GroupLaw {
     type TheFiniteField = PrimeField
-    type ThePoint = AffinePoint
+    type ThePoint <: AffinePoint
     type TheCurve <: AffineCurve
     type TheCoordinates = AffineCoordinates
     

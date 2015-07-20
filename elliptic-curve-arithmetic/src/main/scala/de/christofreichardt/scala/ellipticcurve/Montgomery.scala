@@ -8,14 +8,15 @@ package affine {
   object Montgomery extends AffineCoordinatesWithPrimeField {
     type TheCurve = Curve
     type TheCoefficients = OddCharCoefficients
+    type ThePoint = Point
 
     case class OddCharCoefficients(a: BigInt, b: BigInt) extends Coefficients
     
     class Curve(val a: BigInt, val b: BigInt, p: BigInt) extends AffineCurve(p) with Tracing {
       def evaluateCurveEquation(x: BigInt): BigInt = (x.modPow(3, this.p) + (this.a*x.modPow(2, this.p)).mod(this.p) + x).mod(this.p)
       
-      override def randomPoint: ThePoint = super.randomPoint
-      def randomPoint(randomGenerator: RandomGenerator): ThePoint = {
+      override def randomPoint: Point = super.randomPoint
+      def randomPoint(randomGenerator: RandomGenerator): Point = {
         withTracer("Element", this, "add(point: AffinePoint)") {
           val x = randomGenerator.bigIntStream(this.p.bitLength * 2, p).find(x => {
             val test = (evaluateCurveEquation(x) * this.b.modInverse(this.p)).mod(this.p)
@@ -36,11 +37,11 @@ package affine {
     
     class Point(x: BigInt, y: BigInt, curve: Curve) extends AffinePoint(x,y, curve) {
       override def negate = new Point(this.x, (-this.y).mod(this.curve.p), this.curve)
-      override def add(point: ThePoint): Element = null
+      override def add(point: Point): Element = null
       override def multiply(scalar: BigInt): Element = null
     }
     
-    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): TheCurve = new Curve(coefficients.a, coefficients.b, finiteField.p)
+    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): Curve = new Curve(coefficients.a, coefficients.b, finiteField.p)
     def makePoint(coordinates: TheCoordinates, curve: TheCurve): Point = new Point(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
   }
 }
