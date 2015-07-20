@@ -235,7 +235,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
         e = new BigInteger(digestBytes).mod(q);
       } while (e.equals(BigInteger.ZERO));
       
-      BigInteger y = e.multiply(x).add(r).mod(q);
+      BigInteger y = r.subtract(e.multiply(x)).mod(q);
       byte[] yBytes = y.toByteArray();
       
       tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
@@ -323,7 +323,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       BigInteger e = new BigInteger(eBytes).mod(q);
       byte[] yBytes = Arrays.copyOfRange(signatureBytes, DIGEST_LENGTH, signatureBytes.length);
       BigInteger y = new BigInteger(yBytes);
-      BigInteger s = g.modPow(y, p).multiply(h.modPow(e.negate(), p)).mod(p);
+      BigInteger s = g.modPow(y, p).multiply(h.modPow(e, p)).mod(p);
       
       tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
       tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
