@@ -67,7 +67,7 @@ public class BaseSignatureUnit implements Traceable {
       File blindTextFile = new File(this.properties.getProperty("de.christofreichardt.crypto.schnorrsignature.SignatureUnit.blindtext", 
           "../data/loremipsum.txt"));
       byte[] bytes = Files.readAllBytes(blindTextFile.toPath());
-      traceMsgBytes(bytes);
+      traceBytes(bytes);
       return bytes;
     }
     finally {
@@ -90,7 +90,7 @@ public class BaseSignatureUnit implements Traceable {
           break;
         }
       } while(true);
-      traceMsgBytes(bytes);
+      traceBytes(bytes);
       
       return bytes;
     }
@@ -99,7 +99,7 @@ public class BaseSignatureUnit implements Traceable {
     }
   }
   
-  private void traceMsgBytes(byte[] bytes) {
+  protected void traceBytes(byte[] bytes) {
     AbstractTracer tracer = getCurrentTracer();
     for (int i=0; i<bytes.length; i++) {
       if (i % 16 == 0) {
@@ -250,10 +250,12 @@ public class BaseSignatureUnit implements Traceable {
             buffer.clear();
           } while(true);
         }
-        
         byte[] signatureBytes = signature.sign();
-        signature.initVerify(keyPair.getPublic());
         
+        tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
+        traceBytes(signatureBytes);
+        
+        signature.initVerify(keyPair.getPublic());
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
           FileChannel fileChannel = fileInputStream.getChannel();
           do {
@@ -298,6 +300,9 @@ public class BaseSignatureUnit implements Traceable {
       signature.update(msgBytes);
       byte[] signatureBytes = signature.sign();
       
+      tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
+      traceBytes(signatureBytes);
+      
       return signatureBytes;
     }
     finally {
@@ -310,6 +315,9 @@ public class BaseSignatureUnit implements Traceable {
     tracer.entry("boolean", this, "verify(Signature signature, PublicKey publicKey, byte[] msgBytes, byte[] signatureBytes)");
     
     try {
+      tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
+      traceBytes(signatureBytes);
+      
       signature.initVerify(publicKey);
       signature.update(msgBytes);
       boolean verified = signature.verify(signatureBytes);

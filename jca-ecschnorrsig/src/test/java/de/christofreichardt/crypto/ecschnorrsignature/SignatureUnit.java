@@ -45,6 +45,9 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       signatureWithSHA256.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
       byte[] signatureBytes = signatureWithSHA256.engineSign();
       
+      tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
+      traceBytes(signatureBytes);
+      
       signatureWithSHA256.engineInitVerify(keyPair.getPublic());
       signatureWithSHA256.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
       boolean verified = signatureWithSHA256.engineVerify(signatureBytes);

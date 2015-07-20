@@ -191,11 +191,6 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       if (!this.initialisedForVerification)
         throw new SignatureException("Signature scheme hasn't been initialized for verification.");
       
-      tracer.out().printIndentString();
-      tracer.out().printf("signatureBytes(%d) = ", signatureBytes.length);
-      traceBytes(signatureBytes);
-      tracer.out().println();
-      
       CurveSpec curveSpec = this.ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec();
       BigInteger e = concatForVerifying(signatureBytes);
       byte[] digestBytes = this.messageDigest.digest();
@@ -238,14 +233,6 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     }
   }
   
-  private void traceBytes(byte[] bytes) {
-    AbstractTracer tracer = getCurrentTracer();
-    for (byte signatureByte : bytes) {
-      tracer.out().print(signatureByte & 255);
-      tracer.out().print(' ');
-    }
-  }
-
   @Override
   public AbstractTracer getCurrentTracer() {
     return TracerFactory.getInstance().getCurrentPoolTracer();
