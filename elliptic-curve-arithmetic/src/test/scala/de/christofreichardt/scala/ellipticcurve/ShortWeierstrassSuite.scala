@@ -416,6 +416,12 @@ package affine {
         assert(productByBinary == productByLadder, "Wrong product.")
       })
     }
+    
+    testWithTracing(this, "Illegal Curve") {
+      intercept[IllegalArgumentException] {
+        val curve = this.groupLaw.makeCurve(groupLaw.OddCharCoefficients(4, 20), groupLaw.PrimeField(30))
+      }
+    }
   }
 }
 

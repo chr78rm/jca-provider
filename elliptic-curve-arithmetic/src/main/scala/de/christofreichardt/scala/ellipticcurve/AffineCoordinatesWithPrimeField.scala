@@ -23,6 +23,7 @@ package affine {
       }
     }
     abstract class AffineCurve(val p: BigInt) extends AbstractCurve {
+      require(p.isProbablePrime(Constants.CERTAINTY), p + " isn't prime.")
       val legendreSymbol: LegendreSymbol = new EulersCriterion(this.p)
       val solver = new QuadraticResidue(this.p)
       def evaluateCurveEquation(x: BigInt): BigInt

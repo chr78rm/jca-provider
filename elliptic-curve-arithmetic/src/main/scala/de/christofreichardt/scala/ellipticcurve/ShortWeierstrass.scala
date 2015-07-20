@@ -23,7 +23,6 @@ package affine {
     def isCurve(a: BigInt, b: BigInt, p: BigInt): Boolean = (-16 * (4 * a.pow(3) + 27 * b.pow(2))) != 0
 
     class Curve(val a: BigInt, val b: BigInt, p: BigInt) extends AffineCurve(p) {
-      require(p.isProbablePrime(Constants.CERTAINTY), p + " isn't prime.")
       require(isCurve(a, b, p))
 
       override def randomPoint: Point = super.randomPoint
