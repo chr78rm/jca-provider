@@ -38,6 +38,11 @@
       <version>2.2.4</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>de.christofreichardt</groupId>
+      <artifactId>jca-master</artifactId>
+      <version>0.0.3-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>

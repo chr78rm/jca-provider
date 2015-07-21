@@ -7,6 +7,22 @@ import scala.annotation.tailrec
 
 package affine {
   abstract class AffineCoordinatesWithPrimeField extends GroupLaw {
+    val multiplicationMethod: PointMultiplication = detectMultiplicationMethod()
+    def detectMultiplicationMethod(): PointMultiplication = {
+      val provider = java.security.Security.getProvider(de.christofreichardt.crypto.Provider.NAME)
+      val method: PointMultiplication =
+        if (provider != null) {
+          provider.getProperty("de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod") match {
+            case "MontgomeryLadder" => new MontgomeryLadder
+            case "BinaryMethod"     => new BinaryMethod
+            case _                  => new MontgomeryLadder
+          }
+        }
+        else
+          new MontgomeryLadder
+      method
+    }
+    
     type TheFiniteField = PrimeField
     type ThePoint <: AffinePoint
     type TheCurve <: AffineCurve

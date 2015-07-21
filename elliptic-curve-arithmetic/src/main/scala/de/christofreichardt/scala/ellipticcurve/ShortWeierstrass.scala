@@ -127,8 +127,7 @@ package affine {
       }
 
       override def multiply(scalar: BigInt): Element = {
-        val multiplicationMethod: PointMultiplication = new BinaryMethod
-        multiplicationMethod.multiply(scalar, this)
+        ShortWeierstrass.multiplicationMethod.multiply(scalar, this)
       }
       
       def canEqual(other: Any) = {

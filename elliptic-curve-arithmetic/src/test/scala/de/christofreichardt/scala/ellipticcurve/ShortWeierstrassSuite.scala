@@ -21,6 +21,15 @@ package affine {
     val curve2 = groupLaw.makeCurve(groupLaw.OddCharCoefficients(71, 602), groupLaw.PrimeField(1009))
     val curve3 = groupLaw.makeCurve(groupLaw.OddCharCoefficients(146, 33), groupLaw.PrimeField(173))
 
+    override def beforeAll(): Unit = {
+      val tracer = getCurrentTracer
+      withTracer("Unit", this, "beforeAll()") {
+        java.security.Security.addProvider(new de.christofreichardt.crypto.Provider())
+        val tracer = getCurrentTracer()
+        tracer.out().printfIndentln("groupLaw.hashCode() = %d", groupLaw.hashCode(): Integer)
+      }
+    }
+    
     testWithTracing(this, "Point Addition (P + Q = R)") {
       val coordinates1 = groupLaw.AffineCoordinates(5, 22)
       val point1 = groupLaw.makePoint(coordinates1, curve1)
@@ -420,6 +429,25 @@ package affine {
     testWithTracing(this, "Illegal Curve") {
       intercept[IllegalArgumentException] {
         val curve = this.groupLaw.makeCurve(groupLaw.OddCharCoefficients(4, 20), groupLaw.PrimeField(30))
+      }
+    }
+    
+    testWithTracing(this, "Configuration of multiplication method") {
+      val tracer = getCurrentTracer()
+      
+      val provider = java.security.Security.getProvider(de.christofreichardt.crypto.Provider.NAME)
+      assert(provider != null, "Expected the crypto provider.")
+      val multiplicationKey = "de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod"
+      assert(provider.containsKey(multiplicationKey), "Expected the key '" + multiplicationKey + "'.")
+      val multiplicationValue = provider.getProperty(multiplicationKey)
+      // surprisingly instanceOf[] on 'this.groupLaw.multiplicationMethod' freezes the Scala IDE
+      assert(this.groupLaw.multiplicationMethod.getClass.getSimpleName.equals(multiplicationValue), "Misconfigured multiplication method.")
+    }
+
+    override def afterAll(): Unit = {
+      val tracer = getCurrentTracer
+      withTracer("Unit", this, "afterAll()") {
+        java.security.Security.removeProvider(de.christofreichardt.crypto.Provider.NAME)
       }
     }
   }
