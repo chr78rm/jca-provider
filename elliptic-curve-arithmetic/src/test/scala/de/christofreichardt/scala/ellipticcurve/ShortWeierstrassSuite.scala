@@ -402,11 +402,35 @@ package affine {
       assert(fixedPointMultiplication.multiply(order) == point.multiply(order), "Expected the NeutralElement.")
     }
     
-    testWithTracing(this, "Montgomery Ladder") {
+    testWithTracing(this, "Montgomery Ladder (1)") {
       val tracer = getCurrentTracer()
       
       val point = this.curve2.randomPoint
       val montgomeryLadder = new ShortWeierstrass.MontgomeryLadder
+      val binaryMethod = new ShortWeierstrass.BinaryMethod
+      val randomGenerator = new RandomGenerator
+      val TESTS = 5
+      
+      tracer.out().printfIndentln("this.curve2 = %s", this.curve2)
+      tracer.out().printfIndentln("point = %s", point)
+      
+      (0 until TESTS).foreach(i => {
+        tracer.out().printfIndentln("i = %d", i: Integer)
+        val scalar = randomGenerator.bigIntStream(this.curve2.p.bitLength*2, this.curve2.p).head
+        val productByLadder = montgomeryLadder.multiply(scalar, point)      
+        val productByBinary = binaryMethod.multiply(scalar, point)
+        
+        tracer.out().printfIndentln("%s*%s = %s", point, scalar, productByLadder)
+        tracer.out().printfIndentln("(%s == %s) = %b", productByLadder, productByBinary, (productByBinary == productByLadder): java.lang.Boolean)
+        assert(productByBinary == productByLadder, "Wrong product.")
+      })
+    }
+    
+    testWithTracing(this, "Montgomery Ladder (2)") {
+      val tracer = getCurrentTracer()
+      
+      val point = this.curve2.randomPoint
+      val montgomeryLadder = new ShortWeierstrass.MontgomeryLadder2
       val binaryMethod = new ShortWeierstrass.BinaryMethod
       val randomGenerator = new RandomGenerator
       val TESTS = 5
@@ -440,6 +464,10 @@ package affine {
       val multiplicationKey = "de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod"
       assert(provider.containsKey(multiplicationKey), "Expected the key '" + multiplicationKey + "'.")
       val multiplicationValue = provider.getProperty(multiplicationKey)
+      
+      tracer.out().printfIndentln("multiplicationValue = %s", multiplicationValue)
+      tracer.out().printfIndentln("this.groupLaw.multiplicationMethod.getClass.getSimpleName = %s", this.groupLaw.multiplicationMethod.getClass.getSimpleName)
+      
       // surprisingly instanceOf[] on 'this.groupLaw.multiplicationMethod' freezes the Scala IDE
       assert(this.groupLaw.multiplicationMethod.getClass.getSimpleName.equals(multiplicationValue), "Misconfigured multiplication method.")
     }

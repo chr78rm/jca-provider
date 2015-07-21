@@ -7,19 +7,24 @@ import scala.annotation.tailrec
 
 package affine {
   abstract class AffineCoordinatesWithPrimeField extends GroupLaw {
-    val multiplicationMethod: PointMultiplication = detectMultiplicationMethod()
+    lazy val multiplicationMethod: PointMultiplication = detectMultiplicationMethod()
     def detectMultiplicationMethod(): PointMultiplication = {
       val provider = java.security.Security.getProvider(de.christofreichardt.crypto.Provider.NAME)
+      val multiplicationKey = "de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod"
       val method: PointMultiplication =
         if (provider != null) {
-          provider.getProperty("de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod") match {
-            case "MontgomeryLadder" => new MontgomeryLadder
-            case "BinaryMethod"     => new BinaryMethod
-            case _                  => new MontgomeryLadder
+          val multiplicationValue = provider.getProperty(multiplicationKey)
+          multiplicationValue match {
+            case "MontgomeryLadder"  => new MontgomeryLadder
+            case "MontgomeryLadder2" => new MontgomeryLadder2
+            case "BinaryMethod"      => new BinaryMethod
+            case _                   => new MontgomeryLadder
           }
         }
-        else
+        else {
           new MontgomeryLadder
+        }
+          
       method
     }
     
@@ -64,32 +69,33 @@ package affine {
     }
 
     class BinaryMethod extends PointMultiplication {
-      def multiply(m: BigInt, point: ThePoint): Element = {
+      def multiply(multiplier: BigInt, point: ThePoint): Element = {
         val tracer = getCurrentTracer()
+        
+        @tailrec
+        def multiply(q: Element, i: Int): Element = {
+          tracer.out().printfIndentln("i = %d", int2Integer(i))
+          tracer.out().printfIndentln("q = %s", q)
+          tracer.out().flush()
+
+          if (i == 0) {
+            q
+          }
+          else {
+            val double = q.add(q)
+            val sum =
+              if (multiplier.testBit(i - 1)) point add double
+              else double
+            multiply(sum, i - 1)
+          }
+        }
+        
         withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {
-          tracer.out().printfIndentln("m = %s", m)
+          tracer.out().printfIndentln("multiplier(%d) = %s", multiplier.bitLength: Integer, multiplier)
           tracer.out().printfIndentln("point = %s", point)
 
-          @tailrec
-          def multiply(q: Element, i: Int): Element = {
-            tracer.out().printfIndentln("i = %d", int2Integer(i))
-            tracer.out().printfIndentln("q = %s", q)
-            tracer.out().flush()
-
-            if (i == 0) {
-              q
-            }
-            else {
-              val double = q.add(q)
-              val sum =
-                if (m.testBit(i - 1)) point add double
-                else double
-              multiply(sum, i - 1)
-            }
-          }
-
-          if (m == BigInt(0)) new NeutralElement
-          else multiply(new NeutralElement, m.bitLength)
+          if (multiplier == BigInt(0)) new NeutralElement
+          else multiply(new NeutralElement, multiplier.bitLength)
         }
       }
     }
@@ -119,24 +125,25 @@ package affine {
 
       val multiplies = twoPowerPointStream.toIndexedSeq
 
-      def multiply(m: BigInt, point: ThePoint): Element = {
+      def multiply(multiplier: BigInt, point: ThePoint): Element = {
         require(point == this.fixedPoint, "Multiplication is fixed.")
+        val tracer = getCurrentTracer
+
+        @tailrec
+        def multiply(q: Element, i: Int): Element = {
+          tracer.out().printfIndentln("i = %d, q = %s", i: Integer, q)
+          if (i == multiplier.bitLength) q
+          else {
+            val nextQ =
+              if (multiplier.testBit(i)) q add multiplies(i)._2
+              else q
+            multiply(nextQ, i + 1)
+          }
+        }
 
         withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {
-          val tracer = getCurrentTracer
-          tracer.out().printfIndentln("m(%d) = %s", m.bitLength: Integer, m)
-
-          @tailrec
-          def multiply(q: Element, i: Int): Element = {
-            tracer.out().printfIndentln("i = %d, q = %s", i: Integer, q)
-            if (i == m.bitLength) q
-            else {
-              val nextQ =
-                if (m.testBit(i)) q add multiplies(i)._2
-                else q
-              multiply(nextQ, i + 1)
-            }
-          }
+          tracer.out().printfIndentln("multiplier(%d) = %s", multiplier.bitLength: Integer, multiplier)
+          tracer.out().printfIndentln("point = %s", point)
 
           multiply(new NeutralElement, 0)
         }
@@ -157,31 +164,62 @@ package affine {
     class MontgomeryLadder extends PointMultiplication {
       def multiply(multiplier: BigInt, point: ThePoint): Element = {
         val tracer = getCurrentTracer()
-        withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {
+        
+        @tailrec
+        def multiply(s: Element, t: Element, i: Int): Element = {
+          tracer.out().printfIndentln("------------------")
+          if (i >= 0) tracer.out().printfIndentln("testBit(%d) = %b", i: Integer, multiplier.testBit(i): java.lang.Boolean)
+          tracer.out().printfIndentln("s = %s", s)
+          tracer.out().printfIndentln("t = %s", t)
 
-          @tailrec
-          def multiply(s: Element, t: Element, i: Int): Element = {
-            tracer.out().printfIndentln("------------------")
-            if (i >= 0) tracer.out().printfIndentln("testBit(%d) = %b", i: Integer, multiplier.testBit(i): java.lang.Boolean)
-            tracer.out().printfIndentln("s = %s", s)
-            tracer.out().printfIndentln("t = %s", t)
-
-            if (i < 0)
-              s
-            else {
-              val (next_s, next_t): (Element, Element) =
-                if (multiplier.testBit(i))
-                  (s add t, t add t)
-                else
-                  (s add s, s add t)
-              multiply(next_s, next_t, i - 1)
-            }
+          if (i < 0)
+            s
+          else {
+            val (next_s, next_t): (Element, Element) =
+              if (multiplier.testBit(i))
+                (s add t, t add t)
+              else
+                (s add s, s add t)
+            multiply(next_s, next_t, i - 1)
           }
-
+        }
+        
+        withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {
+          tracer.out().printfIndentln("multiplier(%d) = %s", multiplier.bitLength: Integer, multiplier)
+          tracer.out().printfIndentln("point = %s", point)
+          
           multiply(new NeutralElement, point, multiplier.bitLength - 1)
         }
       }
     }
 
+    class MontgomeryLadder2 extends PointMultiplication {
+      def multiply(multiplier: BigInt, point: ThePoint): Element = {
+        val tracer = getCurrentTracer()
+        
+        @tailrec
+        def multiply(element: Element, i: Int): Element = {
+          tracer.out().printfIndentln("------------------")
+          if (i >= 0) tracer.out().printfIndentln("testBit(%d) = %b", i: Integer, multiplier.testBit(i): java.lang.Boolean)
+          tracer.out().printfIndentln("element = %s", element)
+
+          if (i < 0)
+            element
+          else {
+            val next: scala.collection.mutable.Map[Boolean, Element] = scala.collection.mutable.HashMap.empty[Boolean, Element]
+            next += (false -> element.add(element))
+            next += (true -> point.add(next(false)))
+            multiply(next(multiplier.testBit(i)), i - 1)
+          }
+        }
+        
+        withTracer("Element", this, "multiply(m: BigInt, point: AffinePoint)") {
+          tracer.out().printfIndentln("multiplier(%d) = %s", multiplier.bitLength: Integer, multiplier)
+          tracer.out().printfIndentln("point = %s", point)
+          
+          multiply(new NeutralElement, multiplier.bitLength - 1)
+        }
+      }
+    }
   }  
 }

@@ -25,6 +25,6 @@ public class Provider extends java.security.Provider {
     put("Signature.ECSchnorrSignatureWithSHA256", "de.christofreichardt.crypto.ecschnorrsignature.SignatureWithSHA256");
     
     // configuration
-    put("de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod", "MontgomeryLadder");
+    put("de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod", "MontgomeryLadder2");
   }
 }
