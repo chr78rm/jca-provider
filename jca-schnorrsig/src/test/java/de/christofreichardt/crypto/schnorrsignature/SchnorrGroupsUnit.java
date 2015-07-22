@@ -49,8 +49,8 @@ public class SchnorrGroupsUnit implements Traceable {
         tracer.out().printfIndentln("schnorrGroup = %s", schnorrGroup);
         
         Assert.assertTrue("q | (p - 1) doesn't hold.", ((schnorrGroup.getP().subtract(BigInteger.ONE)).mod(schnorrGroup.getQ())).equals(BigInteger.ZERO));
-        Assert.assertTrue("p expected to have " + SchnorrSigGenParameterSpec.L + " bits.", schnorrGroup.getP().bitLength() == SchnorrSigGenParameterSpec.L);
-        Assert.assertTrue("q expected to have " + SchnorrSigGenParameterSpec.T + " bits.", schnorrGroup.getQ().bitLength() == SchnorrSigGenParameterSpec.T);
+        Assert.assertTrue("p expected to have " + SchnorrSigKeyGenParameterSpec.L + " bits.", schnorrGroup.getP().bitLength() == SchnorrSigKeyGenParameterSpec.L);
+        Assert.assertTrue("q expected to have " + SchnorrSigKeyGenParameterSpec.T + " bits.", schnorrGroup.getQ().bitLength() == SchnorrSigKeyGenParameterSpec.T);
       }
     }
     finally {
@@ -68,8 +68,8 @@ public class SchnorrGroupsUnit implements Traceable {
         tracer.out().printfIndentln("schnorrGroup = %s", schnorrGroup);
         
         Assert.assertTrue("q | (p - 1) doesn't hold.", ((schnorrGroup.getP().subtract(BigInteger.ONE)).mod(schnorrGroup.getQ())).equals(BigInteger.ZERO));
-        Assert.assertTrue("p expected to have " + SchnorrSigGenParameterSpec.L_MINIMAL + " bits.", schnorrGroup.getP().bitLength() == SchnorrSigGenParameterSpec.L_MINIMAL);
-        Assert.assertTrue("q expected to have " + SchnorrSigGenParameterSpec.T_MINIMAL + " bits.", schnorrGroup.getQ().bitLength() == SchnorrSigGenParameterSpec.T_MINIMAL);
+        Assert.assertTrue("p expected to have " + SchnorrSigKeyGenParameterSpec.L_MINIMAL + " bits.", schnorrGroup.getP().bitLength() == SchnorrSigKeyGenParameterSpec.L_MINIMAL);
+        Assert.assertTrue("q expected to have " + SchnorrSigKeyGenParameterSpec.T_MINIMAL + " bits.", schnorrGroup.getQ().bitLength() == SchnorrSigKeyGenParameterSpec.T_MINIMAL);
       }
     }
     finally {
@@ -88,8 +88,8 @@ public class SchnorrGroupsUnit implements Traceable {
         tracer.out().printfIndentln("schnorrGroup = %s", schnorrGroup);
         
         Assert.assertTrue("q | (p - 1) doesn't hold.", ((schnorrGroup.getP().subtract(BigInteger.ONE)).mod(schnorrGroup.getQ())).equals(BigInteger.ZERO));
-        Assert.assertTrue("p expected to have at least " + (SchnorrSigGenParameterSpec.L_STRONG - EPSILON) + " bits.", schnorrGroup.getP().bitLength() >= SchnorrSigGenParameterSpec.L_STRONG - EPSILON);
-        Assert.assertTrue("q expected to have " + SchnorrSigGenParameterSpec.T_STRONG + " bits.", schnorrGroup.getQ().bitLength() == SchnorrSigGenParameterSpec.T_STRONG);
+        Assert.assertTrue("p expected to have at least " + (SchnorrSigKeyGenParameterSpec.L_STRONG - EPSILON) + " bits.", schnorrGroup.getP().bitLength() >= SchnorrSigKeyGenParameterSpec.L_STRONG - EPSILON);
+        Assert.assertTrue("q expected to have " + SchnorrSigKeyGenParameterSpec.T_STRONG + " bits.", schnorrGroup.getQ().bitLength() == SchnorrSigKeyGenParameterSpec.T_STRONG);
       }
     }
     finally {

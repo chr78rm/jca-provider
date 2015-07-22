@@ -36,7 +36,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
    */
   final public static int CERTAINTY = 100;
   
-  private SchnorrSigGenParameterSpec schnorrSigGenParameterSpec;
+  private SchnorrSigKeyGenParameterSpec schnorrSigGenParameterSpec;
   private SecureRandom secureRandom = new SecureRandom();
 
   /**
@@ -44,7 +44,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
    */
   public KeyPairGenerator() {
     try {
-      this.schnorrSigGenParameterSpec = new SchnorrSigGenParameterSpec(SchnorrSigGenParameterSpec.Strength.DEFAULT);
+      this.schnorrSigGenParameterSpec = new SchnorrSigKeyGenParameterSpec(SchnorrSigKeyGenParameterSpec.Strength.DEFAULT);
     }
     catch (InvalidAlgorithmParameterException ex) {
       assert false;
@@ -54,10 +54,10 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
   /**
    * Initialises the {@link KeyPairGenerator KeyPairGenerator} with the given arguments.
    * 
-   * @param algorithmParameterSpec expected to be an instance of {@link SchnorrSigGenParameterSpec SchnorrSigGenParameterSpec}, otherwise an 
+   * @param algorithmParameterSpec expected to be an instance of {@link SchnorrSigKeyGenParameterSpec SchnorrSigKeyGenParameterSpec}, otherwise an 
    * {@link InvalidAlgorithmParameterException InvalidAlgorithmParameterException} will be thrown. 
    * @param secureRandom specifies a source of randomness.
-   * @throws InvalidAlgorithmParameterException if algorithmParameterSpec isn't a SchnorrSigGenParameterSpec instance.
+   * @throws InvalidAlgorithmParameterException if algorithmParameterSpec isn't a SchnorrSigKeyGenParameterSpec instance.
    */
   @Override
    public void initialize(AlgorithmParameterSpec algorithmParameterSpec, SecureRandom secureRandom) throws InvalidAlgorithmParameterException {
@@ -65,10 +65,10 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
     tracer.entry("void", this, "initialize(AlgorithmParameterSpec algorithmParameterSpec, SecureRandom secureRandom)");
     
     try {
-      if (!(algorithmParameterSpec instanceof SchnorrSigGenParameterSpec))
-        throw new InvalidAlgorithmParameterException("Need a 'SchnorrSigGenParameterSpec'.");
+      if (!(algorithmParameterSpec instanceof SchnorrSigKeyGenParameterSpec))
+        throw new InvalidAlgorithmParameterException("Need a 'SchnorrSigKeyGenParameterSpec'.");
       
-      this.schnorrSigGenParameterSpec = (SchnorrSigGenParameterSpec) algorithmParameterSpec;
+      this.schnorrSigGenParameterSpec = (SchnorrSigKeyGenParameterSpec) algorithmParameterSpec;
       this.secureRandom = secureRandom;
       
       traceParameter();
@@ -91,7 +91,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
 
     try {
       try {
-        this.schnorrSigGenParameterSpec = new SchnorrSigGenParameterSpec(keysize, keysize / 4);
+        this.schnorrSigGenParameterSpec = new SchnorrSigKeyGenParameterSpec(keysize, keysize / 4);
         this.secureRandom = secureRandom;
 
         traceParameter();
@@ -107,7 +107,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
 
   /**
    * Generates the key pair. The DL domain parameter will be created as well if the {@link KeyPairGenerator KeyPairGenerator} has been initialized
-   * with a {@link SchnorrSigGenParameterSpec SchnorrSigGenParameterSpec} indicating custom strength.
+   * with a {@link SchnorrSigKeyGenParameterSpec SchnorrSigKeyGenParameterSpec} indicating custom strength.
    * 
    * @return the generated key pair consisting of a {@link SchnorrPublicKey SchnorrPublicKey} and a {@link SchnorrPrivateKey SchnorrPrivateKey}
    */
@@ -118,7 +118,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
     
     try {
       BigInteger p,q;
-      if (this.schnorrSigGenParameterSpec.getStrength() != SchnorrSigGenParameterSpec.Strength.CUSTOM) {
+      if (this.schnorrSigGenParameterSpec.getStrength() != SchnorrSigKeyGenParameterSpec.Strength.CUSTOM) {
         SchnorrGroup schnorrGroup = selectPrecomputedGroup();
         p = schnorrGroup.getP();
         q = schnorrGroup.getQ();

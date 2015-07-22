@@ -14,7 +14,7 @@ import java.security.spec.AlgorithmParameterSpec;
  * 
  * @author Christof Reichardt
  */
-public class SchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
+public class SchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
   final public static int L_MINIMAL = 1024;
   final public static int T_MINIMAL = 160;
   final public static int L = 2048;
@@ -34,7 +34,7 @@ public class SchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
    * @param t defines the bit length of q.
    * @throws InvalidAlgorithmParameterException if some constraints don't hold, e.g. l must not be smaller than 1024.
    */
-  public SchnorrSigGenParameterSpec(int l, int t) throws InvalidAlgorithmParameterException {
+  public SchnorrSigKeyGenParameterSpec(int l, int t) throws InvalidAlgorithmParameterException {
     this(l, t, false);
   }
 
@@ -46,7 +46,7 @@ public class SchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
    * @param exact indicates if the above requirements should be met exactly.
    * @throws InvalidAlgorithmParameterException if some constraints don't hold, e.g. l must not be smaller than 1024.
    */
-  public SchnorrSigGenParameterSpec(int l, int t, boolean exact) throws InvalidAlgorithmParameterException {
+  public SchnorrSigKeyGenParameterSpec(int l, int t, boolean exact) throws InvalidAlgorithmParameterException {
     this.l = l;
     this.t = t;
     this.strength = Strength.CUSTOM;
@@ -60,7 +60,7 @@ public class SchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
    * @param strength the qualifier
    * @throws InvalidAlgorithmParameterException indicates an illegal qualifier.
    */
-  public SchnorrSigGenParameterSpec(Strength strength) throws InvalidAlgorithmParameterException {
+  public SchnorrSigKeyGenParameterSpec(Strength strength) throws InvalidAlgorithmParameterException {
     this.strength = strength;
     switch (this.strength) {
       case CUSTOM:
@@ -109,6 +109,6 @@ public class SchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
 
   @Override
   public String toString() {
-    return "SchnorrSigGenParameterSpec[" + "l=" + l + ", t=" + t + "]";
+    return "SchnorrSigKeyGenParameterSpec[" + "l=" + l + ", t=" + t + "]";
   }
 }

@@ -7,7 +7,7 @@
 package de.christofreichardt.crypto.schnorrsignature;
 
 import de.christofreichardt.crypto.Provider;
-import de.christofreichardt.crypto.schnorrsignature.SchnorrSigGenParameterSpec.Strength;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
@@ -62,12 +62,12 @@ public class SchnorrKeyGeneratorUnit implements Traceable {
     tracer.entry("void", this, "customValidSecParams()");
     
     try {
-      SchnorrSigGenParameterSpec[] specs = {
-        new SchnorrSigGenParameterSpec(1024, 160, false),
-        new SchnorrSigGenParameterSpec(2048, 512, false),
-//        new SchnorrSigGenParameterSpec(4096, 1024, false),
+      SchnorrSigKeyGenParameterSpec[] specs = {
+        new SchnorrSigKeyGenParameterSpec(1024, 160, false),
+        new SchnorrSigKeyGenParameterSpec(2048, 512, false),
+//        new SchnorrSigKeyGenParameterSpec(4096, 1024, false),
       };
-      for (SchnorrSigGenParameterSpec schnorrSigGenParameterSpec : specs) {
+      for (SchnorrSigKeyGenParameterSpec schnorrSigGenParameterSpec : specs) {
         tracer.out().printfIndentln("schnorrSigGenParameterSpec = %s", schnorrSigGenParameterSpec);
 
         KeyPairGenerator keyPairGenerator = new KeyPairGenerator();
@@ -108,7 +108,7 @@ public class SchnorrKeyGeneratorUnit implements Traceable {
       for (Strength strength : strengths) {
         if (strength != Strength.CUSTOM) {
           tracer.out().printfIndentln("strength = %s", strength);
-          SchnorrSigGenParameterSpec schnorrSigGenParameterSpec = new SchnorrSigGenParameterSpec(strength);
+          SchnorrSigKeyGenParameterSpec schnorrSigGenParameterSpec = new SchnorrSigKeyGenParameterSpec(strength);
           keyPairGenerator.initialize(schnorrSigGenParameterSpec);
           KeyPair keyPair = keyPairGenerator.generateKeyPair();
           validateKeyPair(keyPair);
