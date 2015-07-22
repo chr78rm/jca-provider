@@ -36,6 +36,11 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
    */
   final public static int CERTAINTY = 100;
   
+  /**
+   * Defines the number of extra secret key bytes
+   */
+  final public static int EXT_KEYBYTES = 8;
+  
   private SchnorrSigKeyGenParameterSpec schnorrSigGenParameterSpec;
   private SecureRandom secureRandom = new SecureRandom();
 
@@ -172,7 +177,16 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       
       SchnorrGroup schnorrGroup = new SchnorrGroup(p, q);
       SchnorrParams schnorrParams = new SchnorrParams(schnorrGroup, g);
-      SchnorrPrivateKey schnorrPrivateKey = new SchnorrPrivateKey(schnorrParams, x);
+      SchnorrPrivateKey schnorrPrivateKey;
+      if (this.schnorrSigGenParameterSpec.isExtended()) {
+        byte[] extraKeyBytes = new byte[EXT_KEYBYTES];
+        this.secureRandom.nextBytes(extraKeyBytes);
+        schnorrPrivateKey = new ExtSchnorrPrivateKey(schnorrParams, x, extraKeyBytes);
+        
+        tracer.out().printfIndentln("Generated an ExtSchnorrPrivateKey ...");
+      }
+      else
+        schnorrPrivateKey = new SchnorrPrivateKey(schnorrParams, x);
       SchnorrPublicKey schnorrPublicKey = new SchnorrPublicKey(schnorrParams, h);
       
       return new KeyPair(schnorrPublicKey, schnorrPrivateKey);

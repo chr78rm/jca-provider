@@ -6,6 +6,7 @@
 
 package de.christofreichardt.crypto.schnorrsignature;
 
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec.NonceGeneratorStrategy;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.LogLevel;
 import de.christofreichardt.diagnosis.Traceable;
@@ -87,6 +88,8 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   private SchnorrPublicKey schnorrPublicKey;
   private boolean initialisedForSigning;
   private boolean initialisedForVerification;
+  private SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec();
+  private NonceGenerator nonceGenerator;
 
   /**
    * Creates a SHA-256 message digest algorithm instance.
@@ -116,13 +119,17 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
         throw new InvalidKeyException("Need a SchnorrPublicKey instance.");
       
       this.schnorrPublicKey = (SchnorrPublicKey) publicKey;
-      this.messageDigest.reset();
-      this.initialisedForVerification = true;
-      this.initialisedForSigning = false;
+      resetForVerifying();
     }
     finally {
       tracer.wayout();
     }
+  }
+  
+  private void resetForVerifying() {
+    this.messageDigest.reset();
+    this.initialisedForVerification = true;
+    this.initialisedForSigning = false;
   }
 
   /**
@@ -141,16 +148,34 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       
       if (!(privateKey instanceof SchnorrPrivateKey))
         throw new InvalidKeyException("Need a SchnorrPrivateKey instance.");
+      if (this.schnorrSigParameterSpec.getNonceGeneratorStrategy() == NonceGeneratorStrategy.PRIVATEKEY_MSG_HASH  &&  
+          !(privateKey instanceof ExtSchnorrPrivateKey))
+        throw new InvalidKeyException("Need a ExtSchnorrPrivateKey instance.");
       
       this.schnorrPrivateKey = (SchnorrPrivateKey) privateKey;
-      this.messageDigest.reset();
-      
-      this.initialisedForSigning = true;
-      this.initialisedForVerification = false;
+      resetForSigning();
     }
     finally {
       tracer.wayout();
     }
+  }
+  
+  private void resetForSigning() {
+    this.messageDigest.reset();
+    switch (this.schnorrSigParameterSpec.getNonceGeneratorStrategy()) {
+    case SECURE_RANDOM:
+      this.nonceGenerator = new RandomNonceGenerator(this.schnorrPrivateKey.getSchnorrParams().getQ(), this.secureRandom);
+      break;
+    case PRIVATEKEY_MSG_HASH:
+      this.nonceGenerator = new DeterministicNonceGenerator(((ExtSchnorrPrivateKey) this.schnorrPrivateKey).getExtKeyBytes());
+      break;
+    default:
+      this.nonceGenerator = new RandomNonceGenerator(this.schnorrPrivateKey.getSchnorrParams().getQ(), this.secureRandom);
+      break;
+    }
+    
+    this.initialisedForSigning = true;
+    this.initialisedForVerification = false;
   }
 
   /**
@@ -178,6 +203,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       throw new SignatureException("Signature scheme hasn't been initialized.");
     
     this.messageDigest.update(input);
+    this.nonceGenerator.update(input);
   }
 
   /**
@@ -195,6 +221,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       throw new SignatureException("Signature scheme hasn't been initialized.");
     
     this.messageDigest.update(bytes, offset, length);
+    this.nonceGenerator.update(bytes, offset, length);
   }
 
   /**
@@ -211,35 +238,40 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     tracer.entry("byte[]", this, "engineSign()");
     
     try {
-      if (!this.initialisedForSigning)
-        throw new SignatureException("Signature scheme hasn't been initialized for signing.");
-      
-      final BigInteger q = this.schnorrPrivateKey.getSchnorrParams().getQ();
-      final BigInteger x = this.schnorrPrivateKey.getX();
-      
-      BigInteger e, r;
-      byte[] digestBytes;
-      do {
+      try {
+        if (!this.initialisedForSigning)
+          throw new SignatureException("Signature scheme hasn't been initialized for signing.");
+        
+        final BigInteger q = this.schnorrPrivateKey.getSchnorrParams().getQ();
+        final BigInteger x = this.schnorrPrivateKey.getX();
+        
+        BigInteger e, r;
+        byte[] digestBytes;
         do {
-          r = new BigInteger(q.bitLength()*2, this.secureRandom).mod(q);
-        } while (r.equals(BigInteger.ZERO));
+          do {
+            r = this.nonceGenerator.nonce();
+          } while (r.equals(BigInteger.ZERO));
 
-        digestBytes = concatForSigning(r);
-        assert digestBytes.length==DIGEST_LENGTH;
-        e = new BigInteger(digestBytes).mod(q);
-      } while (e.equals(BigInteger.ZERO));
-      
-      BigInteger y = r.subtract(e.multiply(x)).mod(q);
-      byte[] yBytes = y.toByteArray();
-      
-      tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
-      tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
-      tracer.out().printfIndentln("yBytes.length = %d", yBytes.length);
-      
-      byte[] signatureBytes = Arrays.copyOf(digestBytes, DIGEST_LENGTH + yBytes.length);
-      System.arraycopy(yBytes, 0, signatureBytes, DIGEST_LENGTH, yBytes.length);
-      
-      return signatureBytes;
+          digestBytes = concatForSigning(r);
+          assert digestBytes.length==DIGEST_LENGTH;
+          e = new BigInteger(digestBytes).mod(q);
+        } while (e.equals(BigInteger.ZERO));
+        
+        BigInteger y = r.subtract(e.multiply(x)).mod(q);
+        byte[] yBytes = y.toByteArray();
+        
+        tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
+        tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
+        tracer.out().printfIndentln("yBytes.length = %d", yBytes.length);
+        
+        byte[] signatureBytes = Arrays.copyOf(digestBytes, DIGEST_LENGTH + yBytes.length);
+        System.arraycopy(yBytes, 0, signatureBytes, DIGEST_LENGTH, yBytes.length);
+        
+        return signatureBytes;
+      }
+      finally {
+        resetForSigning();
+      }
     }
     finally {
       tracer.wayout();
@@ -289,14 +321,19 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     tracer.entry("boolean", this, "engineVerify(byte[] signatureBytes)");
     
     try {
-      if (!this.initialisedForVerification)
-        throw new SignatureException("Signature scheme hasn't been initialized for verification.");
-      
-      final BigInteger q = this.schnorrPublicKey.getSchnorrParams().getQ();
-      BigInteger e = concatForVerifying(signatureBytes);
-      byte[] digestBytes = this.messageDigest.digest();
-      
-      return new BigInteger(digestBytes).mod(q).equals(e);
+      try {
+        if (!this.initialisedForVerification)
+          throw new SignatureException("Signature scheme hasn't been initialized for verification.");
+        
+        final BigInteger q = this.schnorrPublicKey.getSchnorrParams().getQ();
+        BigInteger e = concatForVerifying(signatureBytes);
+        byte[] digestBytes = this.messageDigest.digest();
+        
+        return new BigInteger(digestBytes).mod(q).equals(e);
+      }
+      finally {
+        resetForVerifying();
+      }
     }
     finally {
       tracer.wayout();
@@ -350,8 +387,11 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   }
 
   @Override
-  protected void engineSetParameter(AlgorithmParameterSpec params) throws InvalidAlgorithmParameterException {
-    throw new UnsupportedOperationException("Unsupported operation.");
+  protected void engineSetParameter(AlgorithmParameterSpec algorithmParameterSpec) throws InvalidAlgorithmParameterException {
+    if (!(algorithmParameterSpec instanceof SchnorrSigParameterSpec))
+      throw new InvalidAlgorithmParameterException("Need a 'SchnorrSigParameterSpec'.");
+    
+    this.schnorrSigParameterSpec = (SchnorrSigParameterSpec) algorithmParameterSpec;
   }
 
   @Override

@@ -9,11 +9,14 @@ package de.christofreichardt.crypto;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.interfaces.DSAPrivateKey;
 import java.util.Properties;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,6 +58,27 @@ public class ExperimentalUnit implements Traceable {
       tracer.out().printfIndentln("DSAPrivateKey.class.isAssignableFrom(%s) = %b", 
           keyPair.getPrivate().getClass().getName(), 
           DSAPrivateKey.class.isAssignableFrom(keyPair.getPrivate().getClass()));
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void randomBytes() {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "randomBytes()");
+    
+    try {
+      final int NUMBER_OF_BYTES = 128;
+      byte[] randomBytes = new byte[NUMBER_OF_BYTES];
+      SecureRandom secureRandom = new SecureRandom();
+      secureRandom.nextBytes(randomBytes);
+      tracer.out().printIndent("randomBytes: ");
+      for (byte randomByte : randomBytes) {
+        tracer.out().print(randomByte + " ");
+      }
+      tracer.out().println();
     }
     finally {
       tracer.wayout();

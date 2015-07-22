@@ -26,6 +26,7 @@ public class SchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
   final private Strength strength;
   final private int l,t;
   private final boolean exact;
+  private final boolean extended;
 
   /**
    * Expects the security parameter which roughly define the bit length of p,q.
@@ -39,7 +40,8 @@ public class SchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
   }
 
   /**
-   * Expects the security parameter which roughly define the bit length of p,q.
+   * Expects the security parameter which roughly define the bit length of p,q and a flag 
+   * that indicates if these bit lengths should be matched exactly.
    * 
    * @param l defines the bit length of p.
    * @param t defines the bit length of q.
@@ -47,10 +49,28 @@ public class SchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
    * @throws InvalidAlgorithmParameterException if some constraints don't hold, e.g. l must not be smaller than 1024.
    */
   public SchnorrSigKeyGenParameterSpec(int l, int t, boolean exact) throws InvalidAlgorithmParameterException {
+    this(l, t, exact, false);
+  }
+  
+
+  /**
+   * Expects the security parameter which roughly define the bit length of p,q and a flag 
+   * that indicates if these bit lengths should be matched exactly. An additional flag
+   * may demand the creation of some additional secret key bytes used for the deterministic
+   * generation of nonces.
+   * 
+   * @param l defines the bit length of p.
+   * @param t defines the bit length of q.
+   * @param exact indicates if the above requirements should be met exactly.
+   * @param extended produces additional secret key bytes if set.
+   * @throws InvalidAlgorithmParameterException
+   */
+  public SchnorrSigKeyGenParameterSpec(int l, int t, boolean exact, boolean extended) throws InvalidAlgorithmParameterException {
     this.l = l;
     this.t = t;
     this.strength = Strength.CUSTOM;
     this.exact = exact;
+    this.extended = extended;
     validate();
   }
 
@@ -81,14 +101,17 @@ public class SchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
         throw new IllegalArgumentException("Unknown strength.");
     }
     this.exact = false;
+    this.extended = false;
     validate();
   }
   
   private void validate() throws InvalidAlgorithmParameterException {
-    if (this.l < 1024  ||  this.t < 160)
+    if (this.l < L_MINIMAL  ||  this.t < T_MINIMAL)
       throw new InvalidAlgorithmParameterException("Insufficient security parameter.");
     if (this.l < this.t)
       throw new InvalidAlgorithmParameterException("Invalid security parameter.");
+    if (this.extended && this.t > T)
+      throw new InvalidAlgorithmParameterException(this.t + " is to big for extended use.");
   }
 
   public int getL() {
@@ -107,8 +130,12 @@ public class SchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
     return exact;
   }
 
+  public boolean isExtended() {
+    return extended;
+  }
+
   @Override
   public String toString() {
-    return "SchnorrSigKeyGenParameterSpec[" + "l=" + l + ", t=" + t + "]";
+    return "SchnorrSigKeyGenParameterSpec[" + "l=" + this.l + ", t=" + this.t + ", exact=" + this.exact + ", extended=" + this.extended + "]";
   }
 }
