@@ -84,7 +84,6 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   final private MessageDigest messageDigest;
   private SecureRandom secureRandom = new SecureRandom();
   private SchnorrPrivateKey schnorrPrivateKey;
-//  private BigInteger r;
   private SchnorrPublicKey schnorrPublicKey;
   private boolean initialisedForSigning;
   private boolean initialisedForVerification;
@@ -145,11 +144,6 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       
       this.schnorrPrivateKey = (SchnorrPrivateKey) privateKey;
       this.messageDigest.reset();
-      
-//      final BigInteger q = this.schnorrPrivateKey.getSchnorrParams().getQ();
-//      do {
-//        this.r = new BigInteger(q.bitLength()*2, this.secureRandom).mod(q);
-//      } while (this.r.equals(BigInteger.ZERO));
       
       this.initialisedForSigning = true;
       this.initialisedForVerification = false;
@@ -359,8 +353,6 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   protected void engineSetParameter(AlgorithmParameterSpec params) throws InvalidAlgorithmParameterException {
     throw new UnsupportedOperationException("Unsupported operation.");
   }
-  
-  
 
   @Override
   public AbstractTracer getCurrentTracer() {
