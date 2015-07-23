@@ -40,7 +40,7 @@ package affine {
     
     abstract class AffinePoint(val x: BigInt, val y: BigInt, val curve: TheCurve) extends AbstractPoint {
       override def toString() = {
-        "AffinePoint(" + this.x + ", " + this.y + ")"
+        "AffinePoint[" + this.x + ", " + this.y + "]"
       }
     }
     abstract class AffineCurve(val p: BigInt) extends AbstractCurve {
