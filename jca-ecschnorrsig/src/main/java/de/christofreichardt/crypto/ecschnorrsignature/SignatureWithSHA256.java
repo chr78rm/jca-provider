@@ -51,16 +51,19 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       
       if (!(privateKey instanceof ECSchnorrPrivateKey))
         throw new InvalidKeyException("Need a ECSchnorrPrivateKey instance.");
+      
       this.ecSchnorrPrivateKey = (ECSchnorrPrivateKey) privateKey;
-      
-      this.messageDigest.reset();
-      
-      this.initialisedForSigning = true;
-      this.initialisedForVerification = false;
+      resetForSigning();
     }
     finally {
       tracer.wayout();
     }
+  }
+  
+  private void resetForSigning() {
+    this.messageDigest.reset();
+    this.initialisedForSigning = true;
+    this.initialisedForVerification = false;
   }
 
   @Override
@@ -81,13 +84,17 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
         throw new InvalidKeyException("Need a SchnorrPublicKey instance.");
       
       this.ecSchnorrPublicKey = (ECSchnorrPublicKey) publicKey;
-      this.messageDigest.reset();
-      this.initialisedForVerification = true;
-      this.initialisedForSigning = false;
+      resetForVerifying();
     }
     finally {
       tracer.wayout();
     }
+  }
+  
+  private void resetForVerifying() {
+    this.messageDigest.reset();
+    this.initialisedForVerification = true;
+    this.initialisedForSigning = false;
   }
 
   @Override
@@ -102,32 +109,37 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     tracer.entry("byte[]", this, "engineSign()");
     
     try {
-      BigInteger order = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec().getOrder();
-      BigInteger x = this.ecSchnorrPrivateKey.getX();
-      
-      BigInteger e, r;
-      byte[] digestBytes;
-      do {
-        do {
-          r = new BigInteger(order.bitLength()*2, this.secureRandom).mod(order);
-        } while (r.equals(BigInteger.ZERO));
+      try {
+        BigInteger order = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec().getOrder();
+        BigInteger x = this.ecSchnorrPrivateKey.getX();
         
-        digestBytes = concatForSigning(r);
-        assert digestBytes.length == DIGEST_LENGTH;
-        e = new BigInteger(digestBytes).mod(order);
-      } while(e.equals(BigInteger.ZERO));
-      
-      BigInteger y = e.multiply(x).add(r).mod(order);
-      byte[] yBytes = y.toByteArray();
-      
-      tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
-      tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
-      tracer.out().printfIndentln("yBytes.length = %d", yBytes.length);
-      
-      byte[] signatureBytes = Arrays.copyOf(digestBytes, DIGEST_LENGTH + yBytes.length);
-      System.arraycopy(yBytes, 0, signatureBytes, DIGEST_LENGTH, yBytes.length);
-      
-      return signatureBytes;
+        BigInteger e, r;
+        byte[] digestBytes;
+        do {
+          do {
+            r = new BigInteger(order.bitLength()*2, this.secureRandom).mod(order);
+          } while (r.equals(BigInteger.ZERO));
+          
+          digestBytes = concatForSigning(r);
+          assert digestBytes.length == DIGEST_LENGTH;
+          e = new BigInteger(digestBytes).mod(order);
+        } while(e.equals(BigInteger.ZERO));
+        
+        BigInteger y = e.multiply(x).add(r).mod(order);
+        byte[] yBytes = y.toByteArray();
+        
+        tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
+        tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
+        tracer.out().printfIndentln("yBytes.length = %d", yBytes.length);
+        
+        byte[] signatureBytes = Arrays.copyOf(digestBytes, DIGEST_LENGTH + yBytes.length);
+        System.arraycopy(yBytes, 0, signatureBytes, DIGEST_LENGTH, yBytes.length);
+        
+        return signatureBytes;
+      }
+      finally {
+        resetForSigning();
+      }
     }
     finally {
       tracer.wayout();
@@ -188,14 +200,19 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     tracer.entry("boolean", this, "engineVerify(byte[] signatureBytes)");
     
     try {
-      if (!this.initialisedForVerification)
-        throw new SignatureException("Signature scheme hasn't been initialized for verification.");
-      
-      CurveSpec curveSpec = this.ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec();
-      BigInteger e = concatForVerifying(signatureBytes);
-      byte[] digestBytes = this.messageDigest.digest();
-      
-      return new BigInteger(digestBytes).mod(curveSpec.getOrder()).equals(e);
+      try {
+        if (!this.initialisedForVerification)
+          throw new SignatureException("Signature scheme hasn't been initialized for verification.");
+        
+        CurveSpec curveSpec = this.ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec();
+        BigInteger e = concatForVerifying(signatureBytes);
+        byte[] digestBytes = this.messageDigest.digest();
+        
+        return new BigInteger(digestBytes).mod(curveSpec.getOrder()).equals(e);
+      }
+      finally {
+        resetForVerifying();
+      }
     }
     finally {
       tracer.wayout();
