@@ -99,7 +99,7 @@ package affine {
       }
       
       override def toString() = {
-        "AffineCurve(a=" + this.a + ", b=" + this.b + ", p=" + this.p + ")"
+        "ShortWeierstrass[a=" + this.a + ", b=" + this.b + ", p=" + this.p + "]"
       }
     }
 
@@ -116,7 +116,7 @@ package affine {
           if (this != point.negate) {
             val lambda =
               if (this != point) ((point.y - this.y) * (point.x - this.x).modInverse(this.curve.p)).mod(this.curve.p)
-              else (3 * this.x.pow(2) + this.curve.a).mod(this.curve.p) * (2 * this.y).modInverse(this.curve.p)
+              else ((3 * this.x.pow(2) + this.curve.a).mod(this.curve.p) * (2 * this.y).modInverse(this.curve.p)).mod(this.curve.p)
             val x = (lambda.modPow(2, this.curve.p) - this.x - point.x).mod(this.curve.p)
             val y = ((this.x - x) * lambda - this.y).mod(this.curve.p)
             new Point(x, y, this.curve)
