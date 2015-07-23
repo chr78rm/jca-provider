@@ -85,6 +85,12 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       signature.initSign(keyPair.getPrivate());
       signature.update(this.msgBytes, 0, this.msgBytes.length);
       byte[] signatureBytes = signature.sign();
+      signature.update(this.msgBytes);
+      byte[] buffer = new byte[signatureBytes.length];
+      signature.sign(buffer, 0, signatureBytes.length);
+      
+      Assert.assertArrayEquals("Expected identical signatures.", signatureBytes, buffer);
+      
       signature.initVerify(keyPair.getPublic());
       signature.update(this.msgBytes, 0, this.msgBytes.length);
       boolean verified = signature.verify(signatureBytes);
