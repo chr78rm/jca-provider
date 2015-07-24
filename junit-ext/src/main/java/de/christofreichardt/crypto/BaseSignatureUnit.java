@@ -216,12 +216,16 @@ public class BaseSignatureUnit implements Traceable {
 
     try {
       if (this.properties.containsKey("de.christofreichardt.crypto.BaseSignatureUnit.document")) {
+        String path = this.properties.getProperty("de.christofreichardt.crypto.BaseSignatureUnit.document");
+        
+        tracer.out().printfIndentln("path = %s", path);
+        
         java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         Signature signature = Signature.getInstance(this.signatureAlgorithmName, this.provider.getName());
         signature.initSign(keyPair.getPrivate());
         
-        File file = new File(this.properties.getProperty("de.christofreichardt.crypto.BaseSignatureUnit.document"));
+        File file = new File(path);
         Assert.assertTrue("Specified file '" + file.getPath() + "' doesn't exist.", file.exists());
         
         int bufferSize = 512;
@@ -231,21 +235,10 @@ public class BaseSignatureUnit implements Traceable {
           FileChannel fileChannel = fileInputStream.getChannel();
           do {
             int read = fileChannel.read(buffer);
-            
-            tracer.out().printfIndentln("read = %d", read);
-            
             if (read == -1)
               break;
             buffer.flip();
             buffer.get(bytes, 0, read);
-            
-            tracer.out().printIndent("bytes: ");
-            for (int i=0; i<read; i++) {
-              tracer.out().print(bytes[i] & 255);
-              tracer.out().print(" ");
-            }
-            tracer.out().println();
-            
             signature.update(bytes, 0, read);
             buffer.clear();
           } while(true);
@@ -260,21 +253,10 @@ public class BaseSignatureUnit implements Traceable {
           FileChannel fileChannel = fileInputStream.getChannel();
           do {
             int read = fileChannel.read(buffer);
-            
-            tracer.out().printfIndentln("read = %d", read);
-            
             if (read == -1)
               break;
             buffer.flip();
             buffer.get(bytes, 0, read);
-            
-            tracer.out().printIndent("bytes: ");
-            for (int i=0; i<read; i++) {
-              tracer.out().print(bytes[i] & 255);
-              tracer.out().print(" ");
-            }
-            tracer.out().println();
-            
             signature.update(bytes, 0, read);
             buffer.clear();
           } while(true);
