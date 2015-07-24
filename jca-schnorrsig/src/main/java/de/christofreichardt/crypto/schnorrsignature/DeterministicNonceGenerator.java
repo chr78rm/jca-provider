@@ -9,6 +9,7 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
 public class DeterministicNonceGenerator implements NonceGenerator, Traceable {
+  final private BigInteger modul;
   final private MessageDigest messageDigest;
   final private byte[] extraBytes = {-46, 68, 13, 38, 81, -73, 12, -119, -27, -76, 73, 64, -50, -99, -48, -25, 4, -103, 40, 29, 23, 60, -14, -7, 88, -11, 90, -9, 
       -65, -58, 45, -79, -86, 71, -94, -10, 6, 106, 4, 34, -10, 36, 17, 127, -47, 95, 18, 4, 6, -126, -52, 26, 125, 104, -128, -86, -53, 95, 12, -104, 97, -112, 
@@ -16,7 +17,8 @@ public class DeterministicNonceGenerator implements NonceGenerator, Traceable {
       106, -42, -113, 124, 87, 111, 97, -86, -83, -37, -40, -6, -44, -17, 49, -90, -115, -47, -86, -88, -13, 8, -4, 104, -88, 94, 31, 54, -74, 14, 30, -28};
   private int index = -1;
   
-  public DeterministicNonceGenerator(byte[] extendedKey) {
+  public DeterministicNonceGenerator(BigInteger modul, byte[] extendedKey) {
+    this.modul = modul;
     try {
       this.messageDigest = MessageDigest.getInstance("SHA-512");
       this.messageDigest.update(extendedKey);
@@ -38,7 +40,7 @@ public class DeterministicNonceGenerator implements NonceGenerator, Traceable {
         MessageDigest messageDigest = (MessageDigest) this.messageDigest.clone();
         this.index++;
         
-        return new BigInteger(1, messageDigest.digest());
+        return new BigInteger(1, messageDigest.digest()).mod(this.modul);
       }
       catch (CloneNotSupportedException ex) {
         throw new RuntimeException(ex);
