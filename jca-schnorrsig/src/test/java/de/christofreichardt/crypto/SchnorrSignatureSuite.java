@@ -5,10 +5,12 @@
  */
 package de.christofreichardt.crypto;
 
+import de.christofreichardt.crypto.schnorrsignature.ExamplesUnit;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrGroupsUnit;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrKeyGeneratorUnit;
 import de.christofreichardt.crypto.schnorrsignature.SignatureUnit;
 import de.christofreichardt.junit.MySuite;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
@@ -21,7 +23,8 @@ import org.junit.runners.Suite;
   ExperimentalUnit.class,
   SchnorrKeyGeneratorUnit.class,
   SchnorrGroupsUnit.class,
-  SignatureUnit.class
+  SignatureUnit.class,
+  ExamplesUnit.class
 })
 public class SchnorrSignatureSuite {
 }
