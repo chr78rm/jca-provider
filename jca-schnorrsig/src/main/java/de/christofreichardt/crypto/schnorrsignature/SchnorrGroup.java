@@ -41,6 +41,6 @@ public class SchnorrGroup {
 
   @Override
   public String toString() {
-    return "SchnorrGroup[" + "p=" + p + ", q=" + q + "]";
+    return "SchnorrGroup[" + "p(" + p.bitLength() + ")=" + p + ", q(" + q.bitLength() + ")=" + q + "]";
   }
 }
