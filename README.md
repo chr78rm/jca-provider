@@ -6,7 +6,7 @@ as well as for the Rabin-SAEP cryptosystem.
 1. [Build](#Build)
 2. [Installation](#Installation)
 3. [Schnorr Signatures on prime fields](#PrimeFields)
-  1. [Usage](#PrimeFieldsUsage)
+  - [Usage](#PrimeFieldsUsage)
 4. [Schnorr Signatures on elliptic curves](#EllipticCurves)
 5. [Links](#Links)
 
@@ -84,7 +84,7 @@ the official [JCA Reference Guide](http://docs.oracle.com/javase/8/docs/technote
   </tbody>
 </table>
 
-### <a name="PrimeFieldsUsage"></a>3.1 Usage
+### <a name="PrimeFieldsUsage"></a>Usage
 
 The subsequent example works with one of the precomputed Schnorr groups that are exhibiting default security parameters. This means p has 2048 bits and q has 512 bits.
 The `KeyPairGenerator` instance will select one of these groups at random.
