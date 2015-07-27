@@ -3,18 +3,12 @@
 A provider for the Java Cryptography Architecture. Implementations are intended for the Schnorr Signature based on prime fields and elliptic curves
 as well as for the Rabin-SAEP cryptosystem.
 
-<div>
-  <ol>
-    <li>[Build](#Build)</li>
-    <li>[Installation](#Installation)</li>
-    <li>[Schnorr Signatures on prime fields](#PrimeFields)</li>
-    <ol>
-      <li style="list-style-type: none;">[Usage](#PrimeFieldsUsage)</li>
-    </ol>
-    <li>[Schnorr Signatures on elliptic curves](#EllipticCurves)</li>
-    <li>[Links](#Links)</li>
-  </ol>
-</div>
+1. [Build](#Build)
+2. [Installation](#Installation)
+3. [Schnorr Signatures on prime fields](#PrimeFields)
+  1. [Usage](#PrimeFieldsUsage)
+4. [Schnorr Signatures on elliptic curves](#EllipticCurves)
+5. [Links](#Links)
 
 ## <a name="Build"></a>1. Build
 
