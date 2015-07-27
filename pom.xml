@@ -16,6 +16,7 @@
     <module>jca-ecschnorrsig</module>
     <module>junit-ext</module>
     <module>jca-master</module>
+    <module>jca-bundle</module>
   </modules>
 
 </project>

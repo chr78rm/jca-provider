@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>de.christofreichardt</groupId>
+    <artifactId>jca-provider</artifactId>
+    <version>0.0.3-SNAPSHOT</version>
+  </parent>
+  
+  <artifactId>jca-bundle</artifactId>
+  <packaging>jar</packaging>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <app.main.class>de.christofreichardt.crypto.examples.Main</app.main.class>
+    <maven.compile.source>1.7</maven.compile.source>
+    <maven.compile.target>1.7</maven.compile.target>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>${maven.compile.source}</source>
+          <target>${maven.compile.target}</target>
+          <compilerArgument>-Xlint:all</compilerArgument>
+          <useIncrementalCompilation>true</useIncrementalCompilation>
+          <forceJavacCompilerUse>false</forceJavacCompilerUse>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.1</version>
+        <configuration>
+          <transformers>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+              <manifestEntries>
+                <Main-Class>${app.main.class}</Main-Class>
+                <X-Compile-Source-JDK>${maven.compile.source}</X-Compile-Source-JDK>
+                <X-Compile-Target-JDK>${maven.compile.target}</X-Compile-Target-JDK>
+              </manifestEntries>
+            </transformer>
+          </transformers>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>    
+    </plugins>
+  </build>
+  
+  <dependencies>
+    <dependency>
+      <groupId>de.christofreichardt</groupId>
+      <artifactId>jca-schnorrsig</artifactId>
+      <version>0.0.3-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+  
+</project>
