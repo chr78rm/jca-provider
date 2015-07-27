@@ -3,12 +3,18 @@
 A provider for the Java Cryptography Architecture. Implementations are intended for the Schnorr Signature based on prime fields and elliptic curves
 as well as for the Rabin-SAEP cryptosystem.
 
-1. [Build](#Build)
-2. [Installation](#Installation)
-3. [Schnorr Signatures on prime fields](#PrimeFields)
-  - [Usage](#PrimeFieldsUsage)
-4. [Schnorr Signatures on elliptic curves](#EllipticCurves)
-5. [Links](#Links)
+<div>
+  <ol>
+    <li>[Build](#Build)</li>
+    <li>[Installation](#Installation)</li>
+    <li>[Schnorr Signatures on prime fields](#PrimeFields)</li>
+    <ol>
+      <li style="list-style-type: none;">[Usage](#PrimeFieldsUsage)</li>
+    </ol>
+    <li>[Schnorr Signatures on elliptic curves](#EllipticCurves)</li>
+    <li>[Links](#Links)</li>
+  </ol>
+</div>
 
 ## <a name="Build"></a>1. Build
 
@@ -29,6 +35,8 @@ However this is rather unlikely and a repetition of the build will suffice in mo
 Cryptographic Service Providers can be installed in two ways:
 - on the normal Java classpath
 - as a bundled extension
+
+The jca-bundle sub-module contains an uber-jar with the relevant binaries.
 
 Furthermore, a Cryptographic Service Provider (CSP) must be registered before it can be put to use. CSPs can be registered statically by editing
 a security properties configuration file or dynamically at runtime:
@@ -84,7 +92,7 @@ the official [JCA Reference Guide](http://docs.oracle.com/javase/8/docs/technote
   </tbody>
 </table>
 
-### <a name="PrimeFieldsUsage"></a>Usage
+### <a name="PrimeFieldsUsage"></a>3.1 Usage
 
 The subsequent example works with one of the precomputed Schnorr groups that are exhibiting default security parameters. This means p has 2048 bits and q has 512 bits.
 The `KeyPairGenerator` instance will select one of these groups at random.
