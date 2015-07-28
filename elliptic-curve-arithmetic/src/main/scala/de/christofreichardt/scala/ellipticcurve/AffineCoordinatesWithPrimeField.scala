@@ -34,6 +34,7 @@ package affine {
     type TheCoordinates = AffineCoordinates
     
     case class AffineCoordinates(x: BigInt, y: BigInt) extends Coordinates
+    def makeAffineCoordinates(x: BigInt, y: BigInt): AffineCoordinates = new AffineCoordinates(x, y)
     
     case class PrimeField(p: BigInt) extends FiniteField
     def makePrimeField(p: BigInt): PrimeField = new PrimeField(p)
@@ -53,6 +54,7 @@ package affine {
         randomPoint(randomGenerator)
       }
       def randomPoint(randomGenerator: RandomGenerator): ThePoint
+      def isValidPoint(point: ThePoint): Boolean
     }
 
     trait PointMultiplication extends Tracing {

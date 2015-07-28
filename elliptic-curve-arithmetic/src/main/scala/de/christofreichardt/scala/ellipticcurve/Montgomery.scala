@@ -32,6 +32,8 @@ package affine {
             new Point(x, 0, this)
         }
       }
+      
+      def isValidPoint(point: ThePoint): Boolean = false
             
       override def toString() = {
         "Montgomery[a=" + this.a + ", b=" + this.b + ", p=" + this.p + "]"

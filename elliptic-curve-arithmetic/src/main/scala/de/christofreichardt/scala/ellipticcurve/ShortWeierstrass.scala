@@ -97,6 +97,13 @@ package affine {
           randomAccessFile.close()
         }
       }
+
+      def isValidPoint(point: Point): Boolean = {
+        val yQuadrat = evaluateCurveEquation(point.x)
+        val (y1, y2) = this.solver.solve(yQuadrat)
+        if (point.y == y1  ||  point.y == y2) true
+        else false
+      }
       
       override def toString() = {
         "ShortWeierstrass[a=" + this.a + ", b=" + this.b + ", p=" + this.p + "]"
