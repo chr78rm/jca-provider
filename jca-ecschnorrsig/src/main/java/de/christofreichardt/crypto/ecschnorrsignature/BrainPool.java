@@ -16,9 +16,6 @@ public class BrainPool {
     "brainpoolP256r1", "brainpoolP256t1", "brainpoolP320r1", "brainpoolP320t1", "brainpoolP384r1", "brainpoolP384t1", "brainpoolP512r1",
     "brainpoolP512t1"};
   static {
-//    String[] ids = {"brainpoolP160r1", "brainpoolP160t1", "brainpoolP192r1", "brainpoolP192t1", "brainpoolP224r1", "brainpoolP224t1",
-//        "brainpoolP256r1", "brainpoolP256t1", "brainpoolP320r1", "brainpoolP320t1", "brainpoolP384r1", "brainpoolP384t1", "brainpoolP512r1",
-//        "brainpoolP512t1"};
     BigInteger[] orders = { 
         new BigInteger("E95E4A5F737059DC60DF5991D45029409E60FC09", 16),
         new BigInteger("E95E4A5F737059DC60DF5991D45029409E60FC09", 16),
@@ -87,7 +84,7 @@ public class BrainPool {
       OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a[i]), new BigInt(b[i]));
       PrimeField primeField = ShortWeierstrass.makePrimeField(new BigInt(p[i]));
       AffineCurve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
-      CurveSpec curveSpec = new CurveSpec(curve, orders[i], BigInteger.ONE);
+      CurveSpec curveSpec = new CurveSpec(curve, orders[i], BigInteger.ONE, null);
       curves.put(curveIds[i], curveSpec);
     }
   }
