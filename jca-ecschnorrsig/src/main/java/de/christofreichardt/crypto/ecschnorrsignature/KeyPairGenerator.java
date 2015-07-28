@@ -43,14 +43,18 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       }
       
       AffinePoint gPoint;
-      do {
-        AffinePoint randomPoint = curveSpec.getCurve().randomPoint(new RandomGenerator(this.secureRandom));
-        Element element = randomPoint.multiply(curveSpec.getCoFactor());
-        if (!element.isNeutralElement()) {
-          gPoint = ShortWeierstrass.elemToAffinePoint(element);
-          break;
-        }
-      } while (true);
+      if (this.ecSchnorrSigKeyGenParameterSpec.isUseRandomBasePoint()) {
+        do {
+          AffinePoint randomPoint = curveSpec.getCurve().randomPoint(new RandomGenerator(this.secureRandom));
+          Element element = randomPoint.multiply(curveSpec.getCoFactor());
+          if (!element.isNeutralElement()) {
+            gPoint = ShortWeierstrass.elemToAffinePoint(element);
+            break;
+          }
+        } while (true);
+      }
+      else
+        gPoint = curveSpec.getgPoint();
       
       BigInteger x;
       do {

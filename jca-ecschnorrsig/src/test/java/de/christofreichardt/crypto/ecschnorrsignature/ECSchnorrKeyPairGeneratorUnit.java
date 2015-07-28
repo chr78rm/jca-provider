@@ -126,13 +126,41 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME);
       
       for (String curveId : NIST.curveIds) {
-        keyPairGenerator.initialize(new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, curveId, true));
+        ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, curveId, true);
+        
+        tracer.out().printfIndentln("ecSchnorrSigKeyGenParameterSpec = %s", ecSchnorrSigKeyGenParameterSpec);
+        
+        keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        validateKeyPair(keyPair, NIST.curves.get(curveId).getCurve().p().bitLength());
+      }
+      
+      for (String curveId : NIST.curveIds) {
+        ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, curveId);
+        
+        tracer.out().printfIndentln("ecSchnorrSigKeyGenParameterSpec = %s", ecSchnorrSigKeyGenParameterSpec);
+        
+        keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         validateKeyPair(keyPair, NIST.curves.get(curveId).getCurve().p().bitLength());
       }
       
       for (String curveId : BrainPool.curveIds) {
-        keyPairGenerator.initialize(new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, curveId, true));
+        ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, curveId, true);
+        
+        tracer.out().printfIndentln("ecSchnorrSigKeyGenParameterSpec = %s", ecSchnorrSigKeyGenParameterSpec);
+        
+        keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        validateKeyPair(keyPair, BrainPool.curves.get(curveId).getCurve().p().bitLength());
+      }
+      
+      for (String curveId : BrainPool.curveIds) {
+        ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, curveId);
+        
+        tracer.out().printfIndentln("ecSchnorrSigKeyGenParameterSpec = %s", ecSchnorrSigKeyGenParameterSpec);
+        
+        keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         validateKeyPair(keyPair, BrainPool.curves.get(curveId).getCurve().p().bitLength());
       }

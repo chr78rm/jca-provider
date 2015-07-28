@@ -9,6 +9,10 @@ public class ECSchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
   final private String curveId;
   final private boolean useRandomBasePoint;
   
+  public ECSchnorrSigKeyGenParameterSpec(CurveCompilation curveCompilation, String curveId) {
+    this(curveCompilation, curveId, false);
+  }
+
   public ECSchnorrSigKeyGenParameterSpec(CurveCompilation curveCompilation, String curveId, boolean useRandomBasePoint) {
     this.curveCompilation = curveCompilation;
     this.curveId = curveId;
