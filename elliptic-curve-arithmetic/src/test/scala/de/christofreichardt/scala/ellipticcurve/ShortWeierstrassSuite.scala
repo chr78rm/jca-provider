@@ -206,6 +206,15 @@ package affine {
       tracer.out().printfIndentln("randomPoint = %s", randomPoint)
       assert(points.contains(randomPoint))
     }
+    
+    testWithTracing(this, "Point Multiplication P*1=P (3)") {
+      val tracer = getCurrentTracer()
+      
+      val randomPoint = this.curve2.randomPoint
+      
+      tracer.out().printfIndentln("randomPoint = %s", randomPoint)
+      assert(randomPoint.multiply(1) == randomPoint, "Expected the identical point.")
+    }
 
     testWithTracing(this, "Draw") {
       val tracer = getCurrentTracer()
