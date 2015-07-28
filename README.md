@@ -3,22 +3,16 @@
 A provider for the Java Cryptography Architecture. Implementations are intended for the Schnorr Signature based on prime fields and elliptic curves
 as well as for the Rabin-SAEP cryptosystem.
 
-<div>
-  <ol>
-    <li><a href="#Build">Build</a></li>
-    <li><a href="#Installation">Installation</a></li>
-    <li><a href="#PrimeFields">Schnorr Signatures on prime fields</a></li>
-    <ol>
-      <li><a href="#PrimeFieldsUsage">Usage</a></li>
-      <ol>
-        <li><a href="#PrimeFieldsUsage1">2048-bit prime p, 512-bit prime q</a></li>
-        <li><a href="#PrimeFieldsUsage2">1024-bit prime p, 160-bit prime q</a></li>
-        <li><a href="#PrimeFieldsUsage3">4096-bit prime p, 1024-bit prime q</a></li>
-        <li><a href="#PrimeFieldsUsage4">Custom security parameter</a></li>
-      </ol>
-    </ol>
-  </ol>
-</div>
+1. [Build](#Build)
+2. [Installation](#Installation)
+3. [Schnorr Signatures on prime fields](#PrimeFields)
+  1. [Usage](#PrimeFieldsUsage)
+    1. [2048-bit prime p, 512-bit prime q](#PrimeFieldsUsage1)
+    2. [1024-bit prime p, 160-bit prime q](#PrimeFieldsUsage2)
+    3. [4096-bit prime p, 1024-bit prime q](#PrimeFieldsUsage3)
+    4. [Custom security parameter](#PrimeFieldsUsage4)
+4. [Schnorr Signatures on elliptic curves](#EllipticCurves)
+5. [Links](#Links)
 
 ## <a name="Build"></a>1. Build
 
