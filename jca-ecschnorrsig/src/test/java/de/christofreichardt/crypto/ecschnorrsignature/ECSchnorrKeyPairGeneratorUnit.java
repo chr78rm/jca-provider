@@ -248,6 +248,16 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
         
         tracer.out().printfIndentln("element = %s", element);
         Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());
+        
+        AffinePoint basePoint = curveSpec.getgPoint();
+        
+        tracer.out().printfIndentln("basePoint = %s", basePoint);
+        Assert.assertTrue("Expected a valid point.", curve.isValidPoint(basePoint));
+        
+        element = basePoint.multiply(curveSpec.getOrder());
+        
+        tracer.out().printfIndentln("element = %s", element);
+        Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());
       }
     }
     finally {
