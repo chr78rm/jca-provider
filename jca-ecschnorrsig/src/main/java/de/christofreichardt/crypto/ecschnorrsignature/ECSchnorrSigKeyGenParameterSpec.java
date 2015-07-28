@@ -2,14 +2,14 @@ package de.christofreichardt.crypto.ecschnorrsignature;
 
 import java.security.spec.AlgorithmParameterSpec;
 
-public class ECSchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
+public class ECSchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
   public enum CurveCompilation {NIST, BRAINPOOL};
   
   final private CurveCompilation curveCompilation;
   final private String curveId;
   final private boolean useRandomBasePoint;
   
-  public ECSchnorrSigGenParameterSpec(CurveCompilation curveCompilation, String curveId, boolean useRandomBasePoint) {
+  public ECSchnorrSigKeyGenParameterSpec(CurveCompilation curveCompilation, String curveId, boolean useRandomBasePoint) {
     this.curveCompilation = curveCompilation;
     this.curveId = curveId;
     this.useRandomBasePoint = useRandomBasePoint;
@@ -29,7 +29,7 @@ public class ECSchnorrSigGenParameterSpec implements AlgorithmParameterSpec {
 
   @Override
   public String toString() {
-    return "ECSchnorrSigGenParameterSpec[curveCompilation=" + curveCompilation+", curveId=" + curveId + ", useRandomBasePoint=" + useRandomBasePoint + "]";
+    return "ECSchnorrSigKeyGenParameterSpec[curveCompilation=" + curveCompilation+", curveId=" + curveId + ", useRandomBasePoint=" + useRandomBasePoint + "]";
   }
 
 }

@@ -8,7 +8,7 @@ import java.security.KeyPairGeneratorSpi;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 
-import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigGenParameterSpec.CurveCompilation;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
@@ -20,7 +20,7 @@ import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
 public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
   
   private SecureRandom secureRandom = new SecureRandom();
-  private ECSchnorrSigGenParameterSpec ecSchnorrSigGenParameterSpec = new ECSchnorrSigGenParameterSpec(CurveCompilation.NIST, "P-256", true);
+  private ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, "P-256", true);
 
   @Override
   public KeyPair generateKeyPair() {
@@ -28,15 +28,15 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
     tracer.entry("KeyPair", this, "generateKeyPair()");
 
     try {
-      tracer.out().printfIndentln("this.ecSchnorrSigGenParameterSpec = %s", this.ecSchnorrSigGenParameterSpec);
+      tracer.out().printfIndentln("this.ecSchnorrSigGenParameterSpec = %s", this.ecSchnorrSigKeyGenParameterSpec);
       
       CurveSpec curveSpec;
-      switch (this.ecSchnorrSigGenParameterSpec.getCurveCompilation()) {
+      switch (this.ecSchnorrSigKeyGenParameterSpec.getCurveCompilation()) {
       case NIST:
-        curveSpec = NIST.curves.get(this.ecSchnorrSigGenParameterSpec.getCurveId());
+        curveSpec = NIST.curves.get(this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
         break;
       case BRAINPOOL:
-        curveSpec = BrainPool.curves.get(this.ecSchnorrSigGenParameterSpec.getCurveId());
+        curveSpec = BrainPool.curves.get(this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
         break;
       default:
         throw new InvalidParameterException("Unsupported curve compilation.");
@@ -88,7 +88,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       if (!NIST.curves.containsKey(curveId))
         throw new InvalidParameterException("Unsupported keysize: " + keySize + ".");
       
-      this.ecSchnorrSigGenParameterSpec = new ECSchnorrSigGenParameterSpec(CurveCompilation.NIST, curveId, true);
+      this.ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, curveId, true);
       this.secureRandom = secureRandom;
     }
     finally {
@@ -102,15 +102,15 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
     tracer.entry("void", this, "initialize(AlgorithmParameterSpec algorithmParameterSpec, SecureRandom secureRandom)");
 
     try {
-      this.ecSchnorrSigGenParameterSpec = (ECSchnorrSigGenParameterSpec) algorithmParameterSpec;
-      switch (this.ecSchnorrSigGenParameterSpec.getCurveCompilation()) {
+      this.ecSchnorrSigKeyGenParameterSpec = (ECSchnorrSigKeyGenParameterSpec) algorithmParameterSpec;
+      switch (this.ecSchnorrSigKeyGenParameterSpec.getCurveCompilation()) {
       case NIST:
-        if (!NIST.curves.containsKey(this.ecSchnorrSigGenParameterSpec.getCurveId()))
-          throw new InvalidAlgorithmParameterException("Unknown curve: " + this.ecSchnorrSigGenParameterSpec.getCurveId());
+        if (!NIST.curves.containsKey(this.ecSchnorrSigKeyGenParameterSpec.getCurveId()))
+          throw new InvalidAlgorithmParameterException("Unknown curve: " + this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
         break;
       case BRAINPOOL:
-        if (!BrainPool.curves.containsKey(this.ecSchnorrSigGenParameterSpec.getCurveId()))
-          throw new InvalidAlgorithmParameterException("Unknown curve: " + this.ecSchnorrSigGenParameterSpec.getCurveId());
+        if (!BrainPool.curves.containsKey(this.ecSchnorrSigKeyGenParameterSpec.getCurveId()))
+          throw new InvalidAlgorithmParameterException("Unknown curve: " + this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
         break;
       default:
         throw new InvalidAlgorithmParameterException("Unsupported curve compilation.");

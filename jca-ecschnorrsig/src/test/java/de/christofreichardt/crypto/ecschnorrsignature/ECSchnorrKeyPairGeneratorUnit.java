@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.christofreichardt.crypto.Provider;
-import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigGenParameterSpec.CurveCompilation;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
@@ -116,13 +116,13 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME);
       
       for (String curveId : NIST.curveIds) {
-        keyPairGenerator.initialize(new ECSchnorrSigGenParameterSpec(CurveCompilation.NIST, curveId, true));
+        keyPairGenerator.initialize(new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, curveId, true));
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         validateKeyPair(keyPair, NIST.curves.get(curveId).getCurve().p().bitLength());
       }
       
       for (String curveId : BrainPool.curveIds) {
-        keyPairGenerator.initialize(new ECSchnorrSigGenParameterSpec(CurveCompilation.BRAINPOOL, curveId, true));
+        keyPairGenerator.initialize(new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, curveId, true));
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         validateKeyPair(keyPair, BrainPool.curves.get(curveId).getCurve().p().bitLength());
       }
