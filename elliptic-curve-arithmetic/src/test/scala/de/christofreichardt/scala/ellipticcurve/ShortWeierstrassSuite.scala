@@ -378,7 +378,7 @@ package affine {
       tracer.out().printfIndentln("test(%s, %s)", xquadrat, y)
     }
     
-    testWithTracing(this, "Fixed Point Multiplication") {
+    testWithTracing(this, "Fixed Point Multiplication (1)") {
       val tracer = getCurrentTracer()
       
       val point = this.curve2.randomPoint
@@ -409,6 +409,19 @@ package affine {
       
       val order = 1060
       assert(fixedPointMultiplication.multiply(order) == point.multiply(order), "Expected the NeutralElement.")
+    }
+    
+    testWithTracing(this, "Fixed Point Multiplication (2)") {
+      val tracer = getCurrentTracer()
+      
+      val point = this.curve2.randomPoint
+      val randomGenerator = new RandomGenerator
+      val TESTS = 10
+      (0 until TESTS).foreach(i => {
+        val scalar = randomGenerator.bigIntStream(this.curve2.p.bitLength*2, this.curve2.p).head
+        val element = point.fixedMultiply(scalar)
+        assert(point.multiply(scalar) == element, "Wrong product.")
+      })
     }
     
     testWithTracing(this, "Montgomery Ladder (1)") {
