@@ -7,11 +7,11 @@ import scala.annotation.tailrec
 
 package affine {
   abstract class AffineCoordinatesWithPrimeField extends GroupLaw {
-    lazy val multiplicationMethod: PointMultiplication = detectMultiplicationMethod()
-    def detectMultiplicationMethod(): PointMultiplication = {
+    lazy val multiplicationMethod: UnknownPointMultiplication = detectMultiplicationMethod()
+    def detectMultiplicationMethod(): UnknownPointMultiplication = {
       val provider = java.security.Security.getProvider(de.christofreichardt.crypto.Provider.NAME)
       val multiplicationKey = "de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod"
-      val method: PointMultiplication =
+      val method: UnknownPointMultiplication =
         if (provider != null) {
           val multiplicationValue = provider.getProperty(multiplicationKey)
           multiplicationValue match {
@@ -40,6 +40,8 @@ package affine {
     def makePrimeField(p: BigInt): PrimeField = new PrimeField(p)
     
     abstract class AffinePoint(val x: BigInt, val y: BigInt, val curve: TheCurve) extends AbstractPoint {
+      lazy val fixedPointMultiplication: FixedPointMultiplication = new FixedPointBinaryMethod(this)
+      def fixedMultiply(scalar: BigInt): Element = this.fixedPointMultiplication.multiply(scalar, this)
       override def toString() = {
         "AffinePoint[" + this.x + ", " + this.y + "]"
       }
@@ -58,7 +60,7 @@ package affine {
     }
 
     trait PointMultiplication extends Tracing {
-      def multiply(m: BigInt, point: ThePoint): Element
+      def multiply(m: BigInt, point: AffinePoint): Element
       
       override def getCurrentTracer(): AbstractTracer = {
         try {
@@ -69,9 +71,11 @@ package affine {
         }
       }
     }
+    
+    trait UnknownPointMultiplication extends PointMultiplication
 
-    class BinaryMethod extends PointMultiplication {
-      def multiply(multiplier: BigInt, point: ThePoint): Element = {
+    class BinaryMethod extends UnknownPointMultiplication {
+      def multiply(multiplier: BigInt, point: AffinePoint): Element = {
         val tracer = getCurrentTracer()
         
         @tailrec
@@ -101,9 +105,13 @@ package affine {
         }
       }
     }
+    
+    trait FixedPointMultiplication extends PointMultiplication {
+      val fixedPoint: AffinePoint
+    }
 
-    class FixedPointBinaryMethod(val fixedPoint: ThePoint)
-        extends PointMultiplication {
+    class FixedPointBinaryMethod(val fixedPoint: AffinePoint)
+        extends FixedPointMultiplication {
 
       def twoPowerPointStream: Stream[(Int, Element)] = {
         def pointStream(exp: Int, power: BigInt, element: Element): Stream[(Int, Element)] = {
@@ -125,9 +133,9 @@ package affine {
         pointStream(0, BigInt(1), this.fixedPoint)
       }
 
-      val multiplies = twoPowerPointStream.toIndexedSeq
+      lazy val multiplies = twoPowerPointStream.toIndexedSeq
 
-      def multiply(multiplier: BigInt, point: ThePoint): Element = {
+      def multiply(multiplier: BigInt, point: AffinePoint): Element = {
         require(point == this.fixedPoint, "Multiplication is fixed.")
         val tracer = getCurrentTracer
 
@@ -163,8 +171,8 @@ package affine {
       }
     }
 
-    class MontgomeryLadder extends PointMultiplication {
-      def multiply(multiplier: BigInt, point: ThePoint): Element = {
+    class MontgomeryLadder extends UnknownPointMultiplication {
+      def multiply(multiplier: BigInt, point: AffinePoint): Element = {
         val tracer = getCurrentTracer()
         
         @tailrec
@@ -195,8 +203,8 @@ package affine {
       }
     }
 
-    class MontgomeryLadder2 extends PointMultiplication {
-      def multiply(multiplier: BigInt, point: ThePoint): Element = {
+    class MontgomeryLadder2 extends UnknownPointMultiplication {
+      def multiply(multiplier: BigInt, point: AffinePoint): Element = {
         val tracer = getCurrentTracer()
         
         @tailrec
