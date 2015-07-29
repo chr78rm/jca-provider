@@ -1,6 +1,8 @@
 package de.christofreichardt.crypto.ecschnorrsignature;
 
 import java.math.BigInteger;
+import java.security.AlgorithmParameters;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.InvalidParameterException;
 import java.security.MessageDigest;
@@ -10,6 +12,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.security.SignatureSpi;
+import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
@@ -29,7 +32,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   private ECSchnorrPublicKey ecSchnorrPublicKey;
   private boolean initialisedForSigning;
   private boolean initialisedForVerification;
-
+  private ECSchnorrSigParameterSpec ecSchnorrSigParameterSpec = new ECSchnorrSigParameterSpec();
   
   public SignatureWithSHA256() throws NoSuchAlgorithmException {
     this.messageDigest = MessageDigest.getInstance("SHA-256");
@@ -153,7 +156,18 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     
     try {
       AffinePoint gPoint = this.ecSchnorrPrivateKey.getEcSchnorrParams().getgPoint();
-      AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(gPoint.multiply(r));
+      Element element;
+      switch (this.ecSchnorrSigParameterSpec.getPointMultiplicationStrategy()) {
+      case FIXED_POINT:
+        element = gPoint.fixedMultiply(r);
+        break;
+      case UNKNOWN_POINT:
+        element = gPoint.multiply(r);
+        break;
+      default:
+        throw new SignatureException("Unknown point multiplication strategy.");
+      }
+      AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(element);
       
       tracer.out().printfIndentln("sPoint = %s", sPoint);
       
@@ -219,7 +233,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     }
   }
   
-  private BigInteger concatForVerifying(byte[] signatureBytes) {
+  private BigInteger concatForVerifying(byte[] signatureBytes) throws SignatureException {
     AbstractTracer tracer = getCurrentTracer();
     tracer.entry("BigInteger", this, "concatForVerifying(byte[] signatureBytes)");
     
@@ -233,7 +247,17 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
 
       AffinePoint gPoint = this.ecSchnorrPublicKey.getEcSchnorrParams().getgPoint();
       AffinePoint hPoint = this.ecSchnorrPublicKey.gethPoint();
-      Element element = (gPoint.multiply(y)).add(hPoint.multiply(e.negate().mod(curveSpec.getOrder())));
+      Element element;
+      switch (this.ecSchnorrSigParameterSpec.getPointMultiplicationStrategy()) {
+      case FIXED_POINT:
+        element = (gPoint.fixedMultiply(y)).add(hPoint.fixedMultiply(e.negate().mod(curveSpec.getOrder())));
+        break;
+      case UNKNOWN_POINT:
+        element = (gPoint.multiply(y)).add(hPoint.multiply(e.negate().mod(curveSpec.getOrder())));
+        break;
+      default:
+        throw new SignatureException("Unknown point multiplication strategy.");
+      }
       AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(element);
       
       tracer.out().printfIndentln("sPoint = %s", sPoint);
@@ -250,6 +274,19 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     }
   }
   
+  @Override
+  protected AlgorithmParameters engineGetParameters() {
+    throw new UnsupportedOperationException("Unsupported operation.");
+  }
+
+  @Override
+  protected void engineSetParameter(AlgorithmParameterSpec algorithmParameterSpec) throws InvalidAlgorithmParameterException {
+    if (!(algorithmParameterSpec instanceof ECSchnorrSigParameterSpec))
+      throw new InvalidAlgorithmParameterException("Need a 'ECSchnorrSigParameterSpec'.");
+    
+    this.ecSchnorrSigParameterSpec = (ECSchnorrSigParameterSpec) algorithmParameterSpec;
+  }
+
   @Override
   public AbstractTracer getCurrentTracer() {
     return TracerFactory.getInstance().getCurrentPoolTracer();

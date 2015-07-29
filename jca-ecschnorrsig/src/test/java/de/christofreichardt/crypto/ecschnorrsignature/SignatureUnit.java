@@ -1,6 +1,7 @@
 package de.christofreichardt.crypto.ecschnorrsignature;
 
 import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -15,6 +16,7 @@ import org.junit.Test;
 
 import de.christofreichardt.crypto.BaseSignatureUnit;
 import de.christofreichardt.crypto.Provider;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigParameterSpec.PointMultiplicationStrategy;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 
@@ -83,6 +85,40 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
       
       Signature signature = Signature.getInstance(this.signatureAlgorithmName);
+      byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
+      boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+      
+      Assert.assertTrue("Expected a valid signature.", verified);
+      
+      verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
+      
+      Assert.assertTrue("Expected an invalid signature.", !verified);
+      
+      keyPair = keyPairGenerator.generateKeyPair();
+      verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+      
+      Assert.assertTrue("Expected an invalid signature.", !verified);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void fixedPointStrategy() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "fixedPointStrategy()");
+    
+    try {
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+      BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
+      
+      tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
+      
+      Signature signature = Signature.getInstance(this.signatureAlgorithmName);
+      signature.setParameter(new ECSchnorrSigParameterSpec(PointMultiplicationStrategy.FIXED_POINT));
       byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
       boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
       
