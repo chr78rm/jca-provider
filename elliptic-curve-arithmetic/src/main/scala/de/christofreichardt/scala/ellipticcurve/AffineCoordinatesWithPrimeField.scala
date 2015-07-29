@@ -4,6 +4,7 @@ import de.christofreichardt.scala.diagnosis.Tracing
 import de.christofreichardt.diagnosis.AbstractTracer
 import de.christofreichardt.diagnosis.TracerFactory
 import scala.annotation.tailrec
+import java.math.BigInteger
 
 package affine {
   abstract class AffineCoordinatesWithPrimeField extends GroupLaw {
@@ -42,6 +43,7 @@ package affine {
     abstract class AffinePoint(val x: BigInt, val y: BigInt, val curve: TheCurve) extends AbstractPoint {
       lazy val fixedPointMultiplication: FixedPointMultiplication = new FixedPointBinaryMethod(this)
       def fixedMultiply(scalar: BigInt): Element = this.fixedPointMultiplication.multiply(scalar, this)
+      def fixedMultiply(scalar: BigInteger): Element = this.fixedPointMultiplication.multiply(scalar, this)
       override def toString() = {
         "AffinePoint[" + this.x + ", " + this.y + "]"
       }
@@ -144,8 +146,9 @@ package affine {
           tracer.out().printfIndentln("i = %d, q = %s", i: Integer, q)
           if (i == multiplier.bitLength) q
           else {
+            val sum = q add multiplies(i)._2
             val nextQ =
-              if (multiplier.testBit(i)) q add multiplies(i)._2
+              if (multiplier.testBit(i)) sum
               else q
             multiply(nextQ, i + 1)
           }
