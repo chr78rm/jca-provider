@@ -127,6 +127,9 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
         SchnorrGroup schnorrGroup = selectPrecomputedGroup();
         p = schnorrGroup.getP();
         q = schnorrGroup.getQ();
+        
+        tracer.out().printfIndentln("q(%d) = %d", q.bitLength(), q);
+        tracer.out().printfIndentln("p(%d) = %d", p.bitLength(), p);
       }
       else {
         boolean groupFound;
@@ -151,9 +154,9 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
             }
           } while(true);
         } while(!groupFound);
+        
+        tracer.out().printfIndentln("p(%d) = %d", p.bitLength(), p);
       }
-      
-      tracer.out().printfIndentln("p(%d) = %d", p.bitLength(), p);
       
       BigInteger g;
       do {
