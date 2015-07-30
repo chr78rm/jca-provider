@@ -26,6 +26,12 @@
             <include>**/SchnorrSignatureSuite.java</include>
           </includes>
           <enableAssertions>true</enableAssertions>
+          <properties>
+            <property>
+              <name>listener</name>
+              <value>de.christofreichardt.junit.TraceTestListener</value>
+            </property>
+          </properties>
         </configuration>
       </plugin>
       <plugin>
