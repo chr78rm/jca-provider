@@ -50,6 +50,10 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       signatureWithSHA256.engineInitSign(keyPair.getPrivate());
       signatureWithSHA256.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
       byte[] signatureBytes = signatureWithSHA256.engineSign();
+      
+      tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
+      traceBytes(signatureBytes);
+      
       signatureWithSHA256.engineInitVerify(keyPair.getPublic());
       signatureWithSHA256.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
       boolean verified = signatureWithSHA256.engineVerify(signatureBytes);
@@ -88,6 +92,9 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       signature.update(this.msgBytes);
       byte[] buffer = new byte[signatureBytes.length];
       signature.sign(buffer, 0, signatureBytes.length);
+      
+      tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
+      traceBytes(signatureBytes);
       
       Assert.assertArrayEquals("Expected identical signatures.", signatureBytes, buffer);
       

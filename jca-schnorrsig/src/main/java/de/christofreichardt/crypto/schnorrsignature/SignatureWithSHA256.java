@@ -244,6 +244,9 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
         
         final BigInteger q = this.schnorrPrivateKey.getSchnorrParams().getQ();
         final BigInteger x = this.schnorrPrivateKey.getX();
+        final int Q_BYTES = q.bitLength()/8 + 1;
+        
+        tracer.out().printfIndentln("Q_BYTES = %d", Q_BYTES);
         
         BigInteger e, r;
         byte[] digestBytes;
@@ -253,19 +256,25 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
           } while (r.equals(BigInteger.ZERO));
 
           digestBytes = concatForSigning(r);
-          assert digestBytes.length==DIGEST_LENGTH;
           e = new BigInteger(digestBytes).mod(q);
         } while (e.equals(BigInteger.ZERO));
+        byte[] eBytes = e.toByteArray();
         
         BigInteger y = r.subtract(e.multiply(x)).mod(q);
         byte[] yBytes = y.toByteArray();
         
+        tracer.out().printfIndentln("BigInteger(digestBytes) = %s", new BigInteger(digestBytes));
         tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
+        tracer.out().printfIndentln("--- eBytes(%d) ---", eBytes.length);
+        traceBytes(eBytes);
         tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
-        tracer.out().printfIndentln("yBytes.length = %d", yBytes.length);
+        tracer.out().printfIndentln("--- yBytes(%d) ---", yBytes.length);
+        traceBytes(yBytes);
         
-        byte[] signatureBytes = Arrays.copyOf(digestBytes, DIGEST_LENGTH + yBytes.length);
-        System.arraycopy(yBytes, 0, signatureBytes, DIGEST_LENGTH, yBytes.length);
+        byte[] signatureBytes = new byte[2*Q_BYTES];
+        Arrays.fill(signatureBytes, (byte) 0);
+        System.arraycopy(eBytes, 0, signatureBytes, Q_BYTES - eBytes.length, eBytes.length);
+        System.arraycopy(yBytes, 0, signatureBytes, Q_BYTES + Q_BYTES - yBytes.length, yBytes.length);
         
         return signatureBytes;
       }
@@ -349,15 +358,24 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       final BigInteger g = this.schnorrPublicKey.getSchnorrParams().getG();
       final BigInteger q = this.schnorrPublicKey.getSchnorrParams().getQ();
       final BigInteger h = this.schnorrPublicKey.getH();
+      final int Q_BYTES = q.bitLength()/8 + 1;
       
-      byte[] eBytes = Arrays.copyOfRange(signatureBytes, 0, DIGEST_LENGTH);
-      BigInteger e = new BigInteger(eBytes).mod(q);
-      byte[] yBytes = Arrays.copyOfRange(signatureBytes, DIGEST_LENGTH, signatureBytes.length);
+      byte[] eBytes = Arrays.copyOfRange(signatureBytes, 0, Q_BYTES);
+      byte[] yBytes = Arrays.copyOfRange(signatureBytes, Q_BYTES, signatureBytes.length);
+      
+      tracer.out().printfIndentln("--- eBytes(%d) ---", eBytes.length);
+      traceBytes(eBytes);
+      tracer.out().printfIndentln("--- yBytes(%d) ---", yBytes.length);
+      traceBytes(yBytes);
+      
+      BigInteger e = new BigInteger(eBytes);
       BigInteger y = new BigInteger(yBytes);
-      BigInteger s = g.modPow(y, p).multiply(h.modPow(e, p)).mod(p);
       
       tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
       tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
+
+      BigInteger s = g.modPow(y, p).multiply(h.modPow(e, p)).mod(p);
+      
       tracer.out().printfIndentln("s(%d) = %d", s.bitLength(), s);
       
       this.messageDigest.update(s.toByteArray());
@@ -392,6 +410,19 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
       throw new InvalidAlgorithmParameterException("Need a 'SchnorrSigParameterSpec'.");
     
     this.schnorrSigParameterSpec = (SchnorrSigParameterSpec) algorithmParameterSpec;
+  }
+  
+  protected void traceBytes(byte[] bytes) {
+    AbstractTracer tracer = getCurrentTracer();
+    for (int i=0; i<bytes.length; i++) {
+      if (i % 16 == 0) {
+        if (i != 0)
+          tracer.out().println();
+        tracer.out().printIndentString();
+      }
+      tracer.out().printf("%3d ", bytes[i] & 255);
+    }
+    tracer.out().println();
   }
 
   @Override
