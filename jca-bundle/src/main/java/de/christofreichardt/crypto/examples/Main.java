@@ -39,7 +39,7 @@ public class Main {
     assert publicKey.getSchnorrParams().getP().bitLength() == SchnorrSigKeyGenParameterSpec.L;
     
     LOGGER.log(Level.INFO, "Signing ...");
-    Signature signature = Signature.getInstance("SchnorrSignatureWithSHA256");
+    Signature signature = Signature.getInstance("SchnorrSignature");
     signature.initSign(keyPair.getPrivate());
     signature.update(bytes);
     byte[] signatureBytes = signature.sign();
@@ -71,7 +71,7 @@ public class Main {
     assert publicKey.getSchnorrParams().getP().bitLength() == SchnorrSigKeyGenParameterSpec.L_MINIMAL;
     
     LOGGER.log(Level.INFO, "Signing ...");
-    Signature signature = Signature.getInstance("SchnorrSignatureWithSHA256");
+    Signature signature = Signature.getInstance("SchnorrSignature");
     signature.initSign(keyPair.getPrivate());
     signature.update(bytes);
     byte[] signatureBytes = signature.sign();
@@ -103,7 +103,7 @@ public class Main {
     assert publicKey.getSchnorrParams().getP().bitLength() == SchnorrSigKeyGenParameterSpec.L_STRONG;
     
     LOGGER.log(Level.INFO, "Signing ...");
-    Signature signature = Signature.getInstance("SchnorrSignatureWithSHA256");
+    Signature signature = Signature.getInstance("SchnorrSignature");
     signature.initSign(keyPair.getPrivate());
     signature.update(bytes);
     byte[] signatureBytes = signature.sign();
@@ -137,7 +137,7 @@ public class Main {
     assert publicKey.getSchnorrParams().getQ().bitLength() == T;
     
     LOGGER.log(Level.INFO, "Signing ...");
-    Signature signature = Signature.getInstance("SchnorrSignatureWithSHA256");
+    Signature signature = Signature.getInstance("SchnorrSignature");
     signature.initSign(keyPair.getPrivate());
     signature.update(bytes);
     byte[] signatureBytes = signature.sign();
