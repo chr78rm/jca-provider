@@ -40,7 +40,7 @@ public class DeterministicNonceGenerator implements NonceGenerator, Traceable {
         MessageDigest messageDigest = (MessageDigest) this.messageDigest.clone();
         this.index++;
         
-        return new BigInteger(1, messageDigest.digest()).mod(this.modul);
+        return new BigInteger(messageDigest.digest()).mod(this.modul);
       }
       catch (CloneNotSupportedException ex) {
         throw new RuntimeException(ex);
