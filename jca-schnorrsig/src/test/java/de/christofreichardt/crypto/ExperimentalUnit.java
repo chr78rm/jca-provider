@@ -6,20 +6,24 @@
 
 package de.christofreichardt.crypto;
 
-import de.christofreichardt.diagnosis.AbstractTracer;
-import de.christofreichardt.diagnosis.Traceable;
-import de.christofreichardt.diagnosis.TracerFactory;
-
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.interfaces.DSAPrivateKey;
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.Random;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+
+import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.diagnosis.Traceable;
+import de.christofreichardt.diagnosis.TracerFactory;
 
 /**
  *
@@ -79,6 +83,95 @@ public class ExperimentalUnit implements Traceable {
         tracer.out().print(randomByte + " ");
       }
       tracer.out().println();
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void distribution_8bit() throws NoSuchAlgorithmException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "distribution_8bit()");
+    
+    try {
+      BigInteger[] primes = {BigInteger.valueOf(131), BigInteger.valueOf(193), BigInteger.valueOf(251)};
+      int[][] distributions = new int[primes.length][];
+      final int TESTS = 10000000;
+      Random random = new Random();
+      
+      for (int i=0; i<primes.length; i++) {
+        distributions[i] = new int[primes[i].intValue()];
+        Arrays.fill(distributions[i], 0);
+        for (int j=0; j<TESTS; j++) {
+          BigInteger hash = new BigInteger(10, random);
+          int index = hash.mod(primes[i]).intValue();
+          distributions[i][index]++;
+        }
+        
+        int maxDeviation = 0, mean = TESTS/primes[i].intValue();
+        tracer.out().printfIndentln("--> distribution(%s), mean = %d", primes[i], mean);
+        tracer.out().printIndentString();
+        for (int index=0; index<primes[i].intValue(); index++) {
+          tracer.out().printf("%04d ", distributions[i][index]);
+          int deviation = Math.abs(mean - distributions[i][index]);
+          if (deviation > maxDeviation)
+            maxDeviation = deviation;
+        }
+        tracer.out().println();
+        int percentage = maxDeviation/(mean/100);
+        tracer.out().printfIndentln("maxDeviation = %d, (%d%%)", maxDeviation, percentage);
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Ignore
+  public void distribution_16bit() throws NoSuchAlgorithmException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "distribution_16bit()");
+    
+    try {
+      BigInteger[] primes = {BigInteger.valueOf(32771), BigInteger.valueOf(49157), BigInteger.valueOf(65521)};
+      long[][] distributions = new long[primes.length][];
+      final long TESTS = 100000000;
+      Random random = new Random();
+      
+      for (int i=0; i<primes.length; i++) {
+        distributions[i] = new long[primes[i].intValue()];
+        Arrays.fill(distributions[i], 0);
+        for (int j=0; j<TESTS; j++) {
+          BigInteger hash = new BigInteger(2*16, random);
+          int index = hash.mod(primes[i]).intValue();
+          distributions[i][index]++;
+        }
+        
+        long maxDeviation = 0, mean = TESTS/primes[i].intValue();
+        tracer.out().printfIndentln("--> distribution(%s), mean = %d", primes[i], mean);
+        tracer.out().printIndentString();
+        for (int index=0; index<primes[i].intValue(); index++) {
+          tracer.out().printf("%04d ", distributions[i][index]);
+          long deviation = Math.abs(mean - distributions[i][index]);
+          if (deviation > maxDeviation)
+            maxDeviation = deviation;
+        }
+        tracer.out().println();
+        tracer.out().printfIndentln("maxDeviation = %d", maxDeviation);
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void passwordBasedEncryption() {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "passwordBasedEncryption()");
+    
+    try {
     }
     finally {
       tracer.wayout();
