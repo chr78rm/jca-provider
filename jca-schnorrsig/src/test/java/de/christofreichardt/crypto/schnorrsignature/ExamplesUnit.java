@@ -41,7 +41,7 @@ public class ExamplesUnit implements Traceable {
         byte[] bytes = Files.readAllBytes(file.toPath());
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        Signature signature = Signature.getInstance("SchnorrSignatureWithSHA256");
+        Signature signature = Signature.getInstance("SchnorrSignature");
         signature.initSign(keyPair.getPrivate());
         signature.update(bytes);
         byte[] signatureBytes = signature.sign();
@@ -85,7 +85,7 @@ public class ExamplesUnit implements Traceable {
         assert publicKey.getSchnorrParams().getQ().bitLength() == 160;
         assert publicKey.getSchnorrParams().getP().bitLength() == 1024;
         
-        Signature signature = Signature.getInstance("SchnorrSignatureWithSHA256");
+        Signature signature = Signature.getInstance("SchnorrSignature");
         signature.initSign(keyPair.getPrivate());
         signature.update(bytes);
         byte[] signatureBytes = signature.sign();
@@ -129,7 +129,7 @@ public class ExamplesUnit implements Traceable {
         assert publicKey.getSchnorrParams().getQ().bitLength() == 1024;
         assert publicKey.getSchnorrParams().getP().bitLength() == 4096;
         
-        Signature signature = Signature.getInstance("SchnorrSignatureWithSHA256");
+        Signature signature = Signature.getInstance("SchnorrSignature");
         signature.initSign(keyPair.getPrivate());
         signature.update(bytes);
         byte[] signatureBytes = signature.sign();
@@ -172,7 +172,7 @@ public class ExamplesUnit implements Traceable {
         
         assert publicKey.getSchnorrParams().getQ().bitLength() == 256;
         
-        Signature signature = Signature.getInstance("SchnorrSignatureWithSHA256");
+        Signature signature = Signature.getInstance("SchnorrSignature");
         signature.initSign(keyPair.getPrivate());
         signature.update(bytes);
         byte[] signatureBytes = signature.sign();

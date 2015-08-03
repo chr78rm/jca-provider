@@ -12,7 +12,6 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Properties;
 
@@ -34,7 +33,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
   public SignatureUnit(Properties properties) {
     super(properties, new Provider());
     this.keyPairAlgorithmName = "SchnorrSignature";
-    this.signatureAlgorithmName = "SchnorrSignatureWithSHA256";
+    this.signatureAlgorithmName = "SchnorrSignature";
   }
 
   @Test
@@ -46,7 +45,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-      SignatureWithSHA256 signatureWithSHA256 = new SignatureWithSHA256();
+      SchnorrSignature signatureWithSHA256 = new SchnorrSignature();
       signatureWithSHA256.engineInitSign(keyPair.getPrivate());
       signatureWithSHA256.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
       byte[] signatureBytes = signatureWithSHA256.engineSign();
@@ -83,7 +82,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       keyPairGenerator.initialize(schnorrSigKeyGenParameterSpec, new SecureRandom());
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
       
-      Signature signature = java.security.Signature.getInstance(this.signatureAlgorithmName);
+      java.security.Signature signature = java.security.Signature.getInstance(this.signatureAlgorithmName);
       SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(NonceGeneratorStrategy.PRIVATEKEY_MSG_HASH);
       signature.setParameter(schnorrSigParameterSpec);
       signature.initSign(keyPair.getPrivate());

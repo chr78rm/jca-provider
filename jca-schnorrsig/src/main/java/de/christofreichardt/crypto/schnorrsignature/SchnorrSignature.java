@@ -75,7 +75,7 @@ import java.util.Arrays;
  * </table>
  * @author Christof Reichardt
  */
-public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
+public class SchnorrSignature extends SignatureSpi implements Traceable {
 
   final private MessageDigest messageDigest;
   private SecureRandom secureRandom = new SecureRandom();
@@ -90,14 +90,14 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
    * Creates a SHA-256 message digest algorithm instance.
    * @throws NoSuchAlgorithmException if no SHA-256 message digest algorithm has been found.
    */
-  public SignatureWithSHA256() throws NoSuchAlgorithmException {
+  public SchnorrSignature() throws NoSuchAlgorithmException {
     this.messageDigest = MessageDigest.getInstance("SHA-256");
     this.initialisedForSigning = false;
     this.initialisedForVerification = false;
   }
   
   /**
-   * Initialises the {@link SignatureWithSHA256 SignatureWithSHA256} with the given arguments for a verification run.
+   * Initialises the {@link SchnorrSignature SchnorrSignature} with the given arguments for a verification run.
    * 
    * @param publicKey specifies the PublicKey instance.
    * @throws InvalidKeyException if publicKey isn't a SchnorrPublicKey instance.
@@ -128,7 +128,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   }
 
   /**
-   * Initialises the {@link SignatureWithSHA256 SignatureWithSHA256} with the given arguments for a signing run.
+   * Initialises the {@link SchnorrSignature SchnorrSignature} with the given arguments for a signing run.
    * 
    * @param privateKey specifies the PrivateKey instance.
    * @throws InvalidKeyException if privateKey isn't a SchnorrPrivateKey instance.
@@ -174,7 +174,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   }
 
   /**
-   * Initialises the {@link SignatureWithSHA256 SignatureWithSHA256} with the given arguments for a verification run.
+   * Initialises the {@link SchnorrSignature SchnorrSignature} with the given arguments for a verification run.
    * 
    * @param privateKey specifies the PrivateKey instance.
    * @param secureRandom specifies a source of randomness.
@@ -187,10 +187,10 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   }
 
   /**
-   * Updates the {@link SignatureWithSHA256 SignatureWithSHA256} with the given input byte.
+   * Updates the {@link SchnorrSignature SchnorrSignature} with the given input byte.
    * 
    * @param input the input byte.
-   * @throws java.security.SignatureException if the {@link SignatureWithSHA256 SignatureWithSHA256} hasn't been properly initialized.
+   * @throws java.security.SignatureException if the {@link SchnorrSignature SchnorrSignature} hasn't been properly initialized.
    */
   @Override
   protected void engineUpdate(byte input) throws SignatureException {
@@ -202,13 +202,13 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   }
 
   /**
-   * Updates the {@link SignatureWithSHA256 SignatureWithSHA256} with the given input bytes beginning at the position specified by offset
+   * Updates the {@link SchnorrSignature SchnorrSignature} with the given input bytes beginning at the position specified by offset
    * up to length bytes.
    * 
    * @param bytes the input bytes.
    * @param offset the offset
    * @param length the number of the significant bytes
-   * @throws java.security.SignatureException if the {@link SignatureWithSHA256 SignatureWithSHA256} hasn't been properly initialized.
+   * @throws java.security.SignatureException if the {@link SchnorrSignature SchnorrSignature} hasn't been properly initialized.
    */
   @Override
   protected void engineUpdate(byte[] bytes, int offset, int length) throws SignatureException {
@@ -225,7 +225,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
    * y \u2261<sub>q</sub> r + ex.
    * 
    * @return the byte representation of (e \u2016 y)
-   * @throws java.security.SignatureException if the {@link SignatureWithSHA256 SignatureWithSHA256} hasn't been properly initialized.
+   * @throws java.security.SignatureException if the {@link SchnorrSignature SchnorrSignature} hasn't been properly initialized.
    */
   @Override
   protected byte[] engineSign() throws SignatureException {
@@ -361,7 +361,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
    * 
    * @param signatureBytes the byte representation of (e,y).
    * @return indicates if the verification has been successfull.
-   * @throws java.security.SignatureException if the {@link SignatureWithSHA256 SignatureWithSHA256} hasn't been properly initialized.
+   * @throws java.security.SignatureException if the {@link SchnorrSignature SchnorrSignature} hasn't been properly initialized.
    */
   @Override
   protected boolean engineVerify(byte[] signatureBytes) throws SignatureException {
