@@ -16,7 +16,7 @@ import org.junit.runners.Suite;
 
 /**
  *
- * @author Developer
+ * @author Christof Reichardt
  */
 @RunWith(MySuite.class)
 @Suite.SuiteClasses({
@@ -24,7 +24,8 @@ import org.junit.runners.Suite;
   SchnorrKeyGeneratorUnit.class,
   SchnorrGroupsUnit.class,
   SignatureUnit.class,
-  ExamplesUnit.class
+  ExamplesUnit.class,
+  BCProvUnit.class,
 })
 public class SchnorrSignatureSuite {
 }

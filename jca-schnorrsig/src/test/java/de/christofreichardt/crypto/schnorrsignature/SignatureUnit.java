@@ -12,14 +12,17 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.SignatureException;
 import java.util.Properties;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
 import de.christofreichardt.crypto.BaseSignatureUnit;
 import de.christofreichardt.crypto.Provider;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec.NonceGeneratorStrategy;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
@@ -108,6 +111,51 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       verified = signature.verify(signatureBytes);
       
       Assert.assertTrue("Expected an invalid signature.", !verified);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void skeinDigest() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, SignatureException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "skeinDigest()");
+    
+    try {
+      Security.addProvider(new BouncyCastleProvider());
+      java.security.Provider provider = Security.getProvider(de.christofreichardt.crypto.Provider.NAME);
+      String algorithmName = provider.getProperty("de.christofreichardt.crypto.schnorrsignature.messageDigest", "SHA-256");
+      provider.put("de.christofreichardt.crypto.schnorrsignature.messageDigest", "Skein-1024-1024");
+      
+      try {
+        java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        
+        java.security.Signature signature = java.security.Signature.getInstance(this.signatureAlgorithmName);
+        signature.initSign(keyPair.getPrivate());
+        signature.update(this.msgBytes, 0, this.msgBytes.length);
+        byte[] signatureBytes = signature.sign();
+        
+        tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
+        traceBytes(signatureBytes);
+        
+        signature.initVerify(keyPair.getPublic());
+        signature.update(this.msgBytes, 0, this.msgBytes.length);
+        boolean verified = signature.verify(signatureBytes);
+        
+        Assert.assertTrue("Expected a valid signature.", verified);
+        
+        signature.initVerify(keyPair.getPublic());
+        signature.update(this.spoiledMsgBytes, 0, this.spoiledMsgBytes.length);
+        verified = signature.verify(signatureBytes);
+        
+        Assert.assertTrue("Expected an invalid signature.", !verified);
+      }
+      finally {
+        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+        provider.put("de.christofreichardt.crypto.schnorrsignature.messageDigest", algorithmName);
+      }
     }
     finally {
       tracer.wayout();

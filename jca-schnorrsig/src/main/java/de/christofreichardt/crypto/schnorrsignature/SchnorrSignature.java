@@ -20,8 +20,10 @@ import java.security.InvalidParameterException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.SignatureException;
 import java.security.SignatureSpi;
 import java.security.spec.AlgorithmParameterSpec;
@@ -87,13 +89,35 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
   private NonceGenerator nonceGenerator;
 
   /**
-   * Creates a SHA-256 message digest algorithm instance.
-   * @throws NoSuchAlgorithmException if no SHA-256 message digest algorithm has been found.
+   * Creates a SchnorrSignature instance.
+   * 
+   * @throws NoSuchAlgorithmException if no suitable message digest algorithm has been found.
    */
   public SchnorrSignature() throws NoSuchAlgorithmException {
-    this.messageDigest = MessageDigest.getInstance("SHA-256");
+    this.messageDigest = digestInstance();
     this.initialisedForSigning = false;
     this.initialisedForVerification = false;
+  }
+  
+  private MessageDigest digestInstance() throws NoSuchAlgorithmException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("MessageDigest", this, "digestInstance()");
+    
+    try {
+      Provider provider = Security.getProvider(de.christofreichardt.crypto.Provider.NAME);
+      String algorithmName;
+      if (provider != null)
+        algorithmName = provider.getProperty("de.christofreichardt.crypto.schnorrsignature.messageDigest", "SHA-256");
+      else
+        algorithmName = "SHA-256";
+      
+      tracer.out().printfIndentln("algorithmName = %s", algorithmName);
+      
+      return MessageDigest.getInstance(algorithmName);
+    }
+    finally {
+      tracer.wayout();
+    }
   }
   
   /**
@@ -243,7 +267,7 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
         
         tracer.out().printfIndentln("Q_BYTES = %d", Q_BYTES);
         
-        BigInteger e, r;
+        BigInteger e, r, y;
         byte[] digestBytes;
         do {
           do {
@@ -253,10 +277,9 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
           digestBytes = concatForSigning(r);
           digestBytes = expandMessageDigest(digestBytes);
           e = new BigInteger(digestBytes).mod(q);
-        } while (e.equals(BigInteger.ZERO));
+          y = r.subtract(e.multiply(x)).mod(q);
+        } while (e.equals(BigInteger.ZERO) || y.equals(BigInteger.ZERO));
         byte[] eBytes = e.toByteArray();
-        
-        BigInteger y = r.subtract(e.multiply(x)).mod(q);
         byte[] yBytes = y.toByteArray();
         
         tracer.out().printfIndentln("BigInteger(digestBytes) = %s", new BigInteger(digestBytes));
@@ -299,7 +322,6 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
         
         tracer.out().printfIndentln("expandedByteLength = %d", expandedByteLength);
         
-//        expandedDigestBytes = new byte[expandedByteLength];
         expandedDigestBytes = Arrays.copyOf(digestBytes, expandedByteLength);
         byte[] additionalBytes = new byte[expandedByteLength - digestBytes.length];
         SecureRandom expander;
