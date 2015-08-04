@@ -189,7 +189,7 @@ import java.security.KeyPair;
 import java.security.Signature;
 ...
 KeyPair keyPair = ...
-File file = new File("../data/loremipsum.txt");
+File file = new File("loremipsum.txt");
 byte[] bytes = Files.readAllBytes(file.toPath());
 Signature signature = Signature.getInstance("SchnorrSignature");
 signature.initSign(keyPair.getPrivate());
