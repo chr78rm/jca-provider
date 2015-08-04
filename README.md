@@ -177,7 +177,7 @@ SchnorrPublicKey publicKey = (SchnorrPublicKey) keyPair.getPublic();
 assert publicKey.getSchnorrParams().getQ().bitLength() == 256;
 ```
 
-### <a name="PrimeFieldsKeyPair"></a>3.i Signature Usage
+### <a name="PrimeFieldsSignature"></a>3.i Signature Usage
 
 Once you have generated a key pair, you can request a Signature instance either for the creation of a digital signature or
 for its verification. 
