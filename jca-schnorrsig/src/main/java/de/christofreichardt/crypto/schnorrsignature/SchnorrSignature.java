@@ -87,6 +87,7 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
   private boolean initialisedForVerification;
   private SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec();
   private NonceGenerator nonceGenerator;
+  private boolean experimentalHashing = false;
 
   /**
    * Creates a SchnorrSignature instance.
@@ -266,6 +267,7 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
         final int Q_BYTES = q.bitLength()/8 + 1;
         
         tracer.out().printfIndentln("Q_BYTES = %d", Q_BYTES);
+        tracer.out().printfIndentln("this.messageDigest.getDigestLength() = %d", this.messageDigest.getDigestLength());
         
         BigInteger e, r, y;
         byte[] digestBytes;
@@ -275,14 +277,20 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
           } while (r.equals(BigInteger.ZERO));
 
           digestBytes = concatForSigning(r);
-          digestBytes = expandMessageDigest(digestBytes);
-          e = new BigInteger(digestBytes).mod(q);
+          if (this.experimentalHashing) {
+            digestBytes = expandMessageDigest(digestBytes);
+            e = new BigInteger(digestBytes).mod(q);
+          }
+          else 
+            e = new BigInteger(1, digestBytes).mod(q);
           y = r.subtract(e.multiply(x)).mod(q);
         } while (e.equals(BigInteger.ZERO) || y.equals(BigInteger.ZERO));
         byte[] eBytes = e.toByteArray();
         byte[] yBytes = y.toByteArray();
         
-        tracer.out().printfIndentln("BigInteger(digestBytes) = %s", new BigInteger(digestBytes));
+        tracer.out().printfIndentln("--- digestBytes(%d) ---", digestBytes.length);
+        traceBytes(digestBytes);
+        tracer.out().printfIndentln("BigInteger(digestBytes) = %s", new BigInteger(1, digestBytes));
         tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
         tracer.out().printfIndentln("--- eBytes(%d) ---", eBytes.length);
         traceBytes(eBytes);
@@ -290,10 +298,17 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
         tracer.out().printfIndentln("--- yBytes(%d) ---", yBytes.length);
         traceBytes(yBytes);
         
-        byte[] signatureBytes = new byte[2*Q_BYTES];
-        Arrays.fill(signatureBytes, (byte) 0);
-        System.arraycopy(eBytes, 0, signatureBytes, Q_BYTES - eBytes.length, eBytes.length);
-        System.arraycopy(yBytes, 0, signatureBytes, Q_BYTES + Q_BYTES - yBytes.length, yBytes.length);
+        byte[] signatureBytes;
+        if (this.experimentalHashing) {
+          signatureBytes = new byte[2*Q_BYTES];
+          Arrays.fill(signatureBytes, (byte) 0);
+          System.arraycopy(eBytes, 0, signatureBytes, Q_BYTES - eBytes.length, eBytes.length);
+          System.arraycopy(yBytes, 0, signatureBytes, Q_BYTES + Q_BYTES - yBytes.length, yBytes.length);
+        }
+        else {
+          signatureBytes = Arrays.copyOf(digestBytes, this.messageDigest.getDigestLength() + yBytes.length);
+          System.arraycopy(yBytes, 0, signatureBytes, this.messageDigest.getDigestLength(), yBytes.length);
+        }
         
         return signatureBytes;
       }
@@ -398,9 +413,15 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
         final BigInteger q = this.schnorrPublicKey.getSchnorrParams().getQ();
         BigInteger e = concatForVerifying(signatureBytes);
         byte[] digestBytes = this.messageDigest.digest();
-        digestBytes = expandMessageDigest(digestBytes);
+        BigInteger check;
+        if (this.experimentalHashing) {
+          digestBytes = expandMessageDigest(digestBytes);
+          check = new BigInteger(digestBytes).mod(q);
+        }
+        else 
+          check = new BigInteger(1, digestBytes).mod(q);
         
-        return new BigInteger(digestBytes).mod(q).equals(e);
+        return check.equals(e);
       }
       finally {
         resetForVerifying();
@@ -422,17 +443,29 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
       final BigInteger h = this.schnorrPublicKey.getH();
       final int Q_BYTES = q.bitLength()/8 + 1;
       
-      byte[] eBytes = Arrays.copyOfRange(signatureBytes, 0, Q_BYTES);
-      byte[] yBytes = Arrays.copyOfRange(signatureBytes, Q_BYTES, signatureBytes.length);
+      tracer.out().printfIndentln("Q_BYTES = %d", Q_BYTES);
+      tracer.out().printfIndentln("this.messageDigest.getDigestLength() = %d", this.messageDigest.getDigestLength());
       
-      tracer.out().printfIndentln("--- eBytes(%d) ---", eBytes.length);
-      traceBytes(eBytes);
+      byte[] yBytes;
+      BigInteger e, y;
+      if (this.experimentalHashing) {
+        byte[] eBytes = Arrays.copyOfRange(signatureBytes, 0, Q_BYTES);
+        yBytes = Arrays.copyOfRange(signatureBytes, Q_BYTES, signatureBytes.length);
+        e = new BigInteger(eBytes);
+      }
+      else {
+        byte[] digestBytes = Arrays.copyOfRange(signatureBytes, 0, this.messageDigest.getDigestLength());
+        tracer.out().printfIndentln("--- digestBytes(%d) ---", digestBytes.length);
+        traceBytes(digestBytes);
+        yBytes = Arrays.copyOfRange(signatureBytes, this.messageDigest.getDigestLength(), signatureBytes.length);
+        e = new BigInteger(1, digestBytes).mod(q);
+      }
+      y = new BigInteger(yBytes);
+      
+      tracer.out().printfIndentln("--- eBytes(%d) ---", e.toByteArray().length);
+      traceBytes(e.toByteArray());
       tracer.out().printfIndentln("--- yBytes(%d) ---", yBytes.length);
       traceBytes(yBytes);
-      
-      BigInteger e = new BigInteger(eBytes);
-      BigInteger y = new BigInteger(yBytes);
-      
       tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
       tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
 
