@@ -104,7 +104,9 @@ public class ExperimentalUnit implements Traceable {
         distributions[i] = new int[primes[i].intValue()];
         Arrays.fill(distributions[i], 0);
         for (int j=0; j<TESTS; j++) {
-          BigInteger hash = new BigInteger(10, random);
+          byte[] randomBytes = new byte[2];
+          random.nextBytes(randomBytes);
+          BigInteger hash = new BigInteger(randomBytes);
           int index = hash.mod(primes[i]).intValue();
           distributions[i][index]++;
         }
@@ -176,6 +178,43 @@ public class ExperimentalUnit implements Traceable {
     finally {
       tracer.wayout();
     }
+  }
+  
+  @Test
+  public void unsignedBigInteger() {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "unsignedBigInteger()");
+    
+    try {
+      byte[] nBytes = {(byte) 167, (byte) 156};
+      BigInteger n = new BigInteger(1, nBytes);
+      
+      tracer.out().printfIndentln("n = %s", n);
+      tracer.out().printfIndentln("--- nBytes(%d) ---", n.toByteArray().length);
+      traceBytes(n.toByteArray());
+      
+      BigInteger m = new BigInteger(n.toByteArray());
+      
+      tracer.out().printfIndentln("m = %s", m);
+      tracer.out().printfIndentln("--- mBytes(%d) ---", m.toByteArray().length);
+      traceBytes(m.toByteArray());
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  protected void traceBytes(byte[] bytes) {
+    AbstractTracer tracer = getCurrentTracer();
+    for (int i=0; i<bytes.length; i++) {
+      if (i % 16 == 0) {
+        if (i != 0)
+          tracer.out().println();
+        tracer.out().printIndentString();
+      }
+      tracer.out().printf("%3d ", bytes[i] & 255);
+    }
+    tracer.out().println();
   }
   
   @After
