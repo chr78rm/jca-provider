@@ -35,8 +35,8 @@ public class Main {
     LOGGER.log(Level.INFO, "bitlength(q) = {0}", new Object[]{publicKey.getSchnorrParams().getQ().bitLength()});
     LOGGER.log(Level.INFO, "bitlength(p) = {0}", new Object[]{publicKey.getSchnorrParams().getP().bitLength()});
     
-    assert publicKey.getSchnorrParams().getQ().bitLength() == SchnorrSigKeyGenParameterSpec.T;
-    assert publicKey.getSchnorrParams().getP().bitLength() == SchnorrSigKeyGenParameterSpec.L;
+    assert publicKey.getSchnorrParams().getQ().bitLength() == 512;
+    assert publicKey.getSchnorrParams().getP().bitLength() == 2048;
     
     LOGGER.log(Level.INFO, "Signing ...");
     Signature signature = Signature.getInstance("SchnorrSignature");
@@ -67,8 +67,8 @@ public class Main {
     LOGGER.log(Level.INFO, "bitlength(q) = {0}", new Object[]{publicKey.getSchnorrParams().getQ().bitLength()});
     LOGGER.log(Level.INFO, "bitlength(p) = {0}", new Object[]{publicKey.getSchnorrParams().getP().bitLength()});
     
-    assert publicKey.getSchnorrParams().getQ().bitLength() == SchnorrSigKeyGenParameterSpec.T_MINIMAL;
-    assert publicKey.getSchnorrParams().getP().bitLength() == SchnorrSigKeyGenParameterSpec.L_MINIMAL;
+    assert publicKey.getSchnorrParams().getQ().bitLength() == 160;
+    assert publicKey.getSchnorrParams().getP().bitLength() == 1024;
     
     LOGGER.log(Level.INFO, "Signing ...");
     Signature signature = Signature.getInstance("SchnorrSignature");
@@ -99,8 +99,8 @@ public class Main {
     LOGGER.log(Level.INFO, "bitlength(q) = {0}", new Object[]{publicKey.getSchnorrParams().getQ().bitLength()});
     LOGGER.log(Level.INFO, "bitlength(p) = {0}", new Object[]{publicKey.getSchnorrParams().getP().bitLength()});
     
-    assert publicKey.getSchnorrParams().getQ().bitLength() == SchnorrSigKeyGenParameterSpec.T_STRONG;
-    assert publicKey.getSchnorrParams().getP().bitLength() == SchnorrSigKeyGenParameterSpec.L_STRONG;
+    assert publicKey.getSchnorrParams().getQ().bitLength() == 1024;
+    assert publicKey.getSchnorrParams().getP().bitLength() == 4096;
     
     LOGGER.log(Level.INFO, "Signing ...");
     Signature signature = Signature.getInstance("SchnorrSignature");
@@ -134,7 +134,7 @@ public class Main {
     LOGGER.log(Level.INFO, "bitlength(q) = {0}", new Object[]{publicKey.getSchnorrParams().getQ().bitLength()});
     LOGGER.log(Level.INFO, "bitlength(p) = {0}", new Object[]{publicKey.getSchnorrParams().getP().bitLength()});
     
-    assert publicKey.getSchnorrParams().getQ().bitLength() == T;
+    assert publicKey.getSchnorrParams().getQ().bitLength() == 256;
     
     LOGGER.log(Level.INFO, "Signing ...");
     Signature signature = Signature.getInstance("SchnorrSignature");
