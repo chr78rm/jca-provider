@@ -245,6 +245,7 @@ boolean verified = signature.verify(signatureBytes);
 assert verified;
 ```
 
+See also 3.1.d [Deterministic nonce](#PrimeFieldsSignature5).
 
 #### <a name="PrimeFieldsSignature3"></a>3.i.b Nio
 
