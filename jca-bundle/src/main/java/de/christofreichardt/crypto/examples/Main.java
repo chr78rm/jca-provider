@@ -9,6 +9,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -149,6 +150,34 @@ public class Main {
     
     assert verified;
   }
+  
+  private void example5() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    LOGGER.log(Level.INFO, "-> Example5: Custom SecureRandom.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+    
+    LOGGER.log(Level.INFO, "Retrieving SHA1PRNG ...");
+    SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("SchnorrSignature");
+    signature.initSign(keyPair.getPrivate(), secureRandom);
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
     LOGGER.info("Adding provider ...");
@@ -160,6 +189,7 @@ public class Main {
     main.example2();
     main.example3();
     main.example4();
+    main.example5();
   }
 
 }
