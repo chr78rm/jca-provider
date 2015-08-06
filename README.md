@@ -216,10 +216,10 @@ assert verified;
 
 It is essential that the nonce r is both unpredictable and unique as well as remains confidential. Note, that a single revealed r together with the corresponding
 signature (e,y) suffices to compute the secret private key x, simply by solving the linear equation 
-<p style="text-align: center">y &#x2261;<sub>q</sub> r + ex</p>
+<p>y &#x2261;<sub>q</sub> r + ex</p>
 If, on the other hand, the same r is used twice for two different documents, an adversary may obtain the private key by solving a system of linear equations
 with two unknowns:
-<p style="text-align: center">y<sub>1</sub> &#x2261;<sub>q</sub> r + e<sub>1</sub>x, y<sub>2</sub> &#x2261;<sub>q</sub> r + e<sub>2</sub>x</p>
+<p>y<sub>1</sub> &#x2261;<sub>q</sub> r + e<sub>1</sub>x, y<sub>2</sub> &#x2261;<sub>q</sub> r + e<sub>2</sub>x</p>
 Since the default `SecureRandom` instance may obtain random numbers from the underlying OS, weaknesses of the native random number generator (RNG) will be reflected by the signature.
 Thus, someone might want to use a custom `SecureRandom` for the generation of the nonces. The subsequent example uses the SHA1PRNG which produces pseudo random numbers.
 These pseudo random numbers will be computed deterministically but are hard to predict without knowledge of the seed.
@@ -228,6 +228,7 @@ These pseudo random numbers will be computed deterministically but are hard to p
 import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPair;
+import java.security.SecureRandom;
 import java.security.Signature;
 ...
 KeyPair keyPair = ...
