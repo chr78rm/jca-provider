@@ -14,8 +14,9 @@ as well as for the Rabin-SAEP cryptosystem.
   2. [Signature Usage](#PrimeFieldsSignature)
     1. [Simple Use](#PrimeFieldsSignature1)
     2. [Custom SecureRandom](#PrimeFieldsSignature2)
-    3. [Message Digest configuration](#PrimeFieldsSignature3)
-    4. [Deterministic nonce](#PrimeFieldsSignature4)
+    3. [Nio](#PrimeFieldsSignature3)
+    4. [Message Digest configuration](#PrimeFieldsSignature4)
+    5. [Deterministic nonce](#PrimeFieldsSignature5)
 4. [Schnorr Signatures on elliptic curves](#EllipticCurves)
 5. [Links](#Links)
 
@@ -213,12 +214,42 @@ assert verified;
 
 #### <a name="PrimeFieldsSignature2"></a>3.i.b Custom SecureRandom
 
-It is essential that the nonce r is both unpredictable and unique as well as remains confidential. Since the default `SecureRandom` instance may obtain random numbers from the
-underlying OS, weaknesses of the native random number generator (RNG) will be reflected by the signature.
+It is essential that the nonce r is both unpredictable and unique as well as remains confidential. Note, that a single revealed r together with the corresponding
+signature (e,y) suffices to compute the secret private key x, simply by solving the linear equation 
+<p style="text-align: center">y &#x2261;<sub>q</sub> r + ex</p>
+If, on the other hand, the same r is used twice for two different documents, an adversary may obtain the private key by solving a system of linear equations
+with two unknowns:
+<p style="text-align: center">y<sub>1</sub> &#x2261;<sub>q</sub> r + e<sub>1</sub>x, y<sub>2</sub> &#x2261;<sub>q</sub> r + e<sub>2</sub>x</p>
+Since the default `SecureRandom` instance may obtain random numbers from the underlying OS, weaknesses of the native random number generator (RNG) will be reflected by the signature.
+Thus, someone might want to use a custom `SecureRandom` for the generation of the nonces. The subsequent example uses the SHA1PRNG which produces pseudo random numbers.
+These pseudo random numbers will be computed deterministically but are hard to predict without knowledge of the seed.
 
-#### <a name="PrimeFieldsSignature3"></a>3.i.c Message Digest configuration
+```java
+import java.io.File;
+import java.nio.file.Files;
+import java.security.KeyPair;
+import java.security.Signature;
+...
+KeyPair keyPair = ...
+File file = new File("loremipsum.txt");
+byte[] bytes = Files.readAllBytes(file.toPath());
+SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+Signature signature = Signature.getInstance("SchnorrSignature");
+signature.initSign(keyPair.getPrivate(), secureRandom);
+signature.update(bytes);
+byte[] signatureBytes = signature.sign();
+signature.initVerify(keyPair.getPublic());
+signature.update(bytes);
+boolean verified = signature.verify(signatureBytes);
+assert verified;
+```
 
-#### <a name="PrimeFieldsSignature4"></a>3.i.d Deterministic nonce
+
+#### <a name="PrimeFieldsSignature3"></a>3.i.b Nio
+
+#### <a name="PrimeFieldsSignature4"></a>3.i.c Message Digest configuration
+
+#### <a name="PrimeFieldsSignature5"></a>3.i.d Deterministic nonce
 
 ## <a name="EllipticCurves"></a>4. Schnorr Signatures on elliptic curves
 
