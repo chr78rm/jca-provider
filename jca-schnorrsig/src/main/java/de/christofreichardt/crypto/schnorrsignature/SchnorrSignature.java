@@ -290,13 +290,6 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
         
         tracer.out().printfIndentln("--- digestBytes(%d) ---", digestBytes.length);
         traceBytes(digestBytes);
-        tracer.out().printfIndentln("BigInteger(digestBytes) = %s", new BigInteger(1, digestBytes));
-        tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
-        tracer.out().printfIndentln("--- eBytes(%d) ---", eBytes.length);
-        traceBytes(eBytes);
-        tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
-        tracer.out().printfIndentln("--- yBytes(%d) ---", yBytes.length);
-        traceBytes(yBytes);
         
         byte[] signatureBytes;
         if (this.experimentalHashing) {
@@ -306,8 +299,9 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
           System.arraycopy(yBytes, 0, signatureBytes, Q_BYTES + Q_BYTES - yBytes.length, yBytes.length);
         }
         else {
-          signatureBytes = Arrays.copyOf(digestBytes, this.messageDigest.getDigestLength() + yBytes.length);
-          System.arraycopy(yBytes, 0, signatureBytes, this.messageDigest.getDigestLength(), yBytes.length);
+          BigIntegerPair pair = new BigIntegerPair(e, y);
+          pair.trace();
+          signatureBytes = pair.toByteArray();
         }
         
         return signatureBytes;
@@ -412,16 +406,26 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
         
         final BigInteger q = this.schnorrPublicKey.getSchnorrParams().getQ();
         BigInteger e = concatForVerifying(signatureBytes);
-        byte[] digestBytes = this.messageDigest.digest();
-        BigInteger check;
-        if (this.experimentalHashing) {
-          digestBytes = expandMessageDigest(digestBytes);
-          check = new BigInteger(digestBytes).mod(q);
+        boolean verified;
+        if (e != null) {
+          byte[] digestBytes = this.messageDigest.digest();
+          
+          tracer.out().printfIndentln("--- digestBytes(%d) ---", digestBytes.length);
+          traceBytes(digestBytes);
+          
+          BigInteger check;
+          if (this.experimentalHashing) {
+            digestBytes = expandMessageDigest(digestBytes);
+            check = new BigInteger(digestBytes).mod(q);
+          }
+          else 
+            check = new BigInteger(1, digestBytes).mod(q);
+          verified = check.equals(e);
         }
-        else 
-          check = new BigInteger(1, digestBytes).mod(q);
+        else
+          verified = false;
         
-        return check.equals(e);
+        return verified;
       }
       finally {
         resetForVerifying();
@@ -452,28 +456,23 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
         byte[] eBytes = Arrays.copyOfRange(signatureBytes, 0, Q_BYTES);
         yBytes = Arrays.copyOfRange(signatureBytes, Q_BYTES, signatureBytes.length);
         e = new BigInteger(eBytes);
+        y = new BigInteger(yBytes);
       }
       else {
-        byte[] digestBytes = Arrays.copyOfRange(signatureBytes, 0, this.messageDigest.getDigestLength());
-        tracer.out().printfIndentln("--- digestBytes(%d) ---", digestBytes.length);
-        traceBytes(digestBytes);
-        yBytes = Arrays.copyOfRange(signatureBytes, this.messageDigest.getDigestLength(), signatureBytes.length);
-        e = new BigInteger(1, digestBytes).mod(q);
+        BigIntegerPair pair = new BigIntegerPair(signatureBytes);
+        pair.trace();
+        e = pair.getE();
+        y = pair.getY();
       }
-      y = new BigInteger(yBytes);
       
-      tracer.out().printfIndentln("--- eBytes(%d) ---", e.toByteArray().length);
-      traceBytes(e.toByteArray());
-      tracer.out().printfIndentln("--- yBytes(%d) ---", yBytes.length);
-      traceBytes(yBytes);
-      tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
-      tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
-
-      BigInteger s = g.modPow(y, p).multiply(h.modPow(e, p)).mod(p);
-      
-      tracer.out().printfIndentln("s(%d) = %d", s.bitLength(), s);
-      
-      this.messageDigest.update(s.toByteArray());
+      if (e.compareTo(q) == -1  &&  y.compareTo(q)  == -1) {
+        BigInteger s = g.modPow(y, p).multiply(h.modPow(e, p)).mod(p);
+        this.messageDigest.update(s.toByteArray());
+        
+        tracer.out().printfIndentln("s(%d) = %d", s.bitLength(), s);
+      }
+      else
+        e = null;
       
       return e;
     }
