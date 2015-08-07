@@ -216,10 +216,17 @@ assert verified;
 
 It is essential that the nonce r is both unpredictable and unique as well as remains confidential. Note, that a single revealed r together with the corresponding
 signature (e,y) suffices to compute the secret private key x, simply by solving the linear equation 
-<p>y &#x2261;<sub>q</sub> r + ex</p>
+
+<p align="center">y &#x2261;<sub>q</sub> r + ex</p>
+
 If, on the other hand, the same r is used twice for two different documents, an adversary may obtain the private key by solving a system of linear equations
 with two unknowns:
-<p>y<sub>1</sub> &#x2261;<sub>q</sub> r + e<sub>1</sub>x, y<sub>2</sub> &#x2261;<sub>q</sub> r + e<sub>2</sub>x</p>
+
+<p align="center">y<sub>1</sub> &#x2261;<sub>q</sub> r + e<sub>1</sub>x</p>
+<p align="center">y<sub>2</sub> &#x2261;<sub>q</sub> r + e<sub>2</sub>x</p>
+
+Similar considerations also apply to the Digital Signature Algorithm (DSA) specified by the NIST.
+
 Since the default `SecureRandom` instance may obtain random numbers from the underlying OS, weaknesses of the native random number generator (RNG) will be reflected by the signature.
 Thus, someone might want to use a custom `SecureRandom` for the generation of the nonces. The subsequent example uses the SHA1PRNG which produces pseudo random numbers.
 These pseudo random numbers will be computed deterministically but are hard to predict without knowledge of the seed.
@@ -248,6 +255,47 @@ assert verified;
 See also 3.1.d [Deterministic nonce](#PrimeFieldsSignature5).
 
 #### <a name="PrimeFieldsSignature3"></a>3.i.b Nio
+
+Suppose that you want digitally sign potentially large database dumps before archiving, thus ensuring data authenticity. The above shown approach wouldn't work well
+since the method `byte[] readAllBytes(Path path)` is not intended for reading in large files. One way to process such large files like database dumps is to use
+NIO, see the next example:
+
+```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.security.KeyPair;
+import java.security.SecureRandom;
+import java.security.Signature;
+...
+KeyPair keyPair = ...
+File largeDump = new File("dumped.sql");
+byte[] bytes = Files.readAllBytes(largeDump.toPath());
+Signature signature = Signature.getInstance("SchnorrSignature");
+signature.initSign(keyPair.getPrivate());
+int bufferSize = 512;
+ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+byte[] bytes = new byte[bufferSize];
+try (FileInputStream fileInputStream = new FileInputStream(file)) {
+  FileChannel fileChannel = fileInputStream.getChannel();
+  do {
+    int read = fileChannel.read(buffer);
+    if (read == -1)
+      break;
+    buffer.flip();
+    buffer.get(bytes, 0, read);
+    signature.update(bytes, 0, read);
+    buffer.clear();
+  } while(true);
+}
+byte[] signatureBytes = signature.sign();
+...
+```
+
+The verification process is similar. The `Signature` instance must be initialized for verifying and thereupon the byte chunks must be processed.
+Finally, call the `boolean verify(byte[] signature)`.
 
 #### <a name="PrimeFieldsSignature4"></a>3.i.c Message Digest configuration
 
