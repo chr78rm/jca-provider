@@ -302,8 +302,9 @@ Finally, call the `boolean verify(byte[] signature)`.
 The preset cryptographic hash function is SHA-256. Note, that this actually turns (e,y) &#x220A; &#x2124;<sub>q</sub> &#x00D7; &#x2124;<sub>q</sub>
 into (e,y) &#x220A; &#x2124;<sub>2<sup>t</sup></sub> &#x00D7; &#x2124;<sub>q</sub> with t denoting the output length of the hash function. Assuming a 512-bit q,
 SHA-256 is mapping only onto a very small subset of the domain &#x2124;<sub>q</sub>. However, this seems not to be a problem. Neven et al. argue within their
-paper, see [Hash Function Requirements for Schnorr Signatures](http://www.neven.org/papers/schnorr.pdf), that t = &#x2308;log<sub>2</sub> q&#x2309;/2 should be
-sufficient to provide a security level of t bits. Hence SHA-256 is a natural choice for a 512-bit sized q (which is the default). A 1024-bit sized q however would require a
+paper, see [Hash Function Requirements for Schnorr Signatures](http://www.neven.org/papers/schnorr.pdf), that 
+<p align="center">t = &#x2308;log<sub>2</sub> q&#x2309;/2</p>
+should be sufficient to provide a security level of t bits. Hence SHA-256 is a natural choice for a 512-bit sized q (which is the default). A 1024-bit sized q however would require a
 cryptographic hash function with 512 bit output length, e.g. SHA-512, to provide a security level of 512 bits. 
 
 The to be used hash function can be configured by setting a property of the JCA provider. The subsequent code snippet configures SHA-512:
