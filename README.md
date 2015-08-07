@@ -215,11 +215,11 @@ assert verified;
 #### <a name="PrimeFieldsSignature2"></a>3.i.b Custom SecureRandom
 
 It is essential that the nonce r is both unpredictable and unique as well as remains confidential. Note, that a single revealed r together with the corresponding
-signature (e,y) suffices to compute the secret private key x, simply by solving the linear equation 
+signature (e,y) suffices to compute the secret private key x, simply by solving the linear congruence 
 
 <p align="center">y &#x2261;<sub>q</sub> r + ex</p>
 
-If, on the other hand, the same r is used twice for two different documents, an adversary may obtain the private key by solving a system of linear equations
+If, on the other hand, the same r is used twice for two different documents, an adversary may obtain the private key by solving a system of linear congruences
 with two unknowns:
 
 <p align="center">y<sub>1</sub> &#x2261;<sub>q</sub> r + e<sub>1</sub>x</p>
@@ -257,7 +257,7 @@ See also 3.1.d [Deterministic nonce](#PrimeFieldsSignature5).
 #### <a name="PrimeFieldsSignature3"></a>3.i.b Nio
 
 Suppose that you want digitally sign potentially large database dumps before archiving, thus ensuring data authenticity. The above shown approach wouldn't work well
-since the method `byte[] readAllBytes(Path path)` is not intended for reading in large files. One way to process such large files like database dumps is to use
+since the method `byte[] readAllBytes(Path path)` is not intended for reading in large files. One way to process large files like database dumps is to use
 NIO, see the next example:
 
 ```java
@@ -298,6 +298,25 @@ The verification process is similar. The `Signature` instance must be initialize
 Finally, call the `boolean verify(byte[] signature)`.
 
 #### <a name="PrimeFieldsSignature4"></a>3.i.c Message Digest configuration
+
+The preset cryptographic hash function is SHA-256. Note, that this actually turns (e,y) &#x220A; &#x2124;<sub>q</sub> &#x00D7; &#x2124;<sub>q</sub>
+into (e,y) &#x220A; &#x2124;<sub>2<sup>t</sup></sub> &#x00D7; &#x2124;<sub>q</sub> with t denoting the output length of the hash function. Assuming a 512-bit q,
+SHA-256 is mapping only onto a very small subset of the domain &#x2124;<sub>q</sub>. However, this seems not to be a problem. Neven et al. argue within their
+paper, see [Hash Function Requirements for Schnorr Signatures](http://www.neven.org/papers/schnorr.pdf), that t = &#x2308;log<sub>2</sub> q&#x2309;/2 should be
+sufficient to provide a security level of t bits. Hence SHA-256 is a natural choice for a 512-bit sized q (which is the default). A 1024-bit sized q however would require a
+cryptographic hash function with 512 bit output length, e.g. SHA-512, to provide a security level of 512 bits. 
+
+The to be used hash function can be configured by setting a property of the JCA provider. The subsequent code snippet configures SHA-512:
+
+```java
+Provider provider = new de.christofreichardt.crypto.Provider();
+provider.put("de.christofreichardt.crypto.schnorrsignature.messageDigest", "SHA-512");
+Security.addProvider(provider);
+```
+
+This requires, that another installed JCA provider supplies this message digest algorithm. This is true for the SUN provider coming with the official Oracle JDK.
+Another popular JCA provider is [The Legion of the Bouncy Castle](https://www.bouncycastle.org/java.html). Installing this provider as well someone can use
+the Schnorr Signature together with the Skein-1024 message digest. Skein has been one of finalists of the SHA-3 competition and has an output length of 1024 bits. 
 
 #### <a name="PrimeFieldsSignature5"></a>3.i.d Deterministic nonce
 
