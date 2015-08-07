@@ -1,7 +1,10 @@
 package de.christofreichardt.crypto.examples;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -13,6 +16,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,6 +26,21 @@ import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpe
 
 public class Main {
   static public final Logger LOGGER = Logger.getLogger(Main.class.getName());
+  private final Properties properties;
+  
+  public Main() throws IOException {
+    this.properties = readProperties();
+  }
+  
+  private Properties readProperties() throws IOException {
+    File file = new File("examples.properties");
+    Properties properties = new Properties();
+    try (FileInputStream fileInputStream = new FileInputStream(file)) {
+      properties.load(fileInputStream);
+    }
+    
+    return properties;
+  }
   
   private void example1() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     LOGGER.log(Level.INFO, "-> Example1: Key pairs with default strength.");
@@ -178,6 +197,61 @@ public class Main {
     
     assert verified;
   }
+  
+  private void example6() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    LOGGER.log(Level.INFO, "-> Example6: NIO.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+    LOGGER.log(Level.INFO, "Checking specified file ...");
+    assert this.properties.containsKey("de.christofreichardt.crypto.examples.largeFile");
+    File file = new File(this.properties.getProperty("de.christofreichardt.crypto.examples.largeFile"));
+    assert file.exists();
+    
+    LOGGER.log(Level.INFO, "Processing {0} ...", file.getPath());
+    Signature signature = Signature.getInstance("SchnorrSignature");
+    signature.initSign(keyPair.getPrivate());
+    int bufferSize = 512;
+    ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+    byte[] bytes = new byte[bufferSize];
+    try (FileInputStream fileInputStream = new FileInputStream(file)) {
+      FileChannel fileChannel = fileInputStream.getChannel();
+      do {
+        int read = fileChannel.read(buffer);
+        if (read == -1)
+          break;
+        buffer.flip();
+        buffer.get(bytes, 0, read);
+        signature.update(bytes, 0, read);
+        buffer.clear();
+      } while(true);
+    }
+    
+    LOGGER.log(Level.INFO, "Signing ...");
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Processing {0} ...", file.getPath());
+    signature.initVerify(keyPair.getPublic());
+    try (FileInputStream fileInputStream = new FileInputStream(file)) {
+      FileChannel fileChannel = fileInputStream.getChannel();
+      do {
+        int read = fileChannel.read(buffer);
+        if (read == -1)
+          break;
+        buffer.flip();
+        buffer.get(bytes, 0, read);
+        signature.update(bytes, 0, read);
+        buffer.clear();
+      } while(true);
+    }
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
     LOGGER.info("Adding provider ...");
@@ -185,11 +259,39 @@ public class Main {
     Security.addProvider(provider);
     
     Main main = new Main();
-    main.example1();
-    main.example2();
-    main.example3();
-    main.example4();
-    main.example5();
+    if (args.length == 0) {
+      main.example1();
+      main.example2();
+      main.example3();
+      main.example4();
+      main.example5();
+      main.example6();
+    }
+    else {
+      int nr = Integer.parseInt(args[0]);
+      switch (nr) {
+      case 1:
+        main.example1();
+        break;
+      case 2:
+        main.example2();
+        break;
+      case 3:
+        main.example3();
+        break;
+      case 4:
+        main.example4();
+        break;
+      case 5:
+        main.example5();
+        break;
+      case 6:
+        main.example6();
+        break;
+      default:
+        break;
+      }
+    }
   }
 
 }
