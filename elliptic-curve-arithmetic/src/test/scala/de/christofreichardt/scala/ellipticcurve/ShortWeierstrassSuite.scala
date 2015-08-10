@@ -273,7 +273,7 @@ package affine {
       assert(order == curve.computeOrder(groupOrderCalculus), "Wrong order.")
     }
     
-    testWithTracing(this, "Group Order (1)") {
+    ignore(this, "Group Order (1)") {
       val tracer = getCurrentTracer()
       
       val shanksMestre = new ShanksMestre
@@ -303,7 +303,7 @@ package affine {
       assert(check, "All trials failed.")
     }
     
-    testWithTracing(this, "Group Order (2)") {
+    ignore(this, "Group Order (2)") {
       val tracer = getCurrentTracer()
       tracer.out().printfIndentln("PrimeBase.primes.size = %d", PrimeBase.primes.size: Integer)
 
