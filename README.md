@@ -31,9 +31,6 @@ Aside from that, the build targets JDK 7+.
 
 `mvn clean install`
 
-Experimental test cases concerning the group order of elliptic curves over prime fields may sometimes fail due to their probabilistic character. 
-However this is rather unlikely and a repetition of the build will suffice in most cases.
-
 ## <a name="Installation"></a>2. Installation
 
 Cryptographic Service Providers can be installed in two ways:
