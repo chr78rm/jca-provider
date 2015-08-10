@@ -368,5 +368,8 @@ the Schnorr Signature e.g. together with the Skein-1024 message digest. Skein ha
 - [Schnorr Groups](https://en.wikipedia.org/wiki/Schnorr_group)
 - [JCA Reference Guide](http://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html)
 - [FIPS PUB 186-4](http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf)
+- [Hash Function Requirements for Schnorr Signatures](http://www.neven.org/papers/schnorr.pdf)
+- [The Legion of the Bouncy Castle](https://www.bouncycastle.org/java.html)
+
 
 
