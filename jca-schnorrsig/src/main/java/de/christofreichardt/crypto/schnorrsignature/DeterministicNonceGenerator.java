@@ -60,6 +60,10 @@ public class DeterministicNonceGenerator implements NonceGenerator, Traceable {
   public void update(byte[] bytes, int offset, int length) {
     this.messageDigest.update(bytes, offset, length);
   }
+  
+  @Override
+  public void copy(MessageDigest messageDigest) {
+  }
 
   @Override
   public AbstractTracer getCurrentTracer() {

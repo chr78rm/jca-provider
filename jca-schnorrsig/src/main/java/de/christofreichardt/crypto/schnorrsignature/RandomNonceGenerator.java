@@ -1,6 +1,7 @@
 package de.christofreichardt.crypto.schnorrsignature;
 
 import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
@@ -35,6 +36,10 @@ public class RandomNonceGenerator implements NonceGenerator, Traceable {
 
   @Override
   public void update(byte[] bytes, int offset, int length) {
+  }
+  
+  @Override
+  public void copy(MessageDigest messageDigest) {
   }
 
   @Override

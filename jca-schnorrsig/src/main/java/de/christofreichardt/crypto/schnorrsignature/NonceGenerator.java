@@ -1,9 +1,12 @@
 package de.christofreichardt.crypto.schnorrsignature;
 
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.SignatureException;
 
 public interface NonceGenerator {
   void update(byte input);
   void update(byte[] bytes, int offset, int length);
-  BigInteger nonce();
+  BigInteger nonce() throws SignatureException;
+  void copy(MessageDigest messageDigest) throws SignatureException;
 }

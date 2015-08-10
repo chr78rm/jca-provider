@@ -22,7 +22,6 @@ import org.junit.Test;
 
 import de.christofreichardt.crypto.BaseSignatureUnit;
 import de.christofreichardt.crypto.Provider;
-import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec.NonceGeneratorStrategy;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
