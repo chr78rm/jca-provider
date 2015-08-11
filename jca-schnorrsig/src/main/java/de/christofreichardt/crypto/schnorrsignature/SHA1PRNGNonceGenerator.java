@@ -10,7 +10,7 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
-public class SHA1PRNGNonceGenerator implements NonceGenerator, Traceable {
+public class SHA1PRNGNonceGenerator extends DeterministicNonceGenerator implements Traceable {
   private BigInteger modul;
   private SecureRandom secureRandom;
 

@@ -15,7 +15,7 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
-public class HmacSHA256PRNGNonceGenerator implements NonceGenerator, Traceable {
+public class HmacSHA256PRNGNonceGenerator extends DeterministicNonceGenerator implements Traceable {
   private BigInteger modul;
   private Mac hmac;
   private byte[] extendedKey;
