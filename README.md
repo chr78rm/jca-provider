@@ -43,6 +43,9 @@ Furthermore, a Cryptographic Service Provider (CSP) must be registered before it
 a security properties configuration file or dynamically at runtime:
 
 ```java
+import java.security.Provider;
+import java.security.Security;
+...
 Provider provider = new de.christofreichardt.crypto.Provider();
 Security.addProvider(provider);
 ```
