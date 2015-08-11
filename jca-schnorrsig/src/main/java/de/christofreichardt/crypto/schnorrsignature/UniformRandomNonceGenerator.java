@@ -30,7 +30,9 @@ public class UniformRandomNonceGenerator extends RandomNonceGenerator implements
       BigInteger nonce;
       do {
         nonce = new BigInteger(this.modul.bitLength(), this.secureRandom);
-      } while (nonce.compareTo(this.modul) == -1);
+      } while (nonce.compareTo(this.modul) != -1);
+      
+      tracer.out().printfIndentln("nonce = %s", nonce);
       
       return nonce;
     }
