@@ -9,7 +9,7 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
-public class DeterministicNonceGenerator implements NonceGenerator, Traceable {
+public class ExperimentalDeterministicNonceGenerator implements NonceGenerator, Traceable {
   private BigInteger modul;
   private MessageDigest messageDigest;
   final private byte[] extraBytes = {-46, 68, 13, 38, 81, -73, 12, -119, -27, -76, 73, 64, -50, -99, -48, -25, 4, -103, 40, 29, 23, 60, -14, -7, 88, -11, 90, -9, 
@@ -18,10 +18,10 @@ public class DeterministicNonceGenerator implements NonceGenerator, Traceable {
       106, -42, -113, 124, 87, 111, 97, -86, -83, -37, -40, -6, -44, -17, 49, -90, -115, -47, -86, -88, -13, 8, -4, 104, -88, 94, 31, 54, -74, 14, 30, -28};
   private int index = -1;
   
-  public DeterministicNonceGenerator() {
+  public ExperimentalDeterministicNonceGenerator() {
   }
   
-  public DeterministicNonceGenerator(BigInteger modul, byte[] extendedKey) {
+  public ExperimentalDeterministicNonceGenerator(BigInteger modul, byte[] extendedKey) {
     reset(null, modul, extendedKey);
   }
 

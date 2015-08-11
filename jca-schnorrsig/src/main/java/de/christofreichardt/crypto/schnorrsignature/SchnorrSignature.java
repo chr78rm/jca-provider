@@ -184,13 +184,13 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
     this.messageDigest.reset();
     switch (this.schnorrSigParameterSpec.getNonceGeneratorStrategy()) {
     case SECURE_RANDOM:
-      this.nonceGenerator = new RandomNonceGenerator(this.schnorrPrivateKey.getSchnorrParams().getQ(), this.secureRandom);
+      this.nonceGenerator = new AlmostUniformRandomNonceGenerator(this.schnorrPrivateKey.getSchnorrParams().getQ(), this.secureRandom);
       break;
     case PRIVATEKEY_MSG_HASH:
       this.nonceGenerator = new HmacSHA256PRNGNonceGenerator(this.schnorrPrivateKey.getSchnorrParams().getQ(), ((ExtSchnorrPrivateKey) this.schnorrPrivateKey).getExtKeyBytes());
       break;
     default:
-      this.nonceGenerator = new RandomNonceGenerator(this.schnorrPrivateKey.getSchnorrParams().getQ(), this.secureRandom);
+      this.nonceGenerator = new AlmostUniformRandomNonceGenerator(this.schnorrPrivateKey.getSchnorrParams().getQ(), this.secureRandom);
       break;
     }
     

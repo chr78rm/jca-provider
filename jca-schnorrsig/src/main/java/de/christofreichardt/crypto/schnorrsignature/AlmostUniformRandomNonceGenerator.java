@@ -8,14 +8,14 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
-public class RandomNonceGenerator implements NonceGenerator, Traceable {
+public class AlmostUniformRandomNonceGenerator implements NonceGenerator, Traceable {
   private BigInteger modul;
   private SecureRandom secureRandom;
   
-  public RandomNonceGenerator() {
+  public AlmostUniformRandomNonceGenerator() {
   }
   
-  public RandomNonceGenerator(BigInteger modul, SecureRandom secureRandom) {
+  public AlmostUniformRandomNonceGenerator(BigInteger modul, SecureRandom secureRandom) {
     reset(secureRandom, modul, null);
   }
 
