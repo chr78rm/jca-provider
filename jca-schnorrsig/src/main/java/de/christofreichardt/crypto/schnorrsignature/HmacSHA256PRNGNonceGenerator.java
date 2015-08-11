@@ -27,10 +27,6 @@ public class HmacSHA256PRNGNonceGenerator extends DeterministicNonceGenerator im
   
   public HmacSHA256PRNGNonceGenerator() {
   }
-  
-  public HmacSHA256PRNGNonceGenerator(BigInteger modul, byte[] extendedKey) {
-    reset(null, modul, extendedKey);
-  }
 
   @Override
   public void update(byte input) {
@@ -111,9 +107,12 @@ public class HmacSHA256PRNGNonceGenerator extends DeterministicNonceGenerator im
   }
 
   @Override
-  public void reset(SecureRandom secureRandom, BigInteger modul, byte[] extendedKey) {
+  public void reset(SecureRandom secureRandom, BigInteger modul, SchnorrPrivateKey schnorrPrivateKey) {
+    if (!(schnorrPrivateKey instanceof ExtSchnorrPrivateKey))
+      throw new RuntimeException("Need a ExtSchnorrPrivateKey instance.");
+    
     this.modul = modul;
-    this.extendedKey = extendedKey;
+    this.extendedKey = ((ExtSchnorrPrivateKey) schnorrPrivateKey).getExtKeyBytes();
     try {
       String algorithmName = "HmacSHA256";
       this.hmac = Mac.getInstance(algorithmName);

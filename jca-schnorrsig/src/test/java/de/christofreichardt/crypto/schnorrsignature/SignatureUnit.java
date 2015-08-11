@@ -22,7 +22,6 @@ import org.junit.Test;
 
 import de.christofreichardt.crypto.BaseSignatureUnit;
 import de.christofreichardt.crypto.Provider;
-import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec.NonceGeneratorStrategy;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 
@@ -85,7 +84,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
       
       java.security.Signature signature = java.security.Signature.getInstance(this.signatureAlgorithmName);
-      SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(NonceGeneratorStrategy.PRIVATEKEY_MSG_HASH);
+      SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(new HmacSHA256PRNGNonceGenerator());
       signature.setParameter(schnorrSigParameterSpec);
       signature.initSign(keyPair.getPrivate());
       signature.update(this.msgBytes, 0, this.msgBytes.length);

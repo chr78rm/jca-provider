@@ -3,19 +3,17 @@ package de.christofreichardt.crypto.schnorrsignature;
 import java.security.spec.AlgorithmParameterSpec;
 
 public class SchnorrSigParameterSpec implements AlgorithmParameterSpec {
-  public enum NonceGeneratorStrategy {SECURE_RANDOM, PRIVATEKEY_MSG_HASH}
-  
-  final private NonceGeneratorStrategy nonceGeneratorStrategy;
+  final private NonceGenerator nonceGenerator;
 
   public SchnorrSigParameterSpec() {
-    this.nonceGeneratorStrategy = NonceGeneratorStrategy.SECURE_RANDOM;
+    this.nonceGenerator = new AlmostUniformRandomNonceGenerator();
+  }
+  
+  public SchnorrSigParameterSpec(NonceGenerator nonceGenerator) {
+    this.nonceGenerator = nonceGenerator;
   }
 
-  public SchnorrSigParameterSpec(NonceGeneratorStrategy nonceGeneratorStrategy) {
-    this.nonceGeneratorStrategy = nonceGeneratorStrategy;
-  }
-
-  public NonceGeneratorStrategy getNonceGeneratorStrategy() {
-    return nonceGeneratorStrategy;
+  public NonceGenerator getNonceGenerator() {
+    return nonceGenerator;
   }
 }

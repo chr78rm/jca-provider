@@ -14,10 +14,6 @@ public class AlmostUniformRandomNonceGenerator extends RandomNonceGenerator impl
   
   public AlmostUniformRandomNonceGenerator() {
   }
-  
-  public AlmostUniformRandomNonceGenerator(BigInteger modul, SecureRandom secureRandom) {
-    reset(secureRandom, modul, null);
-  }
 
   @Override
   public BigInteger nonce() {
@@ -50,7 +46,7 @@ public class AlmostUniformRandomNonceGenerator extends RandomNonceGenerator impl
   }
 
   @Override
-  public void reset(SecureRandom secureRandom, BigInteger modul, byte[] extendedKey) {
+  public void reset(SecureRandom secureRandom, BigInteger modul, SchnorrPrivateKey schnorrPrivateKey) {
     this.modul = modul;
     this.secureRandom = secureRandom;
   }

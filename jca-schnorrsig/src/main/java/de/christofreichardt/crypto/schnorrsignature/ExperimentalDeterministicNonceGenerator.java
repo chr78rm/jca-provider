@@ -20,10 +20,6 @@ public class ExperimentalDeterministicNonceGenerator extends DeterministicNonceG
   
   public ExperimentalDeterministicNonceGenerator() {
   }
-  
-  public ExperimentalDeterministicNonceGenerator(BigInteger modul, byte[] extendedKey) {
-    reset(null, modul, extendedKey);
-  }
 
   @Override
   public BigInteger nonce() {
@@ -68,11 +64,14 @@ public class ExperimentalDeterministicNonceGenerator extends DeterministicNonceG
   }
 
   @Override
-  public void reset(SecureRandom secureRandom, BigInteger modul, byte[] extendedKey) {
+  public void reset(SecureRandom secureRandom, BigInteger modul, SchnorrPrivateKey schnorrPrivateKey) {
+    if (!(schnorrPrivateKey instanceof ExtSchnorrPrivateKey))
+      throw new RuntimeException("Need a ExtSchnorrPrivateKey instance.");
+    
     this.modul = modul;
     try {
       this.messageDigest = MessageDigest.getInstance("SHA-512");
-      this.messageDigest.update(extendedKey);
+      this.messageDigest.update(((ExtSchnorrPrivateKey) schnorrPrivateKey).getExtKeyBytes());
     }
     catch (NoSuchAlgorithmException ex) {
       throw new RuntimeException(ex);
