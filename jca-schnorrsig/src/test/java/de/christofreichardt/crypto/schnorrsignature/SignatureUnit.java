@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.SignatureException;
+import java.util.Arrays;
 import java.util.Properties;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -97,6 +98,46 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       traceBytes(signatureBytes);
       
       Assert.assertArrayEquals("Expected identical signatures.", signatureBytes, buffer);
+      
+      signature.initVerify(keyPair.getPublic());
+      signature.update(this.msgBytes, 0, this.msgBytes.length);
+      boolean verified = signature.verify(signatureBytes);
+      
+      Assert.assertTrue("Expected a valid signature.", verified);
+      
+      signature.initVerify(keyPair.getPublic());
+      signature.update(this.spoiledMsgBytes, 0, this.spoiledMsgBytes.length);
+      verified = signature.verify(signatureBytes);
+      
+      Assert.assertTrue("Expected an invalid signature.", !verified);
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void uniformNonce() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, SignatureException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "uniformNonce()");
+    
+    try {
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      
+      java.security.Signature signature = java.security.Signature.getInstance(this.signatureAlgorithmName);
+      SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(new UniformRandomNonceGenerator());
+      signature.setParameter(schnorrSigParameterSpec);
+      signature.initSign(keyPair.getPrivate(), new SecureRandom());
+      signature.update(this.msgBytes, 0, this.msgBytes.length);
+      byte[] signatureBytes = signature.sign();
+      signature.update(this.msgBytes);
+      byte[] testBytes = signature.sign();
+      
+      tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
+      traceBytes(signatureBytes);
+      
+      Assert.assertFalse("Expected non-identical signatures.", Arrays.equals(signatureBytes, testBytes));
       
       signature.initVerify(keyPair.getPublic());
       signature.update(this.msgBytes, 0, this.msgBytes.length);
