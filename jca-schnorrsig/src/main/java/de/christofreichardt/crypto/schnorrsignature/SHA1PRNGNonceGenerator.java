@@ -11,18 +11,11 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
 public class SHA1PRNGNonceGenerator implements NonceGenerator, Traceable {
-  final private BigInteger modul;
-  final private SecureRandom secureRandom;
+  private BigInteger modul;
+  private SecureRandom secureRandom;
 
   public SHA1PRNGNonceGenerator(BigInteger modul, byte[] extendedKey) {
-    this.modul = modul;
-    try {
-      this.secureRandom = SecureRandom.getInstance("SHA1PRNG");
-      this.secureRandom.setSeed(extendedKey);
-    }
-    catch (NoSuchAlgorithmException ex) {
-      throw new RuntimeException(ex);
-    }
+    reset(null, modul, extendedKey);
   }
 
   @Override
@@ -71,6 +64,18 @@ public class SHA1PRNGNonceGenerator implements NonceGenerator, Traceable {
   @Override
   public AbstractTracer getCurrentTracer() {
     return TracerFactory.getInstance().getCurrentPoolTracer();
+  }
+
+  @Override
+  public void reset(SecureRandom secureRandom, BigInteger modul, byte[] extendedKey) {
+    this.modul = modul;
+    try {
+      this.secureRandom = SecureRandom.getInstance("SHA1PRNG");
+      this.secureRandom.setSeed(extendedKey);
+    }
+    catch (NoSuchAlgorithmException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
 }

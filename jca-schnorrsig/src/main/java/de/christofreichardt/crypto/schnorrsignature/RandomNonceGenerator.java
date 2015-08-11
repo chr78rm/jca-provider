@@ -9,12 +9,14 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
 public class RandomNonceGenerator implements NonceGenerator, Traceable {
-  final private BigInteger modul;
-  final private SecureRandom secureRandom;
+  private BigInteger modul;
+  private SecureRandom secureRandom;
+  
+  public RandomNonceGenerator() {
+  }
   
   public RandomNonceGenerator(BigInteger modul, SecureRandom secureRandom) {
-    this.modul = modul;
-    this.secureRandom = secureRandom;
+    reset(secureRandom, modul, null);
   }
 
   @Override
@@ -45,5 +47,11 @@ public class RandomNonceGenerator implements NonceGenerator, Traceable {
   @Override
   public AbstractTracer getCurrentTracer() {
     return TracerFactory.getInstance().getCurrentPoolTracer();
+  }
+
+  @Override
+  public void reset(SecureRandom secureRandom, BigInteger modul, byte[] extendedKey) {
+    this.modul = modul;
+    this.secureRandom = secureRandom;
   }
 }

@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.Arrays;
 
@@ -15,33 +16,20 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
 public class HmacSHA256PRNGNonceGenerator implements NonceGenerator, Traceable {
-  final private BigInteger modul;
-  final private Mac hmac;
-  final private byte[] extendedKey;
+  private BigInteger modul;
+  private Mac hmac;
+  private byte[] extendedKey;
   public static final String ALGORITHM_NAME = "HmacSHA256";
   
   private byte[] digestBytes;
   private byte[] vBytes;
   private byte[] kBytes;
   
+  public HmacSHA256PRNGNonceGenerator() {
+  }
+  
   public HmacSHA256PRNGNonceGenerator(BigInteger modul, byte[] extendedKey) {
-    this.modul = modul;
-    this.extendedKey = extendedKey;
-    try {
-      String algorithmName = "HmacSHA256";
-      this.hmac = Mac.getInstance(algorithmName);
-      this.vBytes = new byte[this.hmac.getMacLength()];
-      Arrays.fill(vBytes, (byte) 0x01);
-      this.kBytes = new byte[this.hmac.getMacLength()];
-      Arrays.fill(kBytes, (byte) 0x00);
-      this.hmac.init(new SecretKeySpec(this.kBytes, algorithmName));
-      this.hmac.update(this.vBytes);
-      this.hmac.update((byte) 0x00);
-      this.hmac.update(this.extendedKey);
-    }
-    catch (NoSuchAlgorithmException | InvalidKeyException ex) {
-      throw new RuntimeException(ex);
-    }
+    reset(null, modul, extendedKey);
   }
 
   @Override
@@ -120,6 +108,27 @@ public class HmacSHA256PRNGNonceGenerator implements NonceGenerator, Traceable {
   @Override
   public AbstractTracer getCurrentTracer() {
     return TracerFactory.getInstance().getDefaultTracer();
+  }
+
+  @Override
+  public void reset(SecureRandom secureRandom, BigInteger modul, byte[] extendedKey) {
+    this.modul = modul;
+    this.extendedKey = extendedKey;
+    try {
+      String algorithmName = "HmacSHA256";
+      this.hmac = Mac.getInstance(algorithmName);
+      this.vBytes = new byte[this.hmac.getMacLength()];
+      Arrays.fill(vBytes, (byte) 0x01);
+      this.kBytes = new byte[this.hmac.getMacLength()];
+      Arrays.fill(kBytes, (byte) 0x00);
+      this.hmac.init(new SecretKeySpec(this.kBytes, algorithmName));
+      this.hmac.update(this.vBytes);
+      this.hmac.update((byte) 0x00);
+      this.hmac.update(this.extendedKey);
+    }
+    catch (NoSuchAlgorithmException | InvalidKeyException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
 }
