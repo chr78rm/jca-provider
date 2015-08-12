@@ -350,7 +350,7 @@ I'm using HmacSha256 for the procedure. HmacSha256 comes with the SunJCE provide
 The `HmacSHA256PRNGNonceGenerator` needs some additional key bytes. Hence its usage must be already considered when generating the key pair.
 
 The default operation mode of the `Signature` engine is to use the `AlmostUniformRandomNonceGenerator` class together with the default (or supplied) `SecureRandom` instance.
-A deterministic nonce generator can be injected as follows:
+The deterministic `HmacSHA256PRNGNonceGenerator` can be injected as follows:
 
 ```java
 import java.io.File;
@@ -380,6 +380,8 @@ boolean verified = signature.verify(signatureBytes);
 assert verified;
 ```
 
+As a consequence, if someone signs a document twice with `HmacSHA256PRNGNonceGenerator` the produced signature will be the same contrary to the traditional protocol. The generated nonce
+depends only on the to be signed message and on portions of the private key. 
 
 ## <a name="EllipticCurves"></a>4. Schnorr Signatures on elliptic curves
 
