@@ -339,7 +339,7 @@ Another question is whether the entropy sources of conventional computer systems
 [Debian random number debacle](https://www.debian.org/security/2008/dsa-1571) too. Fortunately, there are methods available to generate the required nonces without access to high quality
 randomness. [Ed25519](http://ed25519.cr.yp.to/ed25519-20110926.pdf) generates the nonce by computing 
 <p align="center">r &#x2261; H(h<sub>b</sub>, ... , h<sub>2b−1</sub> || M)</p>
-whereas (h<sub>b</sub>, ... , h<sub>2b−1</sub>) is part of the hashed (secret) private key. The problem with this approach for me is that even SHA-512 produces only a 512-bit output and 
+whereas (h<sub>b</sub>, ... , h<sub>2b−1</sub>) is part of the hashed (secret) private key. My problem with this approach is that even SHA-512 produces only a 512-bit output and 
 that aren't enough bits to compute an uniformly distributed r &#x220A;<sub>R</sub> (&#x2124;<sub>q</sub>)<sup>&#x00D7;</sup>, assuming a 512-bit sized q (which is the default). For this
 purpose H would have to output at least 512 + k bits thus producing a distribution with a statistical distance of at most 2<sup>-k</sup> to the uniform distribution, see
 chapter 8 and 9 within Shoup's [A Computational Introduction to Number Theory and Algebra](http://www.shoup.net/ntb/). 
