@@ -20,8 +20,11 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.christofreichardt.crypto.schnorrsignature.HmacSHA256PRNGNonceGenerator;
+import de.christofreichardt.crypto.schnorrsignature.NonceGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 
 public class Main {
@@ -252,6 +255,36 @@ public class Main {
     
     assert verified;
   }
+  
+  private void example7() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example7: (Deterministic) NonceGenerators.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
+    SchnorrSigKeyGenParameterSpec schnorrSigKeyGenParameterSpec = new SchnorrSigKeyGenParameterSpec(Strength.DEFAULT, true);
+    keyPairGenerator.initialize(schnorrSigKeyGenParameterSpec);
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("SchnorrSignature");
+    NonceGenerator nonceGenerator = new HmacSHA256PRNGNonceGenerator();
+    SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(nonceGenerator);
+    signature.setParameter(schnorrSigParameterSpec);
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
     LOGGER.info("Adding provider ...");
@@ -266,6 +299,7 @@ public class Main {
       main.example4();
       main.example5();
       main.example6();
+      main.example7();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -287,6 +321,9 @@ public class Main {
         break;
       case 6:
         main.example6();
+        break;
+      case 7:
+        main.example7();
         break;
       default:
         break;

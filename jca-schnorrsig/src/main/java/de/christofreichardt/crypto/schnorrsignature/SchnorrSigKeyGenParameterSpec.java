@@ -81,6 +81,19 @@ public class SchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
    * @throws InvalidAlgorithmParameterException indicates an illegal qualifier.
    */
   public SchnorrSigKeyGenParameterSpec(Strength strength) throws InvalidAlgorithmParameterException {
+    this(strength, false);
+  }
+  
+  /**
+   * Expects a qualifier which indicates the desired {@link Strength Strength} of the Signature scheme.
+   * An additional flag may demand the creation of some additional secret key bytes used for the deterministic
+   * generation of nonces.
+   * 
+   * @param strength the qualifier
+   * @param extended produces additional secret key bytes if set.
+   * @throws InvalidAlgorithmParameterException indicates an illegal qualifier.
+   */
+  public SchnorrSigKeyGenParameterSpec(Strength strength, boolean extended) throws InvalidAlgorithmParameterException {
     this.strength = strength;
     switch (this.strength) {
       case CUSTOM:
@@ -101,7 +114,7 @@ public class SchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
         throw new IllegalArgumentException("Unknown strength.");
     }
     this.exact = false;
-    this.extended = false;
+    this.extended = extended;
     validate();
   }
   

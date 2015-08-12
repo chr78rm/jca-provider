@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import de.christofreichardt.crypto.BaseSignatureUnit;
 import de.christofreichardt.crypto.Provider;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 
@@ -80,8 +81,8 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
     try {
       java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
       SchnorrSigKeyGenParameterSpec schnorrSigKeyGenParameterSpec = 
-          new SchnorrSigKeyGenParameterSpec(SchnorrSigKeyGenParameterSpec.L_MINIMAL, SchnorrSigKeyGenParameterSpec.T_MINIMAL, false, true);
-      keyPairGenerator.initialize(schnorrSigKeyGenParameterSpec, new SecureRandom());
+          new SchnorrSigKeyGenParameterSpec(Strength.DEFAULT, true);
+      keyPairGenerator.initialize(schnorrSigKeyGenParameterSpec);
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
       
       java.security.Signature signature = java.security.Signature.getInstance(this.signatureAlgorithmName);

@@ -16,7 +16,7 @@ as well as for the Rabin-SAEP cryptosystem.
     2. [Custom SecureRandom](#PrimeFieldsSignature2)
     3. [Nio](#PrimeFieldsSignature3)
     4. [Message Digest configuration](#PrimeFieldsSignature4)
-    5. [Deterministic nonce](#PrimeFieldsSignature5)
+    5. [(Deterministic) NonceGenerators](#PrimeFieldsSignature5)
 4. [Schnorr Signatures on elliptic curves](#EllipticCurves)
 5. [Links](#Links)
 
@@ -29,7 +29,7 @@ for random [Schnorr Groups](https://en.wikipedia.org/wiki/Schnorr_group) satisfy
 The build will need a JDK 8 since I'm using the -Xdoclint:none option to turn off the new doclint. This option doesn't exist in pre Java 8.
 Aside from that, the build targets JDK 7+.
 
-`mvn clean install`
+`$ mvn clean install`
 
 ## <a name="Installation"></a>2. Installation
 
@@ -227,7 +227,7 @@ with two unknowns:
 
 Similar considerations also apply to the Digital Signature Algorithm (DSA) specified by the NIST.
 
-Since the default `SecureRandom` instance may obtain random numbers from the underlying OS, weaknesses of the native random number generator (RNG) will be reflected by the signature.
+Since the default `SecureRandom` instance may obtain random numbers from the underlying OS, weaknesses of the native Random Number Generator (RNG) will be reflected by the signature.
 Thus, someone might want to use a custom `SecureRandom` for the generation of the nonces. The subsequent example uses the SHA1PRNG which produces pseudo random numbers.
 These pseudo random numbers will be computed deterministically but are hard to predict without knowledge of the seed.
 
@@ -252,7 +252,7 @@ boolean verified = signature.verify(signatureBytes);
 assert verified;
 ```
 
-See also 3.1.d [Deterministic nonce](#PrimeFieldsSignature5).
+See also 3.1.d [(Deterministic) NonceGenerators](#PrimeFieldsSignature5).
 
 #### <a name="PrimeFieldsSignature3"></a>3.i.b Nio
 
@@ -312,6 +312,9 @@ cryptographic hash function with 512 bit output length, e.g. SHA-512, to provide
 The to be used hash function can be configured by setting a property of the JCA provider. The subsequent code snippet configures SHA-512:
 
 ```java
+import java.security.Provider;
+import java.security.Security;
+...
 Provider provider = new de.christofreichardt.crypto.Provider();
 provider.put("de.christofreichardt.crypto.schnorrsignature.messageDigest", "SHA-512");
 Security.addProvider(provider);
@@ -321,7 +324,62 @@ This requires, that another installed JCA provider supplies this message digest 
 Another popular JCA provider is [The Legion of the Bouncy Castle](https://www.bouncycastle.org/java.html). Installing this provider as well someone can use
 the Schnorr Signature e.g. together with the Skein-1024 message digest. Skein has been one of finalists of the SHA-3 competition and has an output length of 1024 bits. 
 
-#### <a name="PrimeFieldsSignature5"></a>3.i.d Deterministic nonce
+#### <a name="PrimeFieldsSignature5"></a>3.i.d (Deterministic) NonceGenerators
+
+As mentioned in section [3.i.b](#PrimeFieldsSignature2), custom `SecureRandom` implementations can be injected into the `Signature` engine. Such implementations
+may use True Random Number Generators (TRNG) under the hood. Unfortunately, the efficiency of TRNGs is rather poor. Hence TRNGs might not produce enough random numbers in time
+for the desired throughput. As a consequence of their slowness TRNGs are often only used to (re)seed Pseudo Random Number Generators (PRNG) like SHA1PRNG coming with the SUN JCA provider.
+
+In general, someone need not to be concerned about duplicate nonces so long as the employed algorithms and the RNG in use produces an (almost) uniform distribution over &#x2124;<sub>q</sub>.
+The domain &#x2124;<sub>q</sub> is simply too large even when using the minimal security parameters. Assuming a 256-bit sized q the number of possible values equals roughly the 
+number of the elementary particles within the visible universe.
+
+Another question is whether the entropy sources of conventional computer systems can be trusted. See the article [Entropy Attacks!](http://blog.cr.yp.to/20140205-entropy.html) within
+[Daniel J. Bernstein](https://en.wikipedia.org/wiki/Daniel_J._Bernstein)s blog for a discussion. Someone might remember the 
+[Debian random number debacle](https://www.debian.org/security/2008/dsa-1571) too. Fortunately, there are methods available to generate the required nonces without access to high quality
+randomness. [Ed25519](http://ed25519.cr.yp.to/ed25519-20110926.pdf) generates the nonce by computing 
+<p align="center">r &#x2261; H(h<sub>b</sub>, ... , h<sub>2b−1</sub> || M)</p>
+whereas (h<sub>b</sub>, ... , h<sub>2b−1</sub>) is part of the hashed (secret) private key. The problem with this approach for me is that even SHA-512 produces only a 512-bit output and 
+that aren't enough bits to compute an uniformly distributed r &#x220A;<sub>R</sub> (&#x2124;<sub>q</sub>)<sup>&#x00D7;</sup>, assuming a 512-bit sized q (which is the default). For this
+purpose H would have to output at least 512 + k bits thus producing a distribution with a statistical distance of at most 2<sup>-k</sup> to the uniform distribution, see
+chapter 8 and 9 within Shoup's [A Computational Introduction to Number Theory and Algebra](http://www.shoup.net/ntb/). 
+Instead, I have followed [RFC 6979](https://tools.ietf.org/html/rfc6979)
+which describes the "Deterministic Usage of the Digital Signature Algorithm (DSA) and Elliptic Curve Digital Signature Algorithm (ECDSA)". At the heart of 
+[RFC 6979](https://tools.ietf.org/html/rfc6979) is an PRNG based upon a keyed hash function (HMAC) which can produce a sufficient number of random bits. 
+I'm using HmacSha256 for the procedure. HmacSha256 comes with the SunJCE provider that in turn is part of the Oracle JDK (and OpenJDK). 
+The `HmacSHA256PRNGNonceGenerator` needs some additional key bytes. Hence its usage must be already considered when generating the key pair.
+
+The default operation mode of the `Signature` engine is to use the `AlmostUniformRandomNonceGenerator` class together with the default (or supplied) `SecureRandom` instance.
+A deterministic nonce generator can be injected as follows:
+
+```java
+import java.io.File;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
+import de.christofreichardt.crypto.schnorrsignature.HmacSHA256PRNGNonceGenerator;
+import de.christofreichardt.crypto.schnorrsignature.NonceGenerator;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
+...
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
+SchnorrSigKeyGenParameterSpec schnorrSigKeyGenParameterSpec = new SchnorrSigKeyGenParameterSpec(Strength.DEFAULT, true); // demands extra key bytes
+keyPairGenerator.initialize(schnorrSigKeyGenParameterSpec);
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+File file = new File("../data/loremipsum.txt");
+byte[] bytes = Files.readAllBytes(file.toPath());
+Signature signature = Signature.getInstance("SchnorrSignature");
+NonceGenerator nonceGenerator = new HmacSHA256PRNGNonceGenerator();
+SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(nonceGenerator);
+signature.setParameter(schnorrSigParameterSpec);
+signature.initSign(keyPair.getPrivate());
+signature.update(bytes);
+byte[] signatureBytes = signature.sign();
+signature.initVerify(keyPair.getPublic());
+signature.update(bytes);
+boolean verified = signature.verify(signatureBytes);
+assert verified;
+```
+
 
 ## <a name="EllipticCurves"></a>4. Schnorr Signatures on elliptic curves
 
@@ -373,6 +431,9 @@ the Schnorr Signature e.g. together with the Skein-1024 message digest. Skein ha
 - [FIPS PUB 186-4](http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf)
 - [Hash Function Requirements for Schnorr Signatures](http://www.neven.org/papers/schnorr.pdf)
 - [The Legion of the Bouncy Castle](https://www.bouncycastle.org/java.html)
-
+- [The cr.yp.to blog](http://blog.cr.yp.to/index.html)
+- [Ed25519](http://ed25519.cr.yp.to/ed25519-20110926.pdf)
+- [A Computational Introduction to Number Theory and Algebra](http://www.shoup.net/ntb/)
+- [RFC 6979](https://tools.ietf.org/html/rfc6979)
 
 
