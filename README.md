@@ -380,8 +380,8 @@ boolean verified = signature.verify(signatureBytes);
 assert verified;
 ```
 
-As a consequence, if someone signs a document twice with `HmacSHA256PRNGNonceGenerator` the produced signature will be the same contrary to the traditional protocol. The generated nonce
-depends only on the to be signed message and on portions of the private key. 
+As a consequence, if someone signs a document twice with the `HmacSHA256PRNGNonceGenerator` the produced signatures will be the same contrary to the traditional protocol because 
+the generated nonce depends only on the to be signed message and on portions of the private key. 
 
 ## <a name="EllipticCurves"></a>4. Schnorr Signatures on elliptic curves
 
