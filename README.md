@@ -276,7 +276,7 @@ signature.initSign(keyPair.getPrivate());
 int bufferSize = 512;
 ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
 byte[] bytes = new byte[bufferSize];
-try (FileInputStream fileInputStream = new FileInputStream(file)) {
+try (FileInputStream fileInputStream = new FileInputStream(largeDump)) {
   FileChannel fileChannel = fileInputStream.getChannel();
   do {
     int read = fileChannel.read(buffer);
