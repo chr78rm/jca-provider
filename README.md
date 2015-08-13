@@ -107,15 +107,20 @@ The subsequent example works with one of the precomputed Schnorr groups that are
 p has 2048 bits and q has 512 bits. The `KeyPairGenerator` instance will select one of these groups at random.
 
 ```java
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 ...
 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
 KeyPair keyPair = keyPairGenerator.generateKeyPair();
 SchnorrPublicKey publicKey = (SchnorrPublicKey) keyPair.getPublic();
-assert publicKey.getSchnorrParams().getQ().bitLength() == 512;
-assert publicKey.getSchnorrParams().getP().bitLength() == 2048;
+BigInteger q = publicKey.getSchnorrParams().getQ();
+BigInteger p = publicKey.getSchnorrParams().getP();
+assert q.bitLength() == 512;
+assert p.bitLength() == 2048;
+assert q.isProbablePrime(100);
+assert p.isProbablePrime(100);
+assert p.subtract(BigInteger.ONE).remainder(q).equals(BigInteger.ZERO);
 ```
 
 #### <a name="PrimeFieldsKeyPair2"></a>3.i.b 1024-bit prime p, 160-bit prime q
@@ -125,6 +130,7 @@ This corresponds to the minimal parameter sizes of the Digital Signature Algorit
 see [FIPS PUB 186-4](http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf) for more details. Such a group can be requested with the following code:
 
 ```java
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
@@ -136,8 +142,13 @@ SchnorrSigKeyGenParameterSpec schnorrSigGenParameterSpec = new SchnorrSigKeyGenP
 keyPairGenerator.initialize(schnorrSigGenParameterSpec);
 KeyPair keyPair = keyPairGenerator.generateKeyPair();
 SchnorrPublicKey publicKey = (SchnorrPublicKey) keyPair.getPublic();
-assert publicKey.getSchnorrParams().getQ().bitLength() == 160;
-assert publicKey.getSchnorrParams().getP().bitLength() == 1024;
+BigInteger q = publicKey.getSchnorrParams().getQ();
+BigInteger p = publicKey.getSchnorrParams().getP();
+assert q.bitLength() == 160;
+assert p.bitLength() == 1024;
+assert q.isProbablePrime(100);
+assert p.isProbablePrime(100);
+assert p.subtract(BigInteger.ONE).remainder(q).equals(BigInteger.ZERO);
 ```
 
 #### <a name="PrimeFieldsKeyPair3"></a>3.i.c 4096-bit prime p, 1024-bit prime q
@@ -145,6 +156,7 @@ assert publicKey.getSchnorrParams().getP().bitLength() == 1024;
 Even some groups with a 4096-bit prime p and a 1024-bit prime q can be fetched from the precomputed pool:
 
 ```java
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
@@ -156,8 +168,13 @@ SchnorrSigKeyGenParameterSpec schnorrSigGenParameterSpec = new SchnorrSigKeyGenP
 keyPairGenerator.initialize(schnorrSigGenParameterSpec);
 KeyPair keyPair = keyPairGenerator.generateKeyPair();
 SchnorrPublicKey publicKey = (SchnorrPublicKey) keyPair.getPublic();
-assert publicKey.getSchnorrParams().getQ().bitLength() == 1024;
-assert publicKey.getSchnorrParams().getP().bitLength() == 4096;
+BigInteger q = publicKey.getSchnorrParams().getQ();
+BigInteger p = publicKey.getSchnorrParams().getP();
+assert q.bitLength() == 1024;
+assert p.bitLength() == 4096;
+assert q.isProbablePrime(100);
+assert p.isProbablePrime(100);
+assert p.subtract(BigInteger.ONE).remainder(q).equals(BigInteger.ZERO);
 ```
 
 #### <a name="PrimeFieldsKeyPair4"></a>3.i.d Custom security parameter
@@ -179,7 +196,12 @@ SchnorrSigKeyGenParameterSpec schnorrSigGenParameterSpec = new SchnorrSigKeyGenP
 keyPairGenerator.initialize(schnorrSigGenParameterSpec);
 KeyPair keyPair = keyPairGenerator.generateKeyPair();
 SchnorrPublicKey publicKey = (SchnorrPublicKey) keyPair.getPublic();
-assert publicKey.getSchnorrParams().getQ().bitLength() == 256;
+BigInteger q = publicKey.getSchnorrParams().getQ();
+BigInteger p = publicKey.getSchnorrParams().getP();
+assert q.bitLength() == 256;
+assert q.isProbablePrime(100);
+assert p.isProbablePrime(100);
+assert p.subtract(BigInteger.ONE).remainder(q).equals(BigInteger.ZERO);
 ```
 
 ### <a name="PrimeFieldsSignature"></a>3.i Signature Usage
