@@ -26,6 +26,7 @@ import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
+import de.christofreichardt.crypto.schnorrsignature.UniformRandomNonceGenerator;
 
 public class Main {
   static public final Logger LOGGER = Logger.getLogger(Main.class.getName());
@@ -257,7 +258,7 @@ public class Main {
   }
   
   private void example7() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
-    LOGGER.log(Level.INFO, "-> Example7: (Deterministic) NonceGenerators.");
+    LOGGER.log(Level.INFO, "-> Example7: DeterministicNonceGenerator.");
     
     LOGGER.log(Level.INFO, "Generating key pair ...");
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
@@ -272,6 +273,34 @@ public class Main {
     LOGGER.log(Level.INFO, "Signing ...");
     Signature signature = Signature.getInstance("SchnorrSignature");
     NonceGenerator nonceGenerator = new HmacSHA256PRNGNonceGenerator();
+    SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(nonceGenerator);
+    signature.setParameter(schnorrSigParameterSpec);
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
+  
+  private void example8() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example7: UniformRandomNonceGenerator.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("SchnorrSignature");
+    NonceGenerator nonceGenerator = new UniformRandomNonceGenerator();
     SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(nonceGenerator);
     signature.setParameter(schnorrSigParameterSpec);
     signature.initSign(keyPair.getPrivate());
@@ -300,6 +329,7 @@ public class Main {
       main.example5();
       main.example6();
       main.example7();
+      main.example8();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -324,6 +354,9 @@ public class Main {
         break;
       case 7:
         main.example7();
+        break;
+      case 8:
+        main.example8();
         break;
       default:
         break;

@@ -335,37 +335,41 @@ The domain &#x2124;<sub>q</sub> is simply too large even when using the minimal 
 number of the elementary particles within the visible universe.
 
 Another question is whether the entropy sources of conventional computer systems can be trusted. See the article [Entropy Attacks!](http://blog.cr.yp.to/20140205-entropy.html) within
-[Daniel J. Bernstein](https://en.wikipedia.org/wiki/Daniel_J._Bernstein)s blog for a discussion. Someone might remember the 
+Bernsteins [cr.yp.to blog](http://blog.cr.yp.to/index.html) for a discussion. Someone might remember the 
 [Debian random number debacle](https://www.debian.org/security/2008/dsa-1571) too. Fortunately, there are methods available to generate the required nonces without access to high quality
 randomness. [Ed25519](http://ed25519.cr.yp.to/ed25519-20110926.pdf) generates the nonce by computing 
 <p align="center">r &#x2261; H(h<sub>b</sub>, ... , h<sub>2b−1</sub> || M)</p>
 whereas (h<sub>b</sub>, ... , h<sub>2b−1</sub>) is part of the hashed (secret) private key. My problem with this approach is that even SHA-512 produces only a 512-bit output and 
 that aren't enough bits to compute an uniformly distributed r &#x220A;<sub>R</sub> (&#x2124;<sub>q</sub>)<sup>&#x00D7;</sup>, assuming a 512-bit sized q (which is the default). For this
-purpose H would have to output at least 512 + k bits thus producing a distribution with a statistical distance of at most 2<sup>-k</sup> to the uniform distribution, see
-chapter 8 and 9 within Shoup's [A Computational Introduction to Number Theory and Algebra](http://www.shoup.net/ntb/). 
+purpose H would have to output at least 512 + k bits thus producing a distribution with a statistical distance of at most 2<sup>-k</sup> to the uniform distribution. The subsequent
+<p align="center">r &#x2261;<sub>q</sub> SHA-512(x || M), &#x2308;log<sub>2</sub> q&#x2309; = 512</p>
+would therefore produce a biased nonce. This isn't a problem for [Ed25519](http://ed25519.cr.yp.to/ed25519-20110926.pdf) because they are reducing r by a 252-bit sized modulus.
+See also section 9.2 "Generating a random number from a given interval" within Shoup's [A Computational Introduction to Number Theory and Algebra](http://www.shoup.net/ntb/). 
+
 Instead, I have followed [RFC 6979](https://tools.ietf.org/html/rfc6979)
 which describes the "Deterministic Usage of the Digital Signature Algorithm (DSA) and Elliptic Curve Digital Signature Algorithm (ECDSA)". At the heart of 
-[RFC 6979](https://tools.ietf.org/html/rfc6979) is an PRNG based upon a keyed hash function (HMAC) which can produce a sufficient number of random bits. 
-I'm using HmacSha256 for the procedure. HmacSha256 comes with the SunJCE provider that in turn is part of the Oracle JDK (and OpenJDK). 
+[RFC 6979](https://tools.ietf.org/html/rfc6979) is a PRNG based upon a keyed hash function (HMAC) which can produce an arbitrary number of random bits. 
+I'm using HmacSha256 for the given algorithm. HmacSha256 comes with the SunJCE JCA provider that in turn is part of the Oracle JDK (and OpenJDK). 
 The `HmacSHA256PRNGNonceGenerator` needs some additional key bytes. Hence its usage must be already considered when generating the key pair.
 
-The default operation mode of the `Signature` engine is to use the `AlmostUniformRandomNonceGenerator` class together with the default (or supplied) `SecureRandom` instance.
 The deterministic `HmacSHA256PRNGNonceGenerator` can be injected as follows:
 
 ```java
 import java.io.File;
+import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Signature;
 import de.christofreichardt.crypto.schnorrsignature.HmacSHA256PRNGNonceGenerator;
 import de.christofreichardt.crypto.schnorrsignature.NonceGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
 ...
 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
 SchnorrSigKeyGenParameterSpec schnorrSigKeyGenParameterSpec = new SchnorrSigKeyGenParameterSpec(Strength.DEFAULT, true); // demands extra key bytes
 keyPairGenerator.initialize(schnorrSigKeyGenParameterSpec);
 KeyPair keyPair = keyPairGenerator.generateKeyPair();
-File file = new File("../data/loremipsum.txt");
+File file = new File("loremipsum.txt");
 byte[] bytes = Files.readAllBytes(file.toPath());
 Signature signature = Signature.getInstance("SchnorrSignature");
 NonceGenerator nonceGenerator = new HmacSHA256PRNGNonceGenerator();
@@ -381,7 +385,43 @@ assert verified;
 ```
 
 As a consequence, if someone signs a document twice with the `HmacSHA256PRNGNonceGenerator` the produced signatures will be the same contrary to the traditional protocol because 
-the generated nonce depends only on the to be signed message and on portions of the private key. 
+the generated nonces depend only on the to be signed message and on portions of the private key.
+
+By default the `Signature` engine uses the `AlmostUniformRandomNonceGenerator` class together with a `SecureRandom` instance. This `AlmostUniformRandomNonceGenerator`
+produces the nonce r by requesting t random bits with
+<p align="center">t = &#x2308;log<sub>2</sub> q&#x2309;&#x22C5;2</p>
+and summing up the corresponding powers of 2 thus ensuring an almost uniform distribution over &#x2124;<sub>q</sub>. 
+As alternative an `UniformRandomNonceGenerator` can be injected into the `Signature` engine. This one produces a perfect uniform distribution over &#x2124;<sub>q</sub>. The
+`UniformRandomNonceGenerator` has the disadvantage that its runtime is probabilistic whereas the `AlmostUniformRandomNonceGenerator` has a constant runtime. Since the
+`UniformRandomNonceGenerator` doesn't need extra key bytes the following code is suffcient to inject it into the `Signature` engine:
+
+```java
+import java.io.File;
+import java.nio.file.Files;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
+import de.christofreichardt.crypto.schnorrsignature.NonceGenerator;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
+import de.christofreichardt.crypto.schnorrsignature.UniformRandomNonceGenerator;
+...
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+File file = new File("loremipsum.txt");
+byte[] bytes = Files.readAllBytes(file.toPath());
+Signature signature = Signature.getInstance("SchnorrSignature");
+NonceGenerator nonceGenerator = new UniformRandomNonceGenerator();
+SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(nonceGenerator);
+signature.setParameter(schnorrSigParameterSpec);
+signature.initSign(keyPair.getPrivate());
+signature.update(bytes);
+byte[] signatureBytes = signature.sign();
+signature.initVerify(keyPair.getPublic());
+signature.update(bytes);
+boolean verified = signature.verify(signatureBytes);
+assert verified;
+```
+
 
 ## <a name="EllipticCurves"></a>4. Schnorr Signatures on elliptic curves
 
