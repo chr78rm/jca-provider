@@ -265,14 +265,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.security.Signature;
 ...
 KeyPair keyPair = ...
 File largeDump = new File("dumped.sql");
-byte[] bytes = Files.readAllBytes(largeDump.toPath());
 Signature signature = Signature.getInstance("SchnorrSignature");
 signature.initSign(keyPair.getPrivate());
 int bufferSize = 512;
