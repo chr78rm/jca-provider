@@ -24,8 +24,8 @@ import de.christofreichardt.crypto.schnorrsignature.HmacSHA256PRNGNonceGenerator
 import de.christofreichardt.crypto.schnorrsignature.NonceGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
-import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.UniformRandomNonceGenerator;
 
 public class Main {
