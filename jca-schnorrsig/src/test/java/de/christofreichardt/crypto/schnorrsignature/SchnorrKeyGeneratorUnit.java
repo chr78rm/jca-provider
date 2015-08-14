@@ -196,6 +196,7 @@ public class SchnorrKeyGeneratorUnit implements Traceable {
       Assert.assertTrue("p must be prime.", schnorrParams.getP().isProbablePrime(KeyPairGenerator.CERTAINTY));
       Assert.assertTrue("q | (p - 1) doesn't hold.", (schnorrParams.getP().subtract(BigInteger.ONE)).mod(schnorrParams.getQ()).equals(BigInteger.ZERO));
       Assert.assertTrue("h == g^x (mod p) violated.", schnorrParams.getG().modPow(schnorrPrivateKey.getX(), schnorrParams.getP()).equals(schnorrPublicKey.getH()));
+      Assert.assertTrue("g^q == 1 (mod p) violated.", schnorrParams.getG().modPow(schnorrParams.getQ(), schnorrParams.getP()).equals(BigInteger.ONE));
     }
     finally {
       tracer.wayout();
