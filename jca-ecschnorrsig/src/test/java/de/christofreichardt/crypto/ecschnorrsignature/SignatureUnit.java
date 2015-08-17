@@ -25,7 +25,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
   public SignatureUnit(Properties properties) {
     super(properties, new Provider());
     this.keyPairAlgorithmName = "ECSchnorrSignature";
-    this.signatureAlgorithmName = "ECSchnorrSignatureWithSHA256";
+    this.signatureAlgorithmName = "ECSchnorrSignature";
   }
   
   @Test
@@ -34,7 +34,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
     tracer.entry("void", this, "plainUse()");
     
     try {
-      SignatureWithSHA256 signatureWithSHA256 = new SignatureWithSHA256();
+      ECSchnorrSignature ecSchnorrSignature = new ECSchnorrSignature();
       KeyPairGenerator keyPairGenerator = new KeyPairGenerator();
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
       
@@ -43,22 +43,22 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       
       tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
       
-      signatureWithSHA256.engineInitSign(keyPair.getPrivate());
-      signatureWithSHA256.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
-      byte[] signatureBytes = signatureWithSHA256.engineSign();
+      ecSchnorrSignature.engineInitSign(keyPair.getPrivate());
+      ecSchnorrSignature.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
+      byte[] signatureBytes = ecSchnorrSignature.engineSign();
       
       tracer.out().printfIndentln("--- Signature(%d Bytes) ---", signatureBytes.length);
       traceBytes(signatureBytes);
       
-      signatureWithSHA256.engineInitVerify(keyPair.getPublic());
-      signatureWithSHA256.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
-      boolean verified = signatureWithSHA256.engineVerify(signatureBytes);
+      ecSchnorrSignature.engineInitVerify(keyPair.getPublic());
+      ecSchnorrSignature.engineUpdate(this.msgBytes, 0, this.msgBytes.length);
+      boolean verified = ecSchnorrSignature.engineVerify(signatureBytes);
       
       Assert.assertTrue("Expected a valid signature.", verified);
       
-      signatureWithSHA256.engineInitVerify(keyPair.getPublic());
-      signatureWithSHA256.engineUpdate(this.spoiledMsgBytes, 0, this.spoiledMsgBytes.length);
-      verified = signatureWithSHA256.engineVerify(signatureBytes);
+      ecSchnorrSignature.engineInitVerify(keyPair.getPublic());
+      ecSchnorrSignature.engineUpdate(this.spoiledMsgBytes, 0, this.spoiledMsgBytes.length);
+      verified = ecSchnorrSignature.engineVerify(signatureBytes);
       
       Assert.assertTrue("Expected an invalid signature.", !verified);
     }

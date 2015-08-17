@@ -15,6 +15,7 @@ import java.security.SignatureSpi;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
 
+import de.christofreichardt.crypto.BigIntegerPair;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.LogLevel;
 import de.christofreichardt.diagnosis.Traceable;
@@ -23,7 +24,7 @@ import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
 import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
 
-public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
+public class ECSchnorrSignature extends SignatureSpi implements Traceable {
   static final public int DIGEST_LENGTH = 32;
 
   final private MessageDigest messageDigest;
@@ -34,7 +35,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
   private boolean initialisedForVerification;
   private ECSchnorrSigParameterSpec ecSchnorrSigParameterSpec = new ECSchnorrSigParameterSpec();
   
-  public SignatureWithSHA256() throws NoSuchAlgorithmException {
+  public ECSchnorrSignature() throws NoSuchAlgorithmException {
     this.messageDigest = MessageDigest.getInstance("SHA-256");
   }
 
@@ -116,7 +117,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
         BigInteger order = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec().getOrder();
         BigInteger x = this.ecSchnorrPrivateKey.getX();
         
-        BigInteger e, r;
+        BigInteger e, r, y;
         byte[] digestBytes;
         do {
           do {
@@ -125,20 +126,17 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
           
           digestBytes = concatForSigning(r);
           assert digestBytes.length == DIGEST_LENGTH;
-          e = new BigInteger(digestBytes).mod(order);
-        } while(e.equals(BigInteger.ZERO));
-        
-        BigInteger y = e.multiply(x).add(r).mod(order);
-        byte[] yBytes = y.toByteArray();
+          e = new BigInteger(1, digestBytes).mod(order);
+          y = e.multiply(x).add(r).mod(order);
+        } while(e.equals(BigInteger.ZERO) || y.equals(BigInteger.ZERO));
         
         tracer.out().printfIndentln("e(%d) = %d", e.bitLength(), e);
         tracer.out().printfIndentln("y(%d) = %d", y.bitLength(), y);
-        tracer.out().printfIndentln("yBytes.length = %d", yBytes.length);
         
-        byte[] signatureBytes = Arrays.copyOf(digestBytes, DIGEST_LENGTH + yBytes.length);
-        System.arraycopy(yBytes, 0, signatureBytes, DIGEST_LENGTH, yBytes.length);
+        BigIntegerPair pair = new BigIntegerPair(e, y);
+        pair.trace();
         
-        return signatureBytes;
+        return pair.toByteArray();
       }
       finally {
         resetForSigning();
@@ -222,7 +220,7 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
         BigInteger e = concatForVerifying(signatureBytes);
         byte[] digestBytes = this.messageDigest.digest();
         
-        return new BigInteger(digestBytes).mod(curveSpec.getOrder()).equals(e);
+        return new BigInteger(1, digestBytes).mod(curveSpec.getOrder()).equals(e);
       }
       finally {
         resetForVerifying();
@@ -240,10 +238,10 @@ public class SignatureWithSHA256 extends SignatureSpi implements Traceable {
     try {
       CurveSpec curveSpec = this.ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec();
       
-      byte[] eBytes = Arrays.copyOfRange(signatureBytes, 0, DIGEST_LENGTH);
-      BigInteger e = new BigInteger(eBytes).mod(curveSpec.getOrder());
-      byte[] yBytes = Arrays.copyOfRange(signatureBytes, DIGEST_LENGTH, signatureBytes.length);
-      BigInteger y = new BigInteger(yBytes);
+      BigIntegerPair pair = new BigIntegerPair(signatureBytes);
+      pair.trace();
+      BigInteger e = pair.getE();
+      BigInteger y = pair.getY();
 
       AffinePoint gPoint = this.ecSchnorrPublicKey.getEcSchnorrParams().getgPoint();
       AffinePoint hPoint = this.ecSchnorrPublicKey.gethPoint();
