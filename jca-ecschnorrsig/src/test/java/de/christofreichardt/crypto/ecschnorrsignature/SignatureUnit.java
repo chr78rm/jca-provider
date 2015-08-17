@@ -75,29 +75,31 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
     try {
       java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
       int[] keySizes = {192, 224, 256, 384, 521};
-      Random random = new Random();
-      int index = random.nextInt(keySizes.length);
-      keyPairGenerator.initialize(keySizes[index], new SecureRandom());
-      KeyPair keyPair = keyPairGenerator.generateKeyPair();
-      ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
-      BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
-      
-      tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
-      
-      Signature signature = Signature.getInstance(this.signatureAlgorithmName);
-      byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
-      boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
-      
-      Assert.assertTrue("Expected a valid signature.", verified);
-      
-      verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
-      
-      Assert.assertTrue("Expected an invalid signature.", !verified);
-      
-      keyPair = keyPairGenerator.generateKeyPair();
-      verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
-      
-      Assert.assertTrue("Expected an invalid signature.", !verified);
+      for (int keySize : keySizes) {
+        keyPairGenerator.initialize(keySize, new SecureRandom());
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+        BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
+        BigInteger p = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bigInteger();
+        
+        tracer.out().printfIndentln("p(%d) = %s", p.bitLength(), p);
+        tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
+        
+        Signature signature = Signature.getInstance(this.signatureAlgorithmName);
+        byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
+        boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+        
+        Assert.assertTrue("Expected a valid signature.", verified);
+        
+        verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
+        
+        Assert.assertTrue("Expected an invalid signature.", !verified);
+        
+        keyPair = keyPairGenerator.generateKeyPair();
+        verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+        
+        Assert.assertTrue("Expected an invalid signature.", !verified);
+      }
     }
     finally {
       tracer.wayout();
