@@ -22,7 +22,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.christofreichardt.crypto.BaseSignatureUnit;
+import de.christofreichardt.crypto.HmacSHA256PRNGNonceGenerator;
 import de.christofreichardt.crypto.Provider;
+import de.christofreichardt.crypto.UniformRandomNonceGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;

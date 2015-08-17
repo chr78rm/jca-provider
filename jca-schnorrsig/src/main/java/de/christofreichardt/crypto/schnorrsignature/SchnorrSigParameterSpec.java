@@ -2,6 +2,9 @@ package de.christofreichardt.crypto.schnorrsignature;
 
 import java.security.spec.AlgorithmParameterSpec;
 
+import de.christofreichardt.crypto.AlmostUniformRandomNonceGenerator;
+import de.christofreichardt.crypto.NonceGenerator;
+
 public class SchnorrSigParameterSpec implements AlgorithmParameterSpec {
   final private NonceGenerator nonceGenerator;
 

@@ -6,6 +6,7 @@
 
 package de.christofreichardt.crypto.schnorrsignature;
 
+import de.christofreichardt.crypto.BigIntegerPair;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.LogLevel;
 import de.christofreichardt.diagnosis.Traceable;

@@ -20,13 +20,13 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.christofreichardt.crypto.schnorrsignature.HmacSHA256PRNGNonceGenerator;
-import de.christofreichardt.crypto.schnorrsignature.NonceGenerator;
+import de.christofreichardt.crypto.HmacSHA256PRNGNonceGenerator;
+import de.christofreichardt.crypto.NonceGenerator;
+import de.christofreichardt.crypto.UniformRandomNonceGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
-import de.christofreichardt.crypto.schnorrsignature.UniformRandomNonceGenerator;
 
 public class Main {
   static public final Logger LOGGER = Logger.getLogger(Main.class.getName());

@@ -1,4 +1,4 @@
-package de.christofreichardt.crypto.schnorrsignature;
+package de.christofreichardt.crypto;
 
 public abstract class RandomNonceGenerator implements NonceGenerator {
 

@@ -1,4 +1,4 @@
-package de.christofreichardt.crypto.schnorrsignature;
+package de.christofreichardt.crypto;
 
 import java.math.BigInteger;
 import java.util.Arrays;
