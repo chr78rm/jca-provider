@@ -119,6 +119,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       default:
         throw new InvalidAlgorithmParameterException("Unsupported curve compilation.");
       }
+      this.secureRandom = secureRandom;
     }
     finally {
       tracer.wayout();
