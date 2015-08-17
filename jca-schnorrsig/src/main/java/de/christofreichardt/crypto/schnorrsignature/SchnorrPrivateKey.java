@@ -8,6 +8,7 @@ package de.christofreichardt.crypto.schnorrsignature;
 
 import java.math.BigInteger;
 import java.security.PrivateKey;
+import java.util.Arrays;
 
 /**
  * This class represents the private key of the Schnorr signature scheme.
@@ -16,7 +17,9 @@ import java.security.PrivateKey;
  */
 public class SchnorrPrivateKey extends SchnorrKey implements PrivateKey {
   private static final long serialVersionUID = 1L;
+  
   protected final BigInteger x;
+  final private byte[] extKeyBytes;
   
   /**
    * Creates a private key for the Schnorr signature scheme.
@@ -27,6 +30,20 @@ public class SchnorrPrivateKey extends SchnorrKey implements PrivateKey {
   public SchnorrPrivateKey(SchnorrParams schnorrParams, BigInteger x) {
     super(schnorrParams);
     this.x = x;
+    this.extKeyBytes = null;
+  }
+  
+  /**
+   * Creates a private key for the Schnorr signature scheme together with some extra key bytes.
+   * 
+   * @param schnorrParams the domain parameter
+   * @param x the actual private key
+   * @param extKeyBytes the extra key bytes
+   */
+  public SchnorrPrivateKey(SchnorrParams schnorrParams, BigInteger x, byte[] extKeyBytes) {
+    super(schnorrParams);
+    this.x = x;
+    this.extKeyBytes = extKeyBytes;
   }
 
   public BigInteger getX() {
@@ -36,6 +53,10 @@ public class SchnorrPrivateKey extends SchnorrKey implements PrivateKey {
   @Override
   public byte[] getEncoded() {
     throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public byte[] getExtKeyBytes() {
+    return this.extKeyBytes != null ? Arrays.copyOf(this.extKeyBytes, this.extKeyBytes.length) : null;
   }
 
   @Override

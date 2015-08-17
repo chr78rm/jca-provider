@@ -184,7 +184,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       if (this.schnorrSigGenParameterSpec.isExtended()) {
         byte[] extraKeyBytes = new byte[EXT_KEYBYTES];
         this.secureRandom.nextBytes(extraKeyBytes);
-        schnorrPrivateKey = new ExtSchnorrPrivateKey(schnorrParams, x, extraKeyBytes);
+        schnorrPrivateKey = new SchnorrPrivateKey(schnorrParams, x, extraKeyBytes);
         
         tracer.out().printfIndentln("Generated an ExtSchnorrPrivateKey ...");
       }

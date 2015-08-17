@@ -10,5 +10,5 @@ public interface NonceGenerator {
   void update(byte[] bytes, int offset, int length);
   BigInteger nonce() throws SignatureException;
   void copy(MessageDigest messageDigest) throws SignatureException;
-  void reset(SecureRandom secureRandom, BigInteger modul, SchnorrPrivateKey schnorrPrivateKey);
+  void reset(SecureRandom secureRandom, BigInteger modul, byte[] extKeyBytes);
 }

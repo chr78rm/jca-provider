@@ -166,9 +166,6 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
       
       if (!(privateKey instanceof SchnorrPrivateKey))
         throw new InvalidKeyException("Need a SchnorrPrivateKey instance.");
-      if (this.schnorrSigParameterSpec.getNonceGenerator() instanceof DeterministicNonceGenerator  &&  
-          !(privateKey instanceof ExtSchnorrPrivateKey))
-        throw new InvalidKeyException("Need a ExtSchnorrPrivateKey instance.");
       
       this.schnorrPrivateKey = (SchnorrPrivateKey) privateKey;
       resetForSigning();
@@ -180,7 +177,7 @@ public class SchnorrSignature extends SignatureSpi implements Traceable {
   
   private void resetForSigning() {
     this.messageDigest.reset();
-    this.schnorrSigParameterSpec.getNonceGenerator().reset(this.secureRandom, this.schnorrPrivateKey.getSchnorrParams().getQ(), this.schnorrPrivateKey);
+    this.schnorrSigParameterSpec.getNonceGenerator().reset(this.secureRandom, this.schnorrPrivateKey.getSchnorrParams().getQ(), this.schnorrPrivateKey.getExtKeyBytes());
     this.initialisedForSigning = true;
     this.initialisedForVerification = false;
   }

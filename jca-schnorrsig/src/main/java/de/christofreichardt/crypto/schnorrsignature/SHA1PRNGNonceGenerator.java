@@ -66,14 +66,14 @@ public class SHA1PRNGNonceGenerator extends DeterministicNonceGenerator implemen
   }
 
   @Override
-  public void reset(SecureRandom secureRandom, BigInteger modul, SchnorrPrivateKey schnorrPrivateKey) {
-    if (!(schnorrPrivateKey instanceof ExtSchnorrPrivateKey))
-      throw new RuntimeException("Need a ExtSchnorrPrivateKey instance.");
+  public void reset(SecureRandom secureRandom, BigInteger modul, byte[] extKeyBytes) {
+    if (extKeyBytes == null)
+      throw new RuntimeException("Need some extra key bytes.");
     
     this.modul = modul;
     try {
       this.secureRandom = SecureRandom.getInstance("SHA1PRNG");
-      this.secureRandom.setSeed(((ExtSchnorrPrivateKey) schnorrPrivateKey).getExtKeyBytes());
+      this.secureRandom.setSeed(extKeyBytes);
     }
     catch (NoSuchAlgorithmException ex) {
       throw new RuntimeException(ex);
