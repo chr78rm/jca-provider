@@ -25,7 +25,6 @@ import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrim
 import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
 
 public class ECSchnorrSignature extends SignatureSpi implements Traceable {
-  static final public int DIGEST_LENGTH = 32;
 
   final private MessageDigest messageDigest;
   private SecureRandom secureRandom = new SecureRandom();
@@ -117,6 +116,8 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
         BigInteger order = this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec().getOrder();
         BigInteger x = this.ecSchnorrPrivateKey.getX();
         
+        tracer.out().printfIndentln("order(%d) = %d", order.bitLength(), order);
+        
         BigInteger e, r, y;
         byte[] digestBytes;
         do {
@@ -125,7 +126,6 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
           } while (r.equals(BigInteger.ZERO));
           
           digestBytes = concatForSigning(r);
-          assert digestBytes.length == DIGEST_LENGTH;
           e = new BigInteger(1, digestBytes).mod(order);
           y = e.multiply(x).add(r).mod(order);
         } while(e.equals(BigInteger.ZERO) || y.equals(BigInteger.ZERO));
@@ -220,7 +220,7 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
         BigInteger e = concatForVerifying(signatureBytes);
         byte[] digestBytes = this.messageDigest.digest();
         
-        return new BigInteger(1, digestBytes).mod(curveSpec.getOrder()).equals(e);
+        return e != null  &&  new BigInteger(1, digestBytes).mod(curveSpec.getOrder()).equals(e);
       }
       finally {
         resetForVerifying();
@@ -242,28 +242,32 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
       pair.trace();
       BigInteger e = pair.getE();
       BigInteger y = pair.getY();
-
-      AffinePoint gPoint = this.ecSchnorrPublicKey.getEcSchnorrParams().getgPoint();
-      AffinePoint hPoint = this.ecSchnorrPublicKey.gethPoint();
-      Element element;
-      switch (this.ecSchnorrSigParameterSpec.getPointMultiplicationStrategy()) {
-      case FIXED_POINT:
-        element = (gPoint.fixedMultiply(y)).add(hPoint.fixedMultiply(e.negate().mod(curveSpec.getOrder())));
-        break;
-      case UNKNOWN_POINT:
-        element = (gPoint.multiply(y)).add(hPoint.multiply(e.negate().mod(curveSpec.getOrder())));
-        break;
-      default:
-        throw new SignatureException("Unknown point multiplication strategy.");
+      
+      if (e.compareTo(curveSpec.getOrder()) == -1  &&  y.compareTo(curveSpec.getOrder()) == -1) {
+        AffinePoint gPoint = this.ecSchnorrPublicKey.getEcSchnorrParams().getgPoint();
+        AffinePoint hPoint = this.ecSchnorrPublicKey.gethPoint();
+        Element element;
+        switch (this.ecSchnorrSigParameterSpec.getPointMultiplicationStrategy()) {
+        case FIXED_POINT:
+          element = (gPoint.fixedMultiply(y)).add(hPoint.fixedMultiply(e.negate().mod(curveSpec.getOrder())));
+          break;
+        case UNKNOWN_POINT:
+          element = (gPoint.multiply(y)).add(hPoint.multiply(e.negate().mod(curveSpec.getOrder())));
+          break;
+        default:
+          throw new SignatureException("Unknown point multiplication strategy.");
+        }
+        AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(element);
+        
+        tracer.out().printfIndentln("sPoint = %s", sPoint);
+        
+        int length = curveSpec.getCurve().p().toByteArray().length;
+        assert sPoint.x().toByteArray().length <= length  &&  sPoint.y().toByteArray().length <= length;
+        this.messageDigest.update(Arrays.copyOf(sPoint.x().toByteArray(), length));
+        this.messageDigest.update(Arrays.copyOf(sPoint.y().toByteArray(), length));
       }
-      AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(element);
-      
-      tracer.out().printfIndentln("sPoint = %s", sPoint);
-      
-      int length = curveSpec.getCurve().p().toByteArray().length;
-      assert sPoint.x().toByteArray().length <= length  &&  sPoint.y().toByteArray().length <= length;
-      this.messageDigest.update(Arrays.copyOf(sPoint.x().toByteArray(), length));
-      this.messageDigest.update(Arrays.copyOf(sPoint.y().toByteArray(), length));
+      else
+        e = null;
       
       return e;
     }
