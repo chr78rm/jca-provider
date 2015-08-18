@@ -6,11 +6,13 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Properties;
 import java.util.Random;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -147,34 +149,52 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
     tracer.entry("void", this, "customBrainPoolCurves()");
     
     try {
-      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
-      String[] curveIds = {"brainpoolP160r1", "brainpoolP160t1", "brainpoolP192r1", "brainpoolP192t1", "brainpoolP224r1", "brainpoolP224t1",
-          "brainpoolP256r1", "brainpoolP256t1", "brainpoolP320r1", "brainpoolP320t1", "brainpoolP384r1", "brainpoolP384t1", "brainpoolP512r1",
-          "brainpoolP512t1"};
-      for (String curveId : curveIds) {
-        keyPairGenerator.initialize(new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, curveId));
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
-        BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
-        BigInteger p = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bigInteger();
+      Security.addProvider(new BouncyCastleProvider());
+      String originalDigestAlgo = provider.getProperty("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", "SHA-256");
+      
+      try {
+        java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
+        String[] curveIds = {"brainpoolP160r1", "brainpoolP160t1", "brainpoolP192r1", "brainpoolP192t1", "brainpoolP224r1", "brainpoolP224t1",
+            "brainpoolP256r1", "brainpoolP256t1", "brainpoolP320r1", "brainpoolP320t1", "brainpoolP384r1", "brainpoolP384t1", "brainpoolP512r1",
+            "brainpoolP512t1"};
+        String[] digestAlgos = {"SHA-256", "SHA-512", "Skein-1024-1024"};
         
-        tracer.out().printfIndentln("p(%d) = %s", p.bitLength(), p);
-        tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
-        
-        Signature signature = Signature.getInstance(this.signatureAlgorithmName);
-        byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
-        boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
-        
-        Assert.assertTrue("Expected a valid signature.", verified);
-        
-        verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
-        
-        Assert.assertTrue("Expected an invalid signature.", !verified);
-        
-        keyPair = keyPairGenerator.generateKeyPair();
-        verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
-        
-        Assert.assertTrue("Expected an invalid signature.", !verified);
+        for (String digestAlgo : digestAlgos) {
+          tracer.out().printfIndentln("digestAlgo = %s", digestAlgo);
+          
+          provider.put("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", digestAlgo);
+          for (String curveId : curveIds) {
+            tracer.out().printfIndentln("curveId = %s", curveId);
+
+            keyPairGenerator.initialize(new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, curveId));
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+            BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
+            BigInteger p = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bigInteger();
+
+            tracer.out().printfIndentln("p(%d) = %s", p.bitLength(), p);
+            tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
+
+            Signature signature = Signature.getInstance(this.signatureAlgorithmName);
+            byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
+            boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+
+            Assert.assertTrue("Expected a valid signature.", verified);
+
+            verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
+
+            Assert.assertTrue("Expected an invalid signature.", !verified);
+
+            keyPair = keyPairGenerator.generateKeyPair();
+            verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+
+            Assert.assertTrue("Expected an invalid signature.", !verified);
+          }
+        }
+      }
+      finally {
+        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+        provider.put("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", originalDigestAlgo);
       }
     }
     finally {

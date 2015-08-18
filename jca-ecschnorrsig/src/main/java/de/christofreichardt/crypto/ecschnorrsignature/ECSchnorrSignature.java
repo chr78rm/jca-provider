@@ -8,8 +8,10 @@ import java.security.InvalidParameterException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.SignatureException;
 import java.security.SignatureSpi;
 import java.security.spec.AlgorithmParameterSpec;
@@ -35,7 +37,28 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
   private ECSchnorrSigParameterSpec ecSchnorrSigParameterSpec = new ECSchnorrSigParameterSpec();
   
   public ECSchnorrSignature() throws NoSuchAlgorithmException {
-    this.messageDigest = MessageDigest.getInstance("SHA-256");
+    this.messageDigest = digestInstance();
+  }
+  
+  private MessageDigest digestInstance() throws NoSuchAlgorithmException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("MessageDigest", this, "digestInstance()");
+    
+    try {
+      Provider provider = Security.getProvider(de.christofreichardt.crypto.Provider.NAME);
+      String algorithmName;
+      if (provider != null)
+        algorithmName = provider.getProperty("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", "SHA-256");
+      else
+        algorithmName = "SHA-256";
+      
+      tracer.out().printfIndentln("algorithmName = %s", algorithmName);
+      
+      return MessageDigest.getInstance(algorithmName);
+    }
+    finally {
+      tracer.wayout();
+    }
   }
 
   @Override
