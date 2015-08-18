@@ -168,6 +168,26 @@ public class BCProvUnit implements Traceable {
     }
   }
   
+  @Test
+  public void algorithms() {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "algorithms()");
+    
+    try {
+      for (java.security.Provider provider : Security.getProviders()) {
+        tracer.out().printfIndentln("provider = %s", provider.getName());
+        tracer.out().printfIndentln("---------------------------------------");
+        for (java.security.Provider.Service service : provider.getServices()) {
+          tracer.out().printfIndentln("algorithm = %s", service.getAlgorithm());
+        }
+        tracer.out().println();
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
   protected void traceBytes(byte[] bytes) {
     AbstractTracer tracer = getCurrentTracer();
     for (int i=0; i<bytes.length; i++) {
