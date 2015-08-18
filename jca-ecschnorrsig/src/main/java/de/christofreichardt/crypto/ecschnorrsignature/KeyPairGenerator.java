@@ -18,6 +18,7 @@ import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrim
 import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
 
 public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
+  final public static int EXT_KEYBYTES = 16;
   
   private SecureRandom secureRandom = new SecureRandom();
   private ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, "P-256", true);
@@ -70,8 +71,15 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       tracer.out().printfIndentln("hPoint = %s", hPoint);
       
       ECSchnorrParams ecSchnorrParams = new ECSchnorrParams(curveSpec, gPoint);
-      ECSchnorrPrivateKey ecSchnorrPrivateKey = new ECSchnorrPrivateKey(ecSchnorrParams, x);
       ECSchnorrPublicKey ecSchnorrPublicKey = new ECSchnorrPublicKey(ecSchnorrParams, hPoint);
+      ECSchnorrPrivateKey ecSchnorrPrivateKey;
+      if (this.ecSchnorrSigKeyGenParameterSpec.isExtended()) {
+        byte[] extraKeyBytes = new byte[EXT_KEYBYTES];
+        this.secureRandom.nextBytes(extraKeyBytes);
+        ecSchnorrPrivateKey = new ECSchnorrPrivateKey(ecSchnorrParams, x, extraKeyBytes);
+      }
+      else 
+        ecSchnorrPrivateKey = new ECSchnorrPrivateKey(ecSchnorrParams, x);
       
       return new KeyPair(ecSchnorrPublicKey, ecSchnorrPrivateKey);
     }

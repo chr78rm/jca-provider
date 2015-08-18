@@ -88,6 +88,8 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
   
   private void resetForSigning() {
     this.messageDigest.reset();
+    this.ecSchnorrSigParameterSpec.getNonceGenerator().reset(this.secureRandom, 
+        this.ecSchnorrPrivateKey.getEcSchnorrParams().getCurveSpec().getOrder(), this.ecSchnorrPrivateKey.getExtKeyBytes());
     this.initialisedForSigning = true;
     this.initialisedForVerification = false;
   }
@@ -141,11 +143,12 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
         
         tracer.out().printfIndentln("order(%d) = %d", order.bitLength(), order);
         
+        this.ecSchnorrSigParameterSpec.getNonceGenerator().copy(this.messageDigest);
         BigInteger e, r, y;
         byte[] digestBytes;
         do {
           do {
-            r = new BigInteger(order.bitLength()*2, this.secureRandom).mod(order);
+            r = this.ecSchnorrSigParameterSpec.getNonceGenerator().nonce();
           } while (r.equals(BigInteger.ZERO));
           
           digestBytes = concatForSigning(r);
@@ -219,6 +222,7 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
       throw new SignatureException("Signature scheme hasn't been initialized.");
     
     this.messageDigest.update(input);
+    this.ecSchnorrSigParameterSpec.getNonceGenerator().update(input);
   }
 
   @Override
@@ -227,6 +231,7 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
       throw new SignatureException("Signature scheme hasn't been initialized.");
     
     this.messageDigest.update(bytes, offset, length);
+    this.ecSchnorrSigParameterSpec.getNonceGenerator().update(bytes, offset, length);
   }
 
   @Override
