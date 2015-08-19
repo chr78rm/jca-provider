@@ -83,6 +83,16 @@
       <artifactId>jca-schnorrsig</artifactId>
       <version>0.0.4-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>de.christofreichardt</groupId>
+      <artifactId>jca-master</artifactId>
+      <version>0.0.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>de.christofreichardt</groupId>
+      <artifactId>jca-ecschnorrsig</artifactId>
+      <version>0.0.4-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   
 </project>
