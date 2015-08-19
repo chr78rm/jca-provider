@@ -9,6 +9,11 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
+/**
+ * Computes random nonces which are perfectly uniformly distribut over \u2124<sub>q</sub> in probabilistic time.
+ * 
+ * @author Christof Reichardt
+ */
 public class UniformRandomNonceGenerator extends RandomNonceGenerator implements Traceable {
   private BigInteger modul;
   private SecureRandom secureRandom;

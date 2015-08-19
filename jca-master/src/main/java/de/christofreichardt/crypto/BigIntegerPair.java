@@ -7,12 +7,24 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
+/**
+ * This class encapsulates the two BigInteger values which make up the actual Schnorr Signature. It provides
+ * conversion methods to transform the pair into a byte array and vice versa.
+ * 
+ * @author Christof Reichardt
+ */
 public class BigIntegerPair implements Traceable {
   final private BigInteger e;
   final private BigInteger y;
   final private byte[] eBytes;
   final private byte[] yBytes;
   
+  /**
+   * Constructs a pair with the given arguments.
+   * 
+   * @param e e \u2261 H(M \u2016 s)
+   * @param y y \u2261 r + ex
+   */
   public BigIntegerPair(BigInteger e, BigInteger y) {
     this.e = e;
     this.eBytes = e.toByteArray();
@@ -22,6 +34,11 @@ public class BigIntegerPair implements Traceable {
     this.yBytes = y.toByteArray();
   }
   
+  /**
+   * Constructs a pair by decoding the given byte array.
+   * 
+   * @param bytes the byte array which encodes the two BigInteger values
+   */
   public BigIntegerPair(byte[] bytes) {
     int eSize = bytes[0] & 255;
     this.eBytes = Arrays.copyOfRange(bytes, 1, 1 + eSize);
@@ -38,6 +55,12 @@ public class BigIntegerPair implements Traceable {
     return y;
   }
   
+  /**
+   * Converts the two BigInteger values into a byte array. The first byte contains the number of
+   * e bytes.
+   * 
+   * @return a byte array encoding the two BigInteger values.
+   */
   public byte[] toByteArray() {
     byte[] bytes = new byte[1 + this.eBytes.length + this.yBytes.length];
     bytes[0] = (byte) this.eBytes.length;
@@ -47,6 +70,9 @@ public class BigIntegerPair implements Traceable {
     return bytes;
   }
   
+  /**
+   * For internal use only.
+   */
   public void trace() {
     AbstractTracer tracer = getCurrentTracer();
     tracer.entry("void", this, "trace()");

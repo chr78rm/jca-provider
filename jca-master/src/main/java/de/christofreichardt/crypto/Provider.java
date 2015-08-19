@@ -10,6 +10,10 @@ public class Provider extends java.security.Provider {
   private static final long serialVersionUID = 1L;
   static public final String NAME = "CryptoChr";
 
+  /**
+   * Calls the super class constructor with name, version and short description and sets the values of certain
+   * properties required to retrieve the services at runtime.
+   */
   public Provider() {
     super(NAME,
         0.1,

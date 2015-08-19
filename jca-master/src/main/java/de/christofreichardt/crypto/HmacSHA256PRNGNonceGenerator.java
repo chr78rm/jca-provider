@@ -15,6 +15,12 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
+/**
+ * Implements a deterministic {@link NonceGenerator NonceGenerator} as specified by 
+ * <a href="https://tools.ietf.org/html/rfc6979">RFC 6979</a>.
+ * 
+ * @author Christof Reichardt
+ */
 public class HmacSHA256PRNGNonceGenerator extends DeterministicNonceGenerator implements Traceable {
   private BigInteger modul;
   private Mac hmac;

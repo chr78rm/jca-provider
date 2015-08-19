@@ -10,6 +10,12 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 
+/**
+ * This deterministic {@link NonceGenerator NonceGenerator} computes nonces by using the
+ * SHA1PRNG SecureRandom implementation.
+ * 
+ * @author Christof Reichardt
+ */
 public class SHA1PRNGNonceGenerator extends DeterministicNonceGenerator implements Traceable {
   private BigInteger modul;
   private SecureRandom secureRandom;
