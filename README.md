@@ -22,14 +22,20 @@ as well as for the Rabin-SAEP cryptosystem.
 
 ## <a name="Build"></a>1. Build
 
-[Maven](https://maven.apache.org/) is required to compile the library. A whole build will take some time - currently up to three minutes on my laptop. 
-This is mainly due to the unit tests belonging to the jca-schnorrsig sub-module. The custom domain parameter generation includes the search 
-for random [Schnorr Groups](https://en.wikipedia.org/wiki/Schnorr_group) satisfying specified security limits. 
+[Maven](https://maven.apache.org/) is required to compile the library. A whole build will take some time - currently up to five minutes on my laptop. 
+This is mainly due to the unit tests belonging to the jca-schnorrsig and jca-ecschnorrsig sub-modules. For example, the to be tested custom domain parameter generation includes the 
+costly search for random [Schnorr Groups](https://en.wikipedia.org/wiki/Schnorr_group) satisfying specified security limits. 
 
 The build will need a JDK 8 since I'm using the -Xdoclint:none option to turn off the new doclint. This option doesn't exist in pre Java 8.
-Aside from that, the build targets JDK 7+.
+Aside from that, the build targets JDK 7+. Use
 
 `$ mvn clean install`
+
+to build the library along with the unit tests. Instead, you might want execute
+
+`$ mvn clean install -DskipTests`
+
+to reduce the build time significantly.
 
 ## <a name="Installation"></a>2. Installation
 
