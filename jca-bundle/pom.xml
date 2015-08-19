@@ -10,6 +10,7 @@
   
   <artifactId>jca-bundle</artifactId>
   <packaging>jar</packaging>
+  <name>CryptoChr JCA Provider</name>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
