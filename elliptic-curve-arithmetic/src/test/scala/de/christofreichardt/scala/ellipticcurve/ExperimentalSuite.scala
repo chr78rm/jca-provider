@@ -2,6 +2,7 @@ package de.christofreichardt.scala.ellipticcurve
 
 import de.christofreichardt.scalatest.MyFunSuite
 import scala.annotation.tailrec
+import de.christofreichardt.scala.ellipticcurve.projective.JacobianShortWeierstrass
 
 class ExperimentalSuite extends MyFunSuite {
   
@@ -73,5 +74,34 @@ class ExperimentalSuite extends MyFunSuite {
     val product2 = doubleAndAdd(multiplier, multiplicand)
     
     tracer.out().printfIndentln("product1 = %s, product2 = %s", product1, product2)
+  }
+  
+  testWithTracing(this, "Projective Point Addition") {
+    val tracer = getCurrentTracer()
+    
+    val groupLaw = JacobianShortWeierstrass
+    val projectiveCurve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(4, 20), groupLaw.PrimeField(29))
+    val projectivePoint = groupLaw.makePoint(groupLaw.ProjectiveCoordinates(1, 5, 1), projectiveCurve)
+    val p1 = projectivePoint.add(projectivePoint)
+    
+    tracer.out().printfIndentln("p1 = %s", p1)
+    tracer.out().printfIndentln("p1.toAffinePoint = %s", groupLaw.elemToAffinePoint(p1).toAffinePoint)
+    
+    val p2 = p1.add(projectivePoint)
+    
+    tracer.out().printfIndentln("p2 = %s", p2)
+    tracer.out().printfIndentln("p2.toAffinePoint = %s", groupLaw.elemToAffinePoint(p2).toAffinePoint)
+  }
+  
+  testWithTracing(this, "Projective Point Multiplication") {
+    val tracer = getCurrentTracer()
+    
+    val groupLaw = JacobianShortWeierstrass
+    val projectiveCurve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(4, 20), groupLaw.PrimeField(29))
+    val projectivePoint = groupLaw.makePoint(groupLaw.ProjectiveCoordinates(1, 5, 1), projectiveCurve)
+    val product = projectivePoint.multiply(37)
+    
+    tracer.out().printfIndentln("product = %s", product)
+//    tracer.out().printfIndentln("product.toAffinePoint = %s", groupLaw.elemToAffinePoint(product).toAffinePoint)
   }
 }
