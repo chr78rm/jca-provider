@@ -48,6 +48,7 @@ package affine {
         "AffinePoint[" + this.x + ", " + this.y + "]"
       }
     }
+    
     abstract class AffineCurve(val p: BigInt) extends AbstractCurve {
       require(p.isProbablePrime(Constants.CERTAINTY), p + " isn't prime.")
       val legendreSymbol: LegendreSymbol = new EulersCriterion(this.p)
