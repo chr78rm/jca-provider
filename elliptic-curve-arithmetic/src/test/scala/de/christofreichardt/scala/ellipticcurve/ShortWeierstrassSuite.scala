@@ -164,6 +164,23 @@ package affine {
       assert(element.isNeutralElement, "Expected the NeutralElement.")
     }
 
+    testWithTracing(this, "P(x,0) + P(x,0) = 0") {
+      val tracer = getCurrentTracer()
+      
+      val coefficients = this.groupLaw.OddCharCoefficients(29, 13)
+      val primeField = this.groupLaw.PrimeField(31)
+      val curve = this.groupLaw.makeCurve(coefficients, primeField)
+      val point = this.groupLaw.makePoint(this.groupLaw.makeAffineCoordinates(6, 0), curve)
+      
+      tracer.out().printfIndentln("point = %s", point)
+      assert(curve.isValidPoint(point), "Expected a valid point.")
+      
+      val element = point add point
+      
+      tracer.out().printfIndentln("element = %s", element)
+      assert(element.isNeutralElement, "Expected the NeutralElement.")
+    }
+
     testWithTracing(this, "Random Point") {
       val tracer = getCurrentTracer()
       val coordinates = List(
