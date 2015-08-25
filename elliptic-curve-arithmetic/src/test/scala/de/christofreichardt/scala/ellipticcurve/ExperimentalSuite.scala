@@ -85,12 +85,12 @@ class ExperimentalSuite extends MyFunSuite {
     val p1 = projectivePoint.add(projectivePoint)
     
     tracer.out().printfIndentln("p1 = %s", p1)
-    tracer.out().printfIndentln("p1.toAffinePoint = %s", groupLaw.elemToAffinePoint(p1).toAffinePoint)
+    tracer.out().printfIndentln("p1.toAffinePoint = %s", groupLaw.elemToAffinePoint(p1))
     
     val p2 = p1.add(projectivePoint)
     
     tracer.out().printfIndentln("p2 = %s", p2)
-    tracer.out().printfIndentln("p2.toAffinePoint = %s", groupLaw.elemToAffinePoint(p2).toAffinePoint)
+    tracer.out().printfIndentln("p2.toAffinePoint = %s", groupLaw.elemToAffinePoint(p2))
   }
   
   testWithTracing(this, "Projective Point Multiplication") {
