@@ -1,8 +1,10 @@
 package de.christofreichardt.scala.ellipticcurve
 
+import java.io.File
 import de.christofreichardt.scalatest.MyFunSuite
 import scala.annotation.tailrec
 import de.christofreichardt.scala.ellipticcurve.projective.JacobianShortWeierstrass
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass
 
 class ExperimentalSuite extends MyFunSuite {
   
@@ -102,6 +104,28 @@ class ExperimentalSuite extends MyFunSuite {
     val product = projectivePoint.multiply(37)
     
     tracer.out().printfIndentln("product = %s", product)
-//    tracer.out().printfIndentln("product.toAffinePoint = %s", groupLaw.elemToAffinePoint(product).toAffinePoint)
+  }
+  
+  testWithTracing(this, "Random Curve") {
+    val tracer = getCurrentTracer()
+    
+    val groupLaw = ShortWeierstrass
+    val randomGenerator = new RandomGenerator
+    val lowerPrimeLimit = 30
+    val upperPrimeLimit = 100
+    val index = randomGenerator.intStream(PrimeBase.primes.size)
+      .find(index => {
+        PrimeBase.primes(index) > lowerPrimeLimit && PrimeBase.primes(index) < upperPrimeLimit
+      }).get
+    val prime = PrimeBase.primes(index)
+    val pairedIntStream = randomGenerator.intStream(prime).zip(randomGenerator.intStream(prime))
+    val (a, b) = pairedIntStream.find(coefficients => groupLaw.isCurve(coefficients._1, coefficients._2, prime)).get
+    val coefficients = groupLaw.OddCharCoefficients(a, b)
+    val curve = groupLaw.makeCurve(coefficients, groupLaw.PrimeField(prime))
+    
+    tracer.out().printfIndentln("curve = %s", curve)
+    
+    val file = new File("." + File.separator + "plots" + File.separator + "randomCurve.txt")
+    curve.draw(file)
   }
 }
