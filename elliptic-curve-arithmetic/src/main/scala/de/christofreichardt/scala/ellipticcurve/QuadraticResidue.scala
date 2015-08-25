@@ -16,9 +16,11 @@ class QuadraticResidue(val p: BigInt) extends Tracing {
   require(p.isProbablePrime(Constants.CERTAINTY), p + " isn't prime.")
 
   def solve(a: BigInt): (BigInt, BigInt) = {
-    require(new EulersCriterion(p).isQuadraticResidue(a), a + " isn't a quadratic residue.")
+    require(a == 0  ||  new EulersCriterion(p).isQuadraticResidue(a), a + " isn't a quadratic residue.")
     
-    if (p.mod(BigInt(4)) == BigInt(3)) {
+    if (a == 0) 
+      (0,0)
+    else if (p.mod(BigInt(4)) == BigInt(3)) {
       val x1 = a.modPow((p + BigInt(1)) / BigInt(4), p)
       val x2 = (-x1).mod(p)
       (x1, x2)

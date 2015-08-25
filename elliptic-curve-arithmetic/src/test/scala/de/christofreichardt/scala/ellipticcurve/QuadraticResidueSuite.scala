@@ -64,4 +64,20 @@ class QuadraticResidueSuite extends MyFunSuite {
       assert(squareRoots._1.modPow(BigInt(2), p) == n && squareRoots._2.modPow(BigInt(2), p) == n)
     })
   }
+
+  testWithTracing(this, "Case n == 0") {
+    val tracer = getCurrentTracer()
+
+    val p = randomGenerator.bigPrimeStream(16).head
+    val n: BigInt = 0
+
+    tracer.out().printfIndentln("p = %s", p)
+    tracer.out().printfIndentln("n = %s", n)
+
+    val solver = new QuadraticResidue(p)
+    val squareRoots = solver.solve(n)
+
+    tracer.out().printfIndentln("squareRoots = %s", squareRoots)
+    assert(squareRoots._1.modPow(BigInt(2), p) == n && squareRoots._2.modPow(BigInt(2), p) == n)
+  }
 }
