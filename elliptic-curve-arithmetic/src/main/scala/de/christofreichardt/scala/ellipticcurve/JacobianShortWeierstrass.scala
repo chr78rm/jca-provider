@@ -37,7 +37,7 @@ package projective {
           tracer.out().printfIndentln("point = %s", point)
           tracer.out().printfIndentln("point.negate = %s", point.negate)
           
-          if (this != point.negate) {
+          if (!this.isCongruentTo(point.negate)) {
             val sum =
               if (this == point) {
                 tracer.out().printfIndentln("Case P == Q")
@@ -83,16 +83,23 @@ package projective {
 
       override def equals(other: Any) = {
         other match {
-          case that: Point => that.canEqual(Point.this) &&
-            ((this.x * that.z * that.z).mod(this.curve.p) == (that.x * this.z * this.z).mod(this.curve.p)) &&
-            ((this.y * that.z.modPow(3, this.curve.p)).mod(this.curve.p) == (that.y * this.z.modPow(3, this.curve.p)).mod(this.curve.p))
+          case that: Point => that.canEqual(Point.this) && this.x == that.x && this.y == that.y && this.z == that.z
           case _ => false
         }
       }
 
       override def hashCode() = {
         val prime = 41
-        prime
+        prime * (prime * (prime + x.hashCode) + y.hashCode) + z.hashCode()
+      }
+      
+      def isCongruentTo(other: Element): Boolean = {
+        other match {
+          case that: Point => ((this.x * that.z * that.z).mod(this.curve.p) == (that.x * this.z * this.z).mod(this.curve.p)) &&
+          ((this.y * that.z.modPow(3, this.curve.p)).mod(this.curve.p) == (that.y * this.z.modPow(3, this.curve.p)).mod(this.curve.p))
+          case _ => false
+        }
+        
       }
       
       override def toString() = {
@@ -111,16 +118,16 @@ package projective {
     def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): Curve = new Curve(coefficients.a, coefficients.b, finiteField.p)
     def makePoint(coordinates: TheCoordinates, curve: TheCurve): Point = new Point(coordinates.x, coordinates.y, coordinates.z, curve)
 
-    implicit def elemToAffinePoint(elem: Element): Point = {
+    implicit def elemToAffinePoint(elem: Element): ShortWeierstrass.Point = {
       elem match {
         case el: NeutralElement => throw new NeutralElementException("Neutral element has been trapped.")
-        case ap: Point    => ap
+        case ap: Point    => ap.toAffinePoint
       }
     }
 
     override def getCurrentTracer(): AbstractTracer = {
       try {
-        TracerFactory.getInstance().getTracer("TestTracer")
+        TracerFactory.getInstance().getDefaultTracer
       }
       catch {
         case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
