@@ -72,5 +72,31 @@ package affine {
       
       assert(product.isNeutralElement, "Expected the NeutralElement.")
     }
+    
+    testWithTracing(this, "Differential Multiplication") {
+      val tracer = getCurrentTracer()
+      
+      val groupLaw = Montgomery
+      val curve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(117050, 1), groupLaw.PrimeField(BigInt(2).pow(221) - 3))
+      val basePoint = groupLaw.makePoint(groupLaw.AffineCoordinates(4, BigInt("1630203008552496124843674615123983630541969261591546559209027208557")), curve)
+      val double = basePoint add basePoint
+      val double2 = basePoint.multiply(2)
+      
+      tracer.out().printfIndentln("(%s == %s) = %b", double, double2, (double == double2): java.lang.Boolean)
+      
+      val projectiveGroupLaw = de.christofreichardt.scala.ellipticcurve.projective.Montgomery
+      val projectiveCurve = new projectiveGroupLaw.Curve(curve)
+      val projectiveBasePoint = new projectiveGroupLaw.Point(basePoint.x, basePoint.y, 1, projectiveCurve)
+      val test1 = projectiveBasePoint.multiply(2)
+      
+      tracer.out().printfIndentln("test1 = %s", test1)
+      
+      val scalar = 11
+      val point = basePoint.multiply(scalar)
+      val test2 = projectiveBasePoint.multiply(scalar)
+      
+      tracer.out().printfIndentln("point = %s", point)
+      tracer.out().printfIndentln("test2 = %s", test2)
+    }
   }
 }

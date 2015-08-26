@@ -51,14 +51,6 @@ package affine {
           tracer.out().printfIndentln("point.negate = %s", point.negate)
 
           if (this != point.negate) {
-//            val lambda =
-//              if (this != point)
-//                ((point.y - this.y) * (point.x - this.x).modInverse(this.curve.p)).mod(this.curve.p)
-//              else
-//                (((3 * this.x.modPow(2, this.curve.p)) + (2 * this.curve.a + this.x) + 1).mod(this.curve.p) * (2 * this.curve.b * this.y).modInverse(this.curve.p)).mod(this.curve.p)
-//            val x = (((this.curve.b * lambda.modPow(2, this.curve.p))).mod(this.curve.p) - this.curve.a - this.x - point.x).mod(this.curve.p)
-//            val y = ((lambda * (this.x - x)).mod(this.curve.p) - this.y).mod(this.curve.p)
-//            new Point(x, y, this.curve)
             if (this != point) {
               val xa = (this.curve.b * (point.y - this.y).modPow(2, this.curve.p)).mod(this.curve.p)
               val xb = (point.x - this.x).modPow(2, this.curve.p)
@@ -112,14 +104,158 @@ package affine {
         }
       }
     }
+
+    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): Curve = {
+      require(finiteField.p.isProbablePrime(Constants.CERTAINTY))
+      require(coefficients.a.mod(finiteField.p) != BigInt(2)  &&  coefficients.a.mod(finiteField.p) != BigInt(-2).mod(finiteField.p)  &&  coefficients.b != BigInt(0))
+      new Curve(coefficients.a, coefficients.b, finiteField.p)
+    }
     
-    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): Curve = new Curve(coefficients.a, coefficients.b, finiteField.p)
     def makePoint(coordinates: TheCoordinates, curve: TheCurve): Point = new Point(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
 
     implicit def elemToAffinePoint(elem: Element): Point = {
       elem match {
         case el: NeutralElement => throw new NeutralElementException("Neutral element has been trapped.")
         case ap: Point    => ap
+      }
+    }
+  }
+}
+
+package projective {
+  object Montgomery extends GroupLaw with Tracing {
+    type TheCoefficients = OddCharCoefficients
+    type TheFiniteField = PrimeField
+    type TheCurve = Curve
+    type ThePoint = Point
+    type TheCoordinates = ProjectiveCoordinates
+    
+    case class OddCharCoefficients(a: BigInt, b: BigInt) extends Coefficients
+    case class ProjectiveCoordinates(x: BigInt, y: BigInt, z: BigInt) extends Coordinates
+    
+    case class PrimeField(p: BigInt) extends FiniteField
+    def makePrimeField(p: BigInt): PrimeField = new PrimeField(p)
+    
+    class Curve(val affineCurve: affine.Montgomery.Curve) extends AbstractCurve {
+      val c = (this.affineCurve.a + BigInt(2))*BigInt(4).modInverse(this.affineCurve.p)
+      def randomPoint: Point = {
+        val affinePoint = affineCurve.randomPoint
+        new Point(affinePoint.x, affinePoint.y, BigInt(1), this)
+      }
+    }
+    
+    class Point(val x: BigInt, val y: BigInt, val z: BigInt, curve: Curve) extends AbstractPoint {
+      def negate: Point = throw new UnsupportedOperationException
+      def add(element: Point): Element = throw new UnsupportedOperationException("Only differential addition defined.")
+      
+      def multiply(scalar: BigInt): Element = {
+        val tracer = getCurrentTracer()
+        
+        val p = this.curve.affineCurve.p
+        def multiply(n: BigInt): Tuple2[Point, Point] = {
+          tracer.out().printfIndentln("n = %s", n)
+
+          def double(point: Point): Point = {
+            withTracer("Point", this, "double(point: Point)") {
+              tracer.out().printfIndentln("point = %s", point)
+              
+              val x = point.x
+              val z = point.z
+              val d = (((x + z) * (x + z)).mod(p) - ((x - z) * (x - z)).mod(p)).mod(p)
+              val x_result = (((x + z) * (x + z)).mod(p) * ((x - z) * (x - z)).mod(p)).mod(p)
+              val z_result = (d * (((x - z) * (x - z)).mod(p) + (this.curve.c * d).mod(p))).mod(p)
+              new Point(x_result, null, z_result, this.curve)
+            }
+          }
+
+          def add(point1: Point, point2: Point): Point = {
+            withTracer("Point", this, "add(point1: Point, point2: Point)") {
+              tracer.out().printfIndentln("point1 = %s", point1)
+              tracer.out().printfIndentln("point2 = %s", point2)
+              
+              val xn = point1.x
+              val xm = point2.x
+              val zn = point1.z
+              val zm = point2.z
+              val e = ((xm - zm) * (xn + zn)).mod(p)
+              val f = ((xm + zm) * (xn - zn)).mod(p)
+              val x_result = this.z * (e + f).modPow(2, p)
+              val z_result = this.x * (e - f).modPow(2, p)
+              new Point(x_result, null, z_result, this.curve)
+            }
+          }
+          
+          if (n == 2) {
+            val point1 = double(this)
+            val point2 = add(point1, this)
+            (point1, point2)
+          }
+          else if (n == 3) {
+            val twofold = double(this)
+            val point1 = add(twofold, this)
+            val point2 = double(twofold)
+            (point1, point2)
+          }
+          else {
+            val next_n = n / 2
+            val pointPair = multiply(next_n)
+            
+            if (n % 2 == 0) {
+              val point1 = double(pointPair._1)
+              val point2 = add(pointPair._1, pointPair._2)
+              (point1, point2)
+            }
+            else {
+              val point1 = add(pointPair._1, pointPair._2)
+              val point2 = double(pointPair._2)
+              (point1, point2)
+            }
+          }
+        }
+        
+        withTracer("Element", this, "multiply(scalar: BigInt)") {
+          tracer.out().printfIndentln("scalar = %s", scalar)
+          tracer.out().printfIndentln("this = %s", this)
+          
+          val pointPair: Tuple2[Point, Point] = multiply(scalar)
+            
+          tracer.out().printfIndentln("pointPair = %s", pointPair)
+            
+          if (pointPair._1.z != 0) {
+            val scaled_x = (pointPair._1.x*pointPair._1.z.modInverse(p)).mod(p)
+            val scaled_x1 = pointPair._2.x*pointPair._2.z.modInverse(p)
+            val affine_x = this.x*this.z.modInverse(p)
+            val denominator = (2*this.curve.affineCurve.b*this.y).modInverse(p)
+            val s = (affine_x*scaled_x + 1).mod(p)
+            val t = (affine_x + scaled_x + 2*this.curve.affineCurve.a).mod(p)
+            val u = ((affine_x - scaled_x).modPow(2, p)*scaled_x1).mod(p)
+            val numerator = ((s*t).mod(p) - (2*this.curve.affineCurve.a).mod(p) - u).mod(p)
+            val scaled_y = (numerator*denominator).mod(p)
+            new Point(scaled_x, scaled_y, 1, this.curve)
+          }
+          else
+            new NeutralElement
+        }
+      }
+      
+      override def toString() = {
+        "ProjectivePoint[" + this.x + ", " + this.y + ", " + this.z + "]"
+      }
+    }
+    
+    def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): Curve = {
+      val affineCurve = affine.Montgomery.makeCurve(affine.Montgomery.OddCharCoefficients(coefficients.a, coefficients.b), affine.Montgomery.PrimeField(finiteField.p))
+      new Curve(affineCurve)
+    }
+    
+    def makePoint(coordinates: TheCoordinates, curve: TheCurve): Point = new Point(coordinates.x, coordinates.y, coordinates.z, curve)
+
+    override def getCurrentTracer(): AbstractTracer = {
+      try {
+        TracerFactory.getInstance().getTracer("TestTracer")
+      }
+      catch {
+        case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
       }
     }
   }
