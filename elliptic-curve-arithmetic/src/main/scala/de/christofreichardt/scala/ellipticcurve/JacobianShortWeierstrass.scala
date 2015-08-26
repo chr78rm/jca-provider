@@ -28,7 +28,7 @@ package projective {
     }
     
     class Point(val x: BigInt, val y: BigInt, val z: BigInt, curve: Curve) extends AbstractPoint with Equals {
-      def negate: Element = new Point(this.x, (-this.y).mod(this.curve.p), this.z, this.curve)
+      def negate: Point = new Point(this.x, (-this.y).mod(this.curve.p), this.z, this.curve)
 
       def add(point: Point): Element = {
         val tracer = getCurrentTracer()
