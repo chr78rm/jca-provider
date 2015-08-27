@@ -85,7 +85,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
     
     try {
       java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
-      int[] keySizes = {192, 224, 256, 384, 521};
+      int[] keySizes = {160, 192, 224, 256, 320, 384, 512};
       for (int keySize : keySizes) {
         keyPairGenerator.initialize(keySize, new SecureRandom());
         KeyPair keyPair = keyPairGenerator.generateKeyPair();

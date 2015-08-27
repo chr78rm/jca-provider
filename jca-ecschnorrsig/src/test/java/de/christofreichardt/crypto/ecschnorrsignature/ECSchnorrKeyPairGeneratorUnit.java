@@ -104,7 +104,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
     tracer.entry("void", this, "customKeySizes()");
     
     try {
-      int[] keySizes = {192, 224, 256, 384, 521};
+      int[] keySizes = {160, 192, 224, 256, 320, 384, 512};
       KeyPairGenerator keyPairGenerator = new KeyPairGenerator();
       for (int keySize : keySizes) {
         keyPairGenerator.initialize(keySize, new SecureRandom());
