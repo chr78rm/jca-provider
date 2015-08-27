@@ -513,6 +513,25 @@ package affine {
       assert(this.groupLaw.multiplicationMethod.getClass.getSimpleName.equals(multiplicationValue), "Misconfigured multiplication method.")
     }
     
+    testWithTracing(this, "Invalid Points") {
+      val tracer = getCurrentTracer()
+      
+      val ex1 = intercept[IllegalArgumentException] {
+        val invalidPoint = this.groupLaw.makePoint(this.groupLaw.AffineCoordinates(9, 10), this.curve1) // x=9 produces a non quadratic residue
+      }
+      tracer.out().printfIndentln("ex1.getMessage = %s", ex1.getMessage)
+      assert("requirement failed: Invalid point.".equals(ex1.getMessage), "Wrong message.")
+      
+      val ex2 = intercept[IllegalArgumentException] {
+        val invalidPoint = this.groupLaw.makePoint(this.groupLaw.AffineCoordinates(20, 10), this.curve1) // incorrect y-value
+      }
+      tracer.out().printfIndentln("ex2.getMessage = %s", ex2.getMessage)
+      assert("requirement failed: Invalid point.".equals(ex2.getMessage), "Wrong message.")
+      
+      val point = this.groupLaw.makePoint(this.groupLaw.AffineCoordinates(20, 3), this.curve1)
+      assert(this.curve1.isValidPoint(point), "Expected a valid point.")
+    }
+    
     override def afterAll(): Unit = {
       val tracer = getCurrentTracer
       withTracer("Unit", this, "afterAll()") {

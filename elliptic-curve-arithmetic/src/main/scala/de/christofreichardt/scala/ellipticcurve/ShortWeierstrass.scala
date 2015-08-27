@@ -100,9 +100,12 @@ package affine {
 
       def isValidPoint(point: Point): Boolean = {
         val yQuadrat = evaluateCurveEquation(point.x)
-        val (y1, y2) = this.solver.solve(yQuadrat)
-        if (point.y == y1  ||  point.y == y2) true
-        else false
+        if (this.legendreSymbol.compute(yQuadrat) != -1) {
+          val (y1, y2) = this.solver.solve(yQuadrat)
+          point.y == y1  ||  point.y == y2
+        }
+        else
+          false
       }
       
       override def toString() = {
@@ -164,7 +167,11 @@ package affine {
     }
 
     def makeCurve(coefficients: TheCoefficients, finiteField: TheFiniteField): Curve = new Curve(coefficients.a, coefficients.b, finiteField.p)
-    def makePoint(coordinates: TheCoordinates, curve: Curve): Point = new Point(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
+    def makePoint(coordinates: TheCoordinates, curve: Curve): Point = {
+      val point = new Point(coordinates.x.mod(curve.p), coordinates.y.mod(curve.p), curve)
+      require(curve.isValidPoint(point), "Invalid point.")
+      point
+    }
 
     implicit def elemToAffinePoint(elem: Element): Point = {
       elem match {
