@@ -13,16 +13,17 @@ package affine {
     case class OddCharCoefficients(a: BigInt, b: BigInt) extends Coefficients
     
     class Curve(val a: BigInt, val b: BigInt, p: BigInt) extends AffineCurve(p) with Tracing {
+      val bInv = this.b.modInverse(this.p)
       def evaluateCurveEquation(x: BigInt): BigInt = (x.modPow(3, this.p) + (this.a*x.modPow(2, this.p)).mod(this.p) + x).mod(this.p)
       
       override def randomPoint: Point = super.randomPoint
       def randomPoint(randomGenerator: RandomGenerator): Point = {
         withTracer("Element", this, "add(point: AffinePoint)") {
           val x = randomGenerator.bigIntStream(this.p.bitLength * 2, p).find(x => {
-            val test = (evaluateCurveEquation(x) * this.b.modInverse(this.p)).mod(this.p)
+            val test = (evaluateCurveEquation(x) * bInv).mod(this.p)
             test == BigInt(0) || this.legendreSymbol.isQuadraticResidue(test)
           }).get
-          val value = (evaluateCurveEquation(x) * this.b.modInverse(this.p)).mod(this.p)
+          val value = (evaluateCurveEquation(x) * bInv).mod(this.p)
           if (value != BigInt(0)) {
             val (y1, y2) = this.solver.solve(evaluateCurveEquation(x))
             if (randomGenerator.bitStream.head) new Point(x, y1, this)
@@ -33,10 +34,45 @@ package affine {
         }
       }
       
-      def isValidPoint(point: ThePoint): Boolean = false
+      def isValidPoint(point: ThePoint): Boolean = {
+        withTracer("Boolean", this, "isValidPoint(point: ThePoint)") {
+          val tracer = getCurrentTracer()
+          tracer.out().printfIndentln("point = %s", point)
+          
+          val value = (evaluateCurveEquation(point.x) * bInv).mod(this.p)
+          if (this.legendreSymbol.compute(value) != -1) {
+            val (y1, y2) = this.solver.solve(value)
+            point.y == y1  ||  point.y == y2
+          }
+          else
+            false
+        }
+      }
+      
+      def toShortWeierstrassCurve: ShortWeierstrass.Curve = {
+        withTracer("ShortWeierstrass.Curve", this, "toShortWeierstrassCurve()") {
+          val A = this.a
+          val B = this.b
+          val numeratorA = (3 - A.modPow(2, this.p)).mod(this.p)
+          val denominatorA = (3*B.modPow(2, this.p)).mod(this.p)
+          val numeratorB = (2*A.modPow(3, this.p) - 9*A).mod(this.p)
+          val denominatorB = (27*B.modPow(3, this.p)).mod(this.p)
+          val (a,b) = ((numeratorA*denominatorA.modInverse(this.p)).mod(this.p), (numeratorB*denominatorB.modInverse(this.p)).mod(this.p))
+          ShortWeierstrass.makeCurve(ShortWeierstrass.OddCharCoefficients(a, b), ShortWeierstrass.PrimeField(this.p))
+        }
+      }
             
       override def toString() = {
         "Montgomery[a=" + this.a + ", b=" + this.b + ", p=" + this.p + "]"
+      }
+
+      override def getCurrentTracer(): AbstractTracer = {
+        try {
+          TracerFactory.getInstance().getDefaultTracer
+        }
+        catch {
+          case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
+        }
       }
     }
     
@@ -78,6 +114,16 @@ package affine {
       }
       
       override def multiply(scalar: BigInt): Element = Montgomery.multiplicationMethod.multiply(scalar, this)
+      
+      def toShortWeierstrassPoint: ShortWeierstrass.Point = {
+        withTracer("ShortWeierstrass.Point", this, "toShortWeierstrassPoint()") {
+          val A = this.curve.a
+          val B = this.curve.b
+          val transformedX = ((this.x*B.modInverse(this.curve.p)).mod(this.curve.p) + (A*(3*B).modInverse(this.curve.p))).mod(this.curve.p)
+          val transformedY = (this.y*B.modInverse(this.curve.p)).mod(this.curve.p)
+          ShortWeierstrass.makePoint(ShortWeierstrass.AffineCoordinates(transformedX, transformedY), this.curve.toShortWeierstrassCurve)
+        }
+      }
       
       def canEqual(other: Any) = {
         other.isInstanceOf[Point]
