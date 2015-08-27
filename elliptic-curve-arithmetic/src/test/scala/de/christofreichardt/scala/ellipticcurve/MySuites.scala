@@ -19,7 +19,8 @@ class MySuites extends Suites(
     new ShortWeierstrassSuite(),
     new QuadraticResidueSuite(),
     new MontgomerySuite(),
-    new ExperimentalSuite()
+    new ExperimentalSuite(),
+    new JacobianShortWeierstrassSuite()
     ) with Tracing with BeforeAndAfterAll with SequentialNestedSuiteExecution {
   
   override def run(testName: Option[String], args: Args): Status = {

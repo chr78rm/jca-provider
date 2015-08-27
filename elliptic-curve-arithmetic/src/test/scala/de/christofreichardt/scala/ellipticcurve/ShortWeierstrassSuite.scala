@@ -22,7 +22,6 @@ package affine {
     val groupLaw = ShortWeierstrass
     val curve1 = groupLaw.makeCurve(groupLaw.OddCharCoefficients(4, 20), groupLaw.PrimeField(29))
     val curve2 = groupLaw.makeCurve(groupLaw.OddCharCoefficients(71, 602), groupLaw.PrimeField(1009))
-//    val curve3 = groupLaw.makeCurve(groupLaw.OddCharCoefficients(146, 33), groupLaw.PrimeField(173))
 
     override def beforeAll(): Unit = {
       val tracer = getCurrentTracer
@@ -514,30 +513,6 @@ package affine {
       assert(this.groupLaw.multiplicationMethod.getClass.getSimpleName.equals(multiplicationValue), "Misconfigured multiplication method.")
     }
     
-    testWithTracing(this, "Jacobian Projective Multiplication") {
-      val tracer = getCurrentTracer()
-      
-      val groupLaw = JacobianShortWeierstrass
-      val projectiveCurve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(4, 20), groupLaw.PrimeField(29))
-      val projectivePoint = groupLaw.makePoint(groupLaw.ProjectiveCoordinates(1, 5, 1), projectiveCurve)
-      val affinePoint = this.groupLaw.makePoint(this.groupLaw.AffineCoordinates(1, 5), this.curve1)
-      
-      val order = 37
-      val testResult =
-        (1 until order).forall(m => {
-          val element1 = affinePoint.multiply(m)
-          val element2 = groupLaw.elemToAffinePoint(projectivePoint.multiply(m))
-
-          tracer.out().printfIndentln("(%s == %s) = %b", element1, element2, (element1 == element2): java.lang.Boolean)
-
-          element1 == element2
-        })
-      assert(testResult, "Wrong product.")
-      
-      val element = projectivePoint.multiply(order)
-      assert(element.isNeutralElement, "Expected the NeutralElement.")
-    }
-
     override def afterAll(): Unit = {
       val tracer = getCurrentTracer
       withTracer("Unit", this, "afterAll()") {
