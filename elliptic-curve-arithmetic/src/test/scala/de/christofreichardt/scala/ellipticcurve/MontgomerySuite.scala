@@ -5,7 +5,7 @@ import de.christofreichardt.scalatest.MyFunSuite
 package affine {
   class MontgomerySuite extends MyFunSuite {
     
-    testWithTracing(this, "Montgomery2Weierstrass") {
+    testWithTracing(this, "Montgomery2Weierstrass (1)") {
       val tracer = getCurrentTracer()
       val groupLaw = ShortWeierstrass
       
@@ -91,12 +91,55 @@ package affine {
       
       tracer.out().printfIndentln("test1 = %s", test1)
       
-      val scalar = 11
+      val scalar = 11785
       val point = basePoint.multiply(scalar)
       val test2 = projectiveBasePoint.multiply(scalar)
       
       tracer.out().printfIndentln("point = %s", point)
       tracer.out().printfIndentln("test2 = %s", test2)
+    }
+    
+    testWithTracing(this, "Montgomery2Weierstrass (2)") {
+      val tracer = getCurrentTracer()
+
+      val groupLaw = Montgomery
+      val montgomeryCurve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(117050, 1), groupLaw.PrimeField(BigInt(2).pow(221) - 3))
+      val montgomeryPoint = montgomeryCurve.randomPoint
+      if (montgomeryPoint != montgomeryPoint.negate) {
+        val double1: Montgomery.Point = montgomeryPoint add montgomeryPoint
+        
+        tracer.out().printfIndentln("%s = %s add %s", double1, montgomeryPoint, montgomeryPoint)
+        
+        val shortWeierstrassCurve = montgomeryCurve.toShortWeierstrassCurve
+        val shortWeierstrassPoint = montgomeryPoint.toShortWeierstrassPoint
+        val double2: ShortWeierstrass.Point = shortWeierstrassPoint add shortWeierstrassPoint
+        
+        tracer.out().printfIndentln("%s = %s add %s", double2, shortWeierstrassPoint, shortWeierstrassPoint)
+        
+        assert(double1.toShortWeierstrassPoint == double2, "Wrong point.")
+      }
+    }
+    
+    testWithTracing(this, "Affine Multiplication") {
+      val tracer = getCurrentTracer()
+
+      val groupLaw = Montgomery
+      val montgomeryCurve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(117050, 1), groupLaw.PrimeField(BigInt(2).pow(221) - 3))
+      val order = BigInt("421249166674228746791672110734682167926895081980396304944335052891")
+      val randomGenerator = new RandomGenerator
+      val TESTS = 10
+      (0 until TESTS).foreach(i => {
+        tracer.out().printfIndentln("%d. Test", i: Integer)
+        
+        val montgomeryPoint = montgomeryCurve.randomPoint(randomGenerator)
+        val shortWeierstrassPoint = montgomeryPoint.toShortWeierstrassPoint
+        val scalar = randomGenerator.bigIntStream(order.bitLength * 2, montgomeryCurve.p).find(n => n != order && n != 0).get
+        val product1: Montgomery.Point = montgomeryPoint multiply scalar
+        val product2: ShortWeierstrass.Point = shortWeierstrassPoint multiply scalar
+        
+        tracer.out().printfIndentln("(%s == %s) = %b", product1, product2, (product1 == product2): java.lang.Boolean)
+        assert(product1.toShortWeierstrassPoint == product2, "Wrong product.")
+      })
     }
   }
 }
