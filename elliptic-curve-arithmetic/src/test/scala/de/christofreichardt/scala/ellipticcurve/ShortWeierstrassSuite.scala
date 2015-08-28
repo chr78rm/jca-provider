@@ -532,6 +532,18 @@ package affine {
       assert(this.curve1.isValidPoint(point), "Expected a valid point.")
     }
     
+    testWithTracing(this, "0*P = 0") {
+      val tracer = getCurrentTracer()
+      
+      val zero = BigInt(0)
+      val point = this.groupLaw.makePoint(this.groupLaw.AffineCoordinates(20, 3), this.curve1)
+      val product = point.multiply(zero)
+      
+      tracer.out().printfIndentln("zero.bitLength == %d", zero.bitLength: Integer)
+      tracer.out().printfIndentln("%s * %s == %s", point, zero, product)
+      assert(product.isNeutralElement, "Expected the NeutralElement.")
+    }
+    
     override def afterAll(): Unit = {
       val tracer = getCurrentTracer
       withTracer("Unit", this, "afterAll()") {
