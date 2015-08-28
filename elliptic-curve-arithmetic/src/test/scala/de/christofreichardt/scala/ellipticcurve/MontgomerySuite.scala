@@ -73,7 +73,7 @@ package affine {
       assert(product.isNeutralElement, "Expected the NeutralElement.")
     }
     
-    testWithTracing(this, "Differential Multiplication") {
+    testWithTracing(this, "Differential Multiplication (1)") {
       val tracer = getCurrentTracer()
       
       val groupLaw = Montgomery
@@ -91,12 +91,13 @@ package affine {
       
       tracer.out().printfIndentln("test1 = %s", test1)
       
-      val scalar = 11785
-      val point = basePoint.multiply(scalar)
-      val test2 = projectiveBasePoint.multiply(scalar)
+      val scalar = BigInt(11785)
+      val affineProduct: Montgomery.Point = basePoint.multiply(scalar)
+      val projectiveProduct = projectiveBasePoint.multiply(scalar)
       
-      tracer.out().printfIndentln("point = %s", point)
-      tracer.out().printfIndentln("test2 = %s", test2)
+      tracer.out().printfIndentln("affineProduct = %s", affineProduct)
+      tracer.out().printfIndentln("projectiveProduct = %s", projectiveProduct)
+      assert(affineProduct == (projectiveProduct: Montgomery.Point), "Wrong product.")
     }
     
     testWithTracing(this, "Montgomery2Weierstrass (2)") {
@@ -137,6 +138,52 @@ package affine {
         val product1: Montgomery.Point = montgomeryPoint multiply scalar
         val product2: ShortWeierstrass.Point = shortWeierstrassPoint multiply scalar
         
+        tracer.out().printfIndentln("%s * %s = %s", montgomeryPoint, scalar, product1)
+        tracer.out().printfIndentln("(%s == %s) = %b", product1, product2, (product1 == product2): java.lang.Boolean)
+        assert(product1.toShortWeierstrassPoint == product2, "Wrong product.")
+      })
+    }
+    
+    testWithTracing(this, "Differential Multiplication (2)") {
+      val tracer = getCurrentTracer()
+      
+      val groupLaw = Montgomery
+      val curve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(117050, 1), groupLaw.PrimeField(BigInt(2).pow(221) - 3))
+      val basePoint = groupLaw.makePoint(groupLaw.AffineCoordinates(4, BigInt("1630203008552496124843674615123983630541969261591546559209027208557")), curve)
+      val order = BigInt("421249166674228746791672110734682167926895081980396304944335052891")
+      
+      val projectiveGroupLaw = de.christofreichardt.scala.ellipticcurve.projective.Montgomery
+      val projectiveCurve = new projectiveGroupLaw.Curve(curve)
+      val projectiveBasePoint = new projectiveGroupLaw.Point(basePoint.x, basePoint.y, 1, projectiveCurve)
+      val product = projectiveBasePoint multiply order
+      
+      tracer.out().printfIndentln("(%s * %s) = %s", projectiveBasePoint, order, product)
+    }
+    
+    testWithTracing(this, "Differential Multiplication (3)") {
+      val tracer = getCurrentTracer()
+      
+      val groupLaw = Montgomery
+      val curve = groupLaw.makeCurve(groupLaw.OddCharCoefficients(117050, 1), groupLaw.PrimeField(BigInt(2).pow(221) - 3))
+      val basePoint = groupLaw.makePoint(groupLaw.AffineCoordinates(4, BigInt("1630203008552496124843674615123983630541969261591546559209027208557")), curve)
+      val order = BigInt("421249166674228746791672110734682167926895081980396304944335052891")
+      
+      val projectiveGroupLaw = de.christofreichardt.scala.ellipticcurve.projective.Montgomery
+      val projectiveCurve = new projectiveGroupLaw.Curve(curve)
+      val projectiveBasePoint = new projectiveGroupLaw.Point(basePoint.x, basePoint.y, 1, projectiveCurve)
+      
+      val randomGenerator = new RandomGenerator
+      val TESTS = 10
+      (0 until TESTS).foreach(i => {
+        tracer.out().printfIndentln("%d. Test", i: Integer)
+        
+        val montgomeryPoint = projectiveCurve.randomPoint(randomGenerator)
+        val shortWeierstrassPoint = montgomeryPoint.toShortWeierstrassPoint
+        val scalar = randomGenerator.bigIntStream(order.bitLength * 2, projectiveCurve.affineCurve.p).find(n => n != order && n != 0).get
+        val product1: Montgomery.Point = montgomeryPoint multiply scalar
+        val product2: ShortWeierstrass.Point = shortWeierstrassPoint multiply scalar
+        
+        tracer.out().printfIndentln("%s * %s = %s", montgomeryPoint, scalar, product1)
         tracer.out().printfIndentln("(%s == %s) = %b", product1, product2, (product1 == product2): java.lang.Boolean)
         assert(product1.toShortWeierstrassPoint == product2, "Wrong product.")
       })
