@@ -31,6 +31,7 @@ abstract class GroupLaw {
     def add(element: NeutralElement) = this
     def multiply(scalar: BigInt): Element
     def multiply(scalar: BigInteger): Element = multiply(BigInt(scalar))
+    def toPoint: AbstractPoint
   }
 
   class NeutralElement extends Element with Equals {
@@ -39,6 +40,7 @@ abstract class GroupLaw {
     override def add(element: ThePoint) = element
     override def multiply(scalar: BigInt) = this
     override def toString() = "NeutralElement"
+    override def toPoint = throw new NeutralElementException("Not really a point.")
 
     def canEqual(other: Any) = {
       other.isInstanceOf[GroupLaw.this.NeutralElement]
@@ -59,6 +61,7 @@ abstract class GroupLaw {
   
   trait AbstractPoint extends Element {
     override def isNeutralElement = false
+    override def toPoint = this
   }
   
   trait PointMultiplication extends Tracing {
