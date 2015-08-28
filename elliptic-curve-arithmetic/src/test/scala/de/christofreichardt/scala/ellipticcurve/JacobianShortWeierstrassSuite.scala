@@ -19,7 +19,7 @@ class JacobianShortWeierstrassSuite extends MyFunSuite {
     val testResult =
       (1 until order).forall(m => {
         val element1 = affinePoint.multiply(m)
-        val element2 = projectiveGroupLaw.elemToAffinePoint(projectivePoint.multiply(m))
+        val element2: ShortWeierstrass.Point = projectivePoint.multiply(m)
 
         tracer.out().printfIndentln("(%s == %s) = %b", element1, element2, (element1 == element2): java.lang.Boolean)
 
@@ -34,6 +34,10 @@ class JacobianShortWeierstrassSuite extends MyFunSuite {
   testWithTracing(this, "Jacobian Projective Multiplication (2)") {
     val tracer = getCurrentTracer()
     
+      //
+      // curve taken from "Elliptic Curves in Cryptography" (Blake, Seroussi, Smart), Cambridge University Press, 1999
+      // Example 3, page 182
+      //
     val a = 10
     val b = BigInt("1343632762150092499701637438970764818528075565078")
     val p = BigInt(2).pow(160) + 7
@@ -53,7 +57,7 @@ class JacobianShortWeierstrassSuite extends MyFunSuite {
         
         val randomProjectivePoint = projectiveCurve.randomPoint
         val affinePoint = randomProjectivePoint.toAffinePoint
-        val scalar = randomGenerator.bigIntStream(order.bitLength*2, p).head
+        val scalar = randomGenerator.bigIntStream(order.bitLength*2, p).find(n => n != order && n != 0).get
         
         tracer.out().printfIndentln("randomProjectivePoint = %s", randomProjectivePoint)
         tracer.out().printfIndentln("affinePoint = %s", affinePoint)
@@ -61,7 +65,7 @@ class JacobianShortWeierstrassSuite extends MyFunSuite {
         
         assert(affinePoint.curve.a == affineCurve.a  &&  affinePoint.curve.b == affineCurve.b  &&  affinePoint.curve.p == affineCurve.p, "Wrong curve.")
         
-        val element1 = projectiveGroupLaw.elemToAffinePoint(randomProjectivePoint.multiply(scalar))
+        val element1: ShortWeierstrass.Point = randomProjectivePoint.multiply(scalar)
         val element2 = affinePoint.multiply(scalar)
         
         tracer.out().printfIndentln("(%s == %s) = %b", element1, element2, (element1 == element2): java.lang.Boolean)
