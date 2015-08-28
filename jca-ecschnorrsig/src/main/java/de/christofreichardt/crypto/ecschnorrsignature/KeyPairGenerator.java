@@ -50,6 +50,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
           Element element = randomPoint.multiply(curveSpec.getCoFactor());
           if (!element.isNeutralElement()) {
             gPoint = ShortWeierstrass.elemToAffinePoint(element);
+            assert gPoint.multiply(curveSpec.getOrder()).isNeutralElement();
             break;
           }
         } while (true);
