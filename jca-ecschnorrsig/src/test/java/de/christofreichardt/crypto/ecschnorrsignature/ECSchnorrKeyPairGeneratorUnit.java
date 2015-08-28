@@ -293,6 +293,33 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
     }
   }
   
+  @Test
+  public void safeCurves() {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "safeCurves()");
+    
+    try {
+      for (Entry<String, CurveSpec> entry : SafeCurves.curves.entrySet()) {
+        String curveId = entry.getKey();
+        CurveSpec curveSpec = entry.getValue();
+        AffineCurve curve = curveSpec.getCurve();
+        
+        AffinePoint basePoint = curveSpec.getgPoint();
+        
+        tracer.out().printfIndentln("basePoint = %s", basePoint);
+        Assert.assertTrue("Expected a valid point.", curve.isValidPoint(basePoint));
+        
+        Element element = basePoint.multiply(curveSpec.getOrder());
+        
+        tracer.out().printfIndentln("element = %s", element);
+        Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
   @After
   public void exit() {
     AbstractTracer tracer = getCurrentTracer();
