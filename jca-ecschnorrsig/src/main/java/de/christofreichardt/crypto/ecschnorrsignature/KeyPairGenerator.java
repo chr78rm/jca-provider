@@ -15,7 +15,6 @@ import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
 import de.christofreichardt.scala.ellipticcurve.RandomGenerator;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
-import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
 
 public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
   final public static int EXT_KEYBYTES = 16;
@@ -39,6 +38,9 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       case BRAINPOOL:
         curveSpec = BrainPool.curves.get(this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
         break;
+      case SAFECURVES:
+        curveSpec = SafeCurves.curves.get(this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
+        break;
       default:
         throw new InvalidParameterException("Unsupported curve compilation.");
       }
@@ -49,7 +51,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
           AffinePoint randomPoint = curveSpec.getCurve().randomPoint(new RandomGenerator(this.secureRandom));
           Element element = randomPoint.multiply(curveSpec.getCoFactor());
           if (!element.isNeutralElement()) {
-            gPoint = ShortWeierstrass.elemToAffinePoint(element);
+            gPoint = (AffinePoint) element.toPoint();
             assert gPoint.multiply(curveSpec.getOrder()).isNeutralElement();
             break;
           }
@@ -65,7 +67,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       
       Element element = gPoint.multiply(x);
       assert !element.isNeutralElement();
-      AffinePoint hPoint = ShortWeierstrass.elemToAffinePoint(element);
+      AffinePoint hPoint = (AffinePoint) element.toPoint();
       
       tracer.out().printfIndentln("gPoint = %s", gPoint);
       tracer.out().printfIndentln("x = %s", x);
@@ -123,6 +125,10 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
         break;
       case BRAINPOOL:
         if (!BrainPool.curves.containsKey(this.ecSchnorrSigKeyGenParameterSpec.getCurveId()))
+          throw new InvalidAlgorithmParameterException("Unknown curve: " + this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
+        break;
+      case SAFECURVES:
+        if (!SafeCurves.curves.containsKey(this.ecSchnorrSigKeyGenParameterSpec.getCurveId()))
           throw new InvalidAlgorithmParameterException("Unknown curve: " + this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
         break;
       default:

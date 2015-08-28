@@ -3,7 +3,7 @@ package de.christofreichardt.crypto.ecschnorrsignature;
 import java.security.spec.AlgorithmParameterSpec;
 
 public class ECSchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
-  public enum CurveCompilation {NIST, BRAINPOOL};
+  public enum CurveCompilation {NIST, BRAINPOOL, SAFECURVES};
   
   final private CurveCompilation curveCompilation;
   final private String curveId;
