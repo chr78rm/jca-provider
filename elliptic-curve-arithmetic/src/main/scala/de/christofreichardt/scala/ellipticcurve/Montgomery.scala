@@ -175,6 +175,8 @@ package projective {
     type TheCurve = Curve
     type ThePoint = Point
     type TheCoordinates = ProjectiveCoordinates
+          
+    type AffinePoint = de.christofreichardt.scala.ellipticcurve.affine.Montgomery.Point
     
     case class OddCharCoefficients(a: BigInt, b: BigInt) extends Coefficients
     case class ProjectiveCoordinates(x: BigInt, y: BigInt, z: BigInt) extends Coordinates
@@ -184,8 +186,14 @@ package projective {
     
     class Curve(val affineCurve: affine.Montgomery.Curve) extends AbstractCurve {
       val c = (this.affineCurve.a + BigInt(2))*BigInt(4).modInverse(this.affineCurve.p)
+      
       def randomPoint: Point = {
         val affinePoint = affineCurve.randomPoint
+        new Point(affinePoint.x, affinePoint.y, BigInt(1), this)
+      }
+      
+      def randomPoint(randomGenerator: RandomGenerator): Point = {
+        val affinePoint = affineCurve.randomPoint(randomGenerator)
         new Point(affinePoint.x, affinePoint.y, BigInt(1), this)
       }
     }
@@ -284,6 +292,17 @@ package projective {
         }
       }
       
+      def toAffinePoint: AffinePoint = {
+        if (this.z == 0)
+          throw new IllegalStateException("Not an affine Point.")
+        else if (this.z == 1)
+          new AffinePoint(this.x, this.y, this.curve.affineCurve)
+        else {
+          val lambda = this.z.modInverse(this.curve.affineCurve.p)
+          new AffinePoint(this.x*lambda, this.y*lambda, this.curve.affineCurve)
+        }
+      }
+      
       override def toString() = {
         "ProjectivePoint[" + this.x + ", " + this.y + ", " + this.z + "]"
       }
@@ -295,10 +314,17 @@ package projective {
     }
     
     def makePoint(coordinates: TheCoordinates, curve: TheCurve): Point = new Point(coordinates.x, coordinates.y, coordinates.z, curve)
+    
+    implicit def elemToAffinePoint(elem: Element): AffinePoint = {
+      elem match {
+        case el: NeutralElement => throw new NeutralElementException("Neutral element has been trapped.")
+        case ap: Point    => ap.toAffinePoint
+      }
+    }
 
     override def getCurrentTracer(): AbstractTracer = {
       try {
-        TracerFactory.getInstance().getTracer("TestTracer")
+        TracerFactory.getInstance().getDefaultTracer
       }
       catch {
         case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
