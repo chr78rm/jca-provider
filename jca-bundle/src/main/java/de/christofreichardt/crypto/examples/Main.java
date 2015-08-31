@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import de.christofreichardt.crypto.HmacSHA256PRNGNonceGenerator;
 import de.christofreichardt.crypto.NonceGenerator;
 import de.christofreichardt.crypto.UniformRandomNonceGenerator;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
@@ -288,7 +289,7 @@ public class Main {
   }
   
   private void example8() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
-    LOGGER.log(Level.INFO, "-> Example7: UniformRandomNonceGenerator.");
+    LOGGER.log(Level.INFO, "-> Example8: UniformRandomNonceGenerator.");
     
     LOGGER.log(Level.INFO, "Generating key pair ...");
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
@@ -303,6 +304,34 @@ public class Main {
     NonceGenerator nonceGenerator = new UniformRandomNonceGenerator();
     SchnorrSigParameterSpec schnorrSigParameterSpec = new SchnorrSigParameterSpec(nonceGenerator);
     signature.setParameter(schnorrSigParameterSpec);
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
+  
+  private void example9() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example9: Brainpool Curves.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    
+    ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+    LOGGER.log(Level.INFO, "bitlength(brainpoolP256r1) = {0}", new Object[]{publicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bitLength()});
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("ECSchnorrSignature");
     signature.initSign(keyPair.getPrivate());
     signature.update(bytes);
     byte[] signatureBytes = signature.sign();
@@ -330,6 +359,7 @@ public class Main {
       main.example6();
       main.example7();
       main.example8();
+      main.example9();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -357,6 +387,9 @@ public class Main {
         break;
       case 8:
         main.example8();
+        break;
+      case 9:
+        main.example9();
         break;
       default:
         break;
