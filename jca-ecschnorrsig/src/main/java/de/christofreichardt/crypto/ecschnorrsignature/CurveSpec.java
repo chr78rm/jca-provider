@@ -33,4 +33,9 @@ public class CurveSpec {
   public AffinePoint getgPoint() {
     return gPoint;
   }
+
+  @Override
+  public String toString() {
+    return "CurveSpec[curve=" + this.curve + ", order=" + this.order + ", coFactor=" + this.coFactor + ", gPoint=" + this.gPoint + "]";
+  }
 }
