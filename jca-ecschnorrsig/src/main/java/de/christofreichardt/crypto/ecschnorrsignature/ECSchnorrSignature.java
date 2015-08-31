@@ -24,7 +24,6 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
-import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
 
 public class ECSchnorrSignature extends SignatureSpi implements Traceable {
 
@@ -191,7 +190,7 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
       default:
         throw new SignatureException("Unknown point multiplication strategy.");
       }
-      AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(element);
+      AffinePoint sPoint = (AffinePoint) element.toPoint();
       
       tracer.out().printfIndentln("sPoint = %s", sPoint);
       
@@ -285,7 +284,7 @@ public class ECSchnorrSignature extends SignatureSpi implements Traceable {
         default:
           throw new SignatureException("Unknown point multiplication strategy.");
         }
-        AffinePoint sPoint = ShortWeierstrass.elemToAffinePoint(element);
+        AffinePoint sPoint = (AffinePoint) element.toPoint();
         
         tracer.out().printfIndentln("sPoint = %s", sPoint);
         
