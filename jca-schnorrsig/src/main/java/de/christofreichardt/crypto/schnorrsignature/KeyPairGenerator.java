@@ -168,6 +168,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       } while (g.equals(BigInteger.ONE));
       
       tracer.out().printfIndentln("g(%d) = %d", g.bitLength(), g);
+      assert g.modPow(q, p).equals(BigInteger.ONE);
       
       BigInteger x, h;
       do {
