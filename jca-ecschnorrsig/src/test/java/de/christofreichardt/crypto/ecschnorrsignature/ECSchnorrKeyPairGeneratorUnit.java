@@ -291,6 +291,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       AffinePoint hPoint = (AffinePoint) element.toPoint();
       
       Assert.assertTrue("Expected the public h point.", hPoint.equals(ecSchnorrPublicKey.gethPoint()));
+      Assert.assertTrue("Expected the NeutralElement.", ecSchnorrParams.getgPoint().multiply(ecSchnorrParams.getCurveSpec().getOrder()).isNeutralElement());
     }
     finally {
       tracer.wayout();
@@ -343,13 +344,31 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
         String curveId = entry.getKey();
         CurveSpec curveSpec = entry.getValue();
         AffineCurve curve = curveSpec.getCurve();
+        AffinePoint point;
+        Element check1, check2;
+        do {
+          point = curve.randomPoint();
+          check1 = point.multiply(curveSpec.getCoFactor());
+          check2 = point.multiply(curveSpec.getOrder());
+          
+          tracer.out().printfIndentln("check1 = %s", check1);
+          tracer.out().printfIndentln("check2 = %s", check2);
+        } while (check1.isNeutralElement() || !check2.isNeutralElement());
+        
+        tracer.out().printfIndentln("curveSpec(%s) = %s", curveId, curveSpec);
+        tracer.out().printfIndentln("point = %s", point);
+        
+        Element element = point.multiply(curveSpec.getOrder());
+        
+        tracer.out().printfIndentln("element = %s", element);
+        Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());
         
         AffinePoint basePoint = curveSpec.getgPoint();
         
         tracer.out().printfIndentln("basePoint = %s", basePoint);
         Assert.assertTrue("Expected a valid point.", curve.isValidPoint(basePoint));
         
-        Element element = basePoint.multiply(curveSpec.getOrder());
+        element = basePoint.multiply(curveSpec.getOrder());
         
         tracer.out().printfIndentln("element = %s", element);
         Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());
