@@ -41,7 +41,7 @@ object PrimeBase extends Tracing {
   
   override def getCurrentTracer(): AbstractTracer = {
     try {
-      TracerFactory.getInstance().getTracer("TestTracer")
+      TracerFactory.getInstance().getDefaultTracer
     }
     catch {
       case ex: TracerFactory.Exception => TracerFactory.getInstance().getDefaultTracer
