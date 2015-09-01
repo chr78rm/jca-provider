@@ -20,7 +20,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
   final public static int EXT_KEYBYTES = 16;
   
   private SecureRandom secureRandom = new SecureRandom();
-  private ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, "brainpoolP256r1", true);
+  private ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, "brainpoolP256r1", false);
 
   @Override
   public KeyPair generateKeyPair() {
@@ -104,7 +104,7 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       if (!BrainPool.curves.containsKey(curveId))
         throw new InvalidParameterException("Unsupported keysize: " + keySize + ".");
       
-      this.ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, curveId, true);
+      this.ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, curveId, false);
       this.secureRandom = secureRandom;
     }
     finally {

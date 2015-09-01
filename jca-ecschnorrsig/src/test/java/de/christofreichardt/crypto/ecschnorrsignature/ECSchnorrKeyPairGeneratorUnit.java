@@ -25,6 +25,8 @@ import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrim
 
 public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
   public final static int DEFAULT_KEYSIZE = 256;
+  public final static String DEFAULT_CURVE_ID = "brainpoolP256r1";
+  
   final private Properties properties;
   final String ALGORITHM_NAME = "ECSchnorrSignature";
   final Provider provider = new Provider();
@@ -91,6 +93,13 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       KeyPairGenerator keyPairGenerator = new KeyPairGenerator();
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
       validateKeyPair(keyPair, DEFAULT_KEYSIZE);
+      
+      ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+      ECSchnorrParams ecSchnorrParams = ecSchnorrPublicKey.getEcSchnorrParams();
+      
+      tracer.out().printfIndentln("ecSchnorrParams.getgPoint() = %s", ecSchnorrParams.getgPoint());
+      tracer.out().printfIndentln("ecSchnorrParams.getCurveSpec().getgPoint() = %s", ecSchnorrParams.getCurveSpec().getgPoint());
+      Assert.assertTrue("Expected the base point as specified by Brainpool.", ecSchnorrParams.getgPoint().equals(ecSchnorrParams.getCurveSpec().getgPoint()));
     }
     finally {
       tracer.wayout();
@@ -109,6 +118,13 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
         keyPairGenerator.initialize(keySize, new SecureRandom());
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         validateKeyPair(keyPair, keySize);
+        
+        ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+        ECSchnorrParams ecSchnorrParams = ecSchnorrPublicKey.getEcSchnorrParams();
+        
+        tracer.out().printfIndentln("ecSchnorrParams.getgPoint() = %s", ecSchnorrParams.getgPoint());
+        tracer.out().printfIndentln("ecSchnorrParams.getCurveSpec().getgPoint() = %s", ecSchnorrParams.getCurveSpec().getgPoint());
+        Assert.assertTrue("Expected the base point as specified by Brainpool.", ecSchnorrParams.getgPoint().equals(ecSchnorrParams.getCurveSpec().getgPoint()));
       }
     }
     finally {
