@@ -3,12 +3,13 @@ package de.christofreichardt.crypto.ecschnorrsignature;
 import java.security.spec.AlgorithmParameterSpec;
 
 public class ECSchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
-  public enum CurveCompilation {NIST, BRAINPOOL, SAFECURVES};
+  public enum CurveCompilation {NIST, BRAINPOOL, SAFECURVES, CUSTOM};
   
   final private CurveCompilation curveCompilation;
   final private String curveId;
   final private boolean useRandomBasePoint;
   private final boolean extended;
+  final private CurveSpec curveSpec;
   
   public ECSchnorrSigKeyGenParameterSpec(CurveCompilation curveCompilation, String curveId) {
     this(curveCompilation, curveId, false);
@@ -23,6 +24,23 @@ public class ECSchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
     this.curveId = curveId;
     this.useRandomBasePoint = useRandomBasePoint;
     this.extended = extended;
+    this.curveSpec = null;
+  }
+  
+  public ECSchnorrSigKeyGenParameterSpec(CurveSpec curveSpec) {
+    this(curveSpec, false);
+  }
+  
+  public ECSchnorrSigKeyGenParameterSpec(CurveSpec curveSpec, boolean useRandomBasePoint) {
+    this(curveSpec, useRandomBasePoint, false);
+  }
+  
+  public ECSchnorrSigKeyGenParameterSpec(CurveSpec curveSpec, boolean useRandomBasePoint, boolean extended) {
+    this.curveCompilation = CurveCompilation.CUSTOM;
+    this.curveId = null;
+    this.useRandomBasePoint = useRandomBasePoint;
+    this.extended = extended;
+    this.curveSpec = curveSpec;
   }
 
   public CurveCompilation getCurveCompilation() {
@@ -39,6 +57,10 @@ public class ECSchnorrSigKeyGenParameterSpec implements AlgorithmParameterSpec {
 
   public boolean isExtended() {
     return extended;
+  }
+
+  public CurveSpec getCurveSpec() {
+    return curveSpec;
   }
 
   @Override

@@ -1,5 +1,6 @@
 package de.christofreichardt.crypto.ecschnorrsignature;
 
+import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -14,14 +15,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import scala.math.BigInt;
 import de.christofreichardt.crypto.Provider;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.scala.ellipticcurve.GroupLaw.Element;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffineCoordinates;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffineCurve;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.PrimeField;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.OddCharCoefficients;
 
 public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
   public final static int DEFAULT_KEYSIZE = 256;
@@ -389,6 +395,39 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
         tracer.out().printfIndentln("element = %s", element);
         Assert.assertTrue("Expected the NeutralElement.", element.isNeutralElement());
       }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
+  @Test
+  public void customCurve() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "customCurve()");
+    
+    try {
+      BigInteger a = new BigInteger("10");
+      BigInteger b = new BigInteger("1343632762150092499701637438970764818528075565078");
+      BigInteger p = new BigInteger("2").pow(160).add(new BigInteger("7"));
+      BigInteger order = new BigInteger("1461501637330902918203683518218126812711137002561");
+      OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b));
+      PrimeField primeField = ShortWeierstrass.makePrimeField(new BigInt(p));
+      ShortWeierstrass.Curve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
+      AffinePoint basePoint = curve.randomPoint();
+      
+      tracer.out().printfIndentln("basePoint = %s", basePoint);
+      tracer.out().printfIndentln("p(%s) = %s", p.bitLength(), p);
+      
+      AffineCoordinates affineCoordinates = ShortWeierstrass.makeAffineCoordinates(basePoint.x(), basePoint.y());
+      AffinePoint point = ShortWeierstrass.makePoint(affineCoordinates, curve);
+      CurveSpec curveSpec = new CurveSpec(curve, order, BigInteger.ONE, point);
+      
+      java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME);
+      ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(curveSpec);
+      keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      validateKeyPair(keyPair, p.bitLength());
     }
     finally {
       tracer.wayout();

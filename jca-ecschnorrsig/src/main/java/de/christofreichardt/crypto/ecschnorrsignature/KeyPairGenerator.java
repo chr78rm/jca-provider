@@ -41,6 +41,9 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       case SAFECURVES:
         curveSpec = SafeCurves.curves.get(this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
         break;
+      case CUSTOM:
+        curveSpec = this.ecSchnorrSigKeyGenParameterSpec.getCurveSpec();
+        break;
       default:
         throw new InvalidParameterException("Unsupported curve compilation.");
       }
@@ -131,6 +134,10 @@ public class KeyPairGenerator extends KeyPairGeneratorSpi implements Traceable {
       case SAFECURVES:
         if (!SafeCurves.curves.containsKey(this.ecSchnorrSigKeyGenParameterSpec.getCurveId()))
           throw new InvalidAlgorithmParameterException("Unknown curve: " + this.ecSchnorrSigKeyGenParameterSpec.getCurveId());
+        break;
+      case CUSTOM:
+        if (this.ecSchnorrSigKeyGenParameterSpec.getCurveSpec() == null)
+          throw new InvalidAlgorithmParameterException("Need a curve specification.");
         break;
       default:
         throw new InvalidAlgorithmParameterException("Unsupported curve compilation.");
