@@ -24,6 +24,8 @@ import de.christofreichardt.crypto.HmacSHA256PRNGNonceGenerator;
 import de.christofreichardt.crypto.NonceGenerator;
 import de.christofreichardt.crypto.UniformRandomNonceGenerator;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
@@ -372,6 +374,37 @@ public class Main {
     
     assert verified;
   }
+  
+  private void example11() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example11: Certain Brainpool Curve with random base point.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+    final String CURVE_ID = "brainpoolP224t1";
+    ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, CURVE_ID, true);
+    keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec, SecureRandom.getInstance("SHA1PRNG"));
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    
+    ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+    LOGGER.log(Level.INFO, "bitlength = {0}", new Object[]{publicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bitLength()});
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("ECSchnorrSignature");
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
     LOGGER.info("Adding provider ...");
@@ -390,6 +423,7 @@ public class Main {
       main.example8();
       main.example9();
       main.example10();
+      main.example11();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -423,6 +457,9 @@ public class Main {
         break;
       case 10:
         main.example10();
+        break;
+      case 11:
+        main.example11();
         break;
       default:
         break;
