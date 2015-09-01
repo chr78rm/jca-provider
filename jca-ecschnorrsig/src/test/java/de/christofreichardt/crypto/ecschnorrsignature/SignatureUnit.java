@@ -296,4 +296,74 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
     }
   }
   
+  @Test
+  public void customNISTCurves() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    AbstractTracer tracer = getCurrentTracer();
+    tracer.entry("void", this, "customNISTCurves()");
+    
+    try {
+      Security.addProvider(new BouncyCastleProvider());
+      String originalDigestAlgo = provider.getProperty("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", "SHA-256");
+      
+      try {
+        java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
+        String[] digestAlgos = {"SHA-256", "SHA-512", "Skein-1024-1024"};
+        NonceGenerator[] nonceGenerators = {new AlmostUniformRandomNonceGenerator(), new HmacSHA256PRNGNonceGenerator(), new SHA1PRNGNonceGenerator(), 
+            new UniformRandomNonceGenerator()
+        };
+        
+        for (NonceGenerator nonceGenerator : nonceGenerators) {
+          tracer.out().printfIndentln("nonceGenerator = %s", nonceGenerator.getClass().getName());
+          
+          for (String digestAlgo : digestAlgos) {
+            tracer.out().printfIndentln("digestAlgo = %s", digestAlgo);
+
+            provider.put("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", digestAlgo);
+            for (String curveId : NIST.curveIds) {
+              tracer.out().printfIndentln("curveId = %s", curveId);
+
+              keyPairGenerator.initialize(new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, curveId, false, true));
+              KeyPair keyPair = keyPairGenerator.generateKeyPair();
+              ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+              BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
+
+              tracer.out().printfIndentln("curveSpec = %s", ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec());
+              tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
+
+              Signature signature = Signature.getInstance(this.signatureAlgorithmName);
+              signature.setParameter(new ECSchnorrSigParameterSpec(PointMultiplicationStrategy.UNKNOWN_POINT, nonceGenerator));
+              byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
+              byte[] signatureBytes2 = sign(signature, keyPair.getPrivate(), this.msgBytes);
+              if (nonceGenerator instanceof DeterministicNonceGenerator) 
+                Assert.assertTrue("Expected identical signatures.", Arrays.equals(signatureBytes, signatureBytes2));
+              else if (nonceGenerator instanceof RandomNonceGenerator)
+                Assert.assertTrue("Expected non-identical signatures.", !Arrays.equals(signatureBytes, signatureBytes2));
+              else
+                Assert.fail("Uncategorized NonceGenerator");
+              boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+
+              Assert.assertTrue("Expected a valid signature.", verified);
+              
+              verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
+
+              Assert.assertTrue("Expected an invalid signature.", !verified);
+
+              keyPair = keyPairGenerator.generateKeyPair();
+              verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+
+              Assert.assertTrue("Expected an invalid signature.", !verified);
+            }
+          }
+        }
+      }
+      finally {
+        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+        provider.put("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", originalDigestAlgo);
+      }
+    }
+    finally {
+      tracer.wayout();
+    }
+  }
+  
 }
