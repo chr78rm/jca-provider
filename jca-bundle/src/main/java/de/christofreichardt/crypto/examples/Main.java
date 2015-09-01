@@ -405,6 +405,37 @@ public class Main {
     
     assert verified;
   }
+  
+  private void example12() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example12: Certain NIST curve with default base point.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+    final String CURVE_ID = "P-384";
+    ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, CURVE_ID, true);
+    keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    
+    ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+    LOGGER.log(Level.INFO, "bitlength = {0}", new Object[]{publicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bitLength()});
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("ECSchnorrSignature");
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
     LOGGER.info("Adding provider ...");
@@ -424,6 +455,7 @@ public class Main {
       main.example9();
       main.example10();
       main.example11();
+      main.example12();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -460,6 +492,9 @@ public class Main {
         break;
       case 11:
         main.example11();
+        break;
+      case 12:
+        main.example12();
         break;
       default:
         break;

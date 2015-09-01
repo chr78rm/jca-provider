@@ -521,7 +521,7 @@ therefore provides some curves recommended by this site as well. So long as all 
 
 #### <a name="EllipticCurveKeyPair1"></a>4.i.a Brainpool Curves
 
-[RFC 5639](https://tools.ietf.org/html/rfc5639) defines curves for each of the bit lengths 160, 192, 224, 256, 320, 384, and 512 together with corresponding twist curves. 
+[RFC 5639](https://tools.ietf.org/html/rfc5639) defines curves for each of the bit lengths 160, 192, 224, 256, 320, 384 and 512 together with corresponding twist curves. 
 The 256-bit curve 'brainpoolP256r1' is used as default. All curves exhibit a prime number as group order, hence all points of a particular curve may serve
 as basepoints. Nevertheless [RFC 5639](https://tools.ietf.org/html/rfc5639) specifies additionally a basepoint for each curve. This one will be used as default:
 
@@ -544,6 +544,7 @@ AffinePoint basePoint = curveSpec.getgPoint();
 BigInteger order = curveSpec.getOrder();
 assert p.bitLength() == 256;
 assert p.isProbablePrime(100) && order.isProbablePrime(100);
+assert basePoint.equals(publicKey.getEcSchnorrParams().getgPoint());
 assert basePoint.multiply(order).isNeutralElement();
 ```
 
@@ -570,6 +571,7 @@ AffinePoint basePoint = curveSpec.getgPoint();
 BigInteger order = curveSpec.getOrder();
 assert p.isProbablePrime(100) && order.isProbablePrime(100);
 assert p.bitLength() == BIT_LENGTH;
+assert basePoint.equals(publicKey.getEcSchnorrParams().getgPoint());
 assert basePoint.multiply(order).isNeutralElement();
 ```
 
@@ -607,6 +609,38 @@ assert basePoint.multiply(order).isNeutralElement();
 ```
 
 #### <a name="EllipticCurveKeyPair2"></a>4.i.b NIST Curves
+
+[FIPS PUB 186-4](http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf) specifies five curves over prime fields: P-192, P-224, P-256, P-384 and P-521.
+The next example shows how someone may create key pairs based upon `P-384` and the specified default base point:
+
+```java
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.Security;
+import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
+...
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+final int BIT_LENGTH = 384;
+final String CURVE_ID = "P-384";
+ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, CURVE_ID);
+keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+CurveSpec curveSpec = publicKey.getEcSchnorrParams().getCurveSpec();
+BigInteger p = curveSpec.getCurve().p().bigInteger();
+AffinePoint basePoint = curveSpec.getgPoint();
+BigInteger order = curveSpec.getOrder();
+assert p.isProbablePrime(100) && order.isProbablePrime(100);
+assert p.bitLength() == BIT_LENGTH;
+assert basePoint.equals(publicKey.getEcSchnorrParams().getgPoint());
+assert basePoint.multiply(order).isNeutralElement();
+```
 
 #### <a name="EllipticCurveKeyPair3"></a>4.i.c SafeCurves
 
