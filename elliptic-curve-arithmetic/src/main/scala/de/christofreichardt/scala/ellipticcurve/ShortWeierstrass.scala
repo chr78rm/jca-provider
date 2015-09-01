@@ -109,7 +109,7 @@ package affine {
       }
       
       override def toString() = {
-        "ShortWeierstrass[a=" + this.a + ", b=" + this.b + ", p=" + this.p + "]"
+        "ShortWeierstrass[a=" + this.a + ", b=" + this.b + ", p(" + this.p.bitLength + ")=" + this.p + "]"
       }
     }
 

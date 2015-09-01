@@ -63,7 +63,7 @@ package affine {
       }
             
       override def toString() = {
-        "Montgomery[a=" + this.a + ", b=" + this.b + ", p=" + this.p + "]"
+        "Montgomery[a=" + this.a + ", b=" + this.b + ", p(" + this.p.bitLength + ")=" + this.p + "]"
       }
 
       override def getCurrentTracer(): AbstractTracer = {
