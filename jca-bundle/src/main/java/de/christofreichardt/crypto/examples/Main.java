@@ -3,6 +3,7 @@ package de.christofreichardt.crypto.examples;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -20,9 +21,11 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import scala.math.BigInt;
 import de.christofreichardt.crypto.HmacSHA256PRNGNonceGenerator;
 import de.christofreichardt.crypto.NonceGenerator;
 import de.christofreichardt.crypto.UniformRandomNonceGenerator;
+import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
@@ -30,6 +33,9 @@ import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.PrimeField;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.OddCharCoefficients;
 
 public class Main {
   static public final Logger LOGGER = Logger.getLogger(Main.class.getName());
@@ -467,6 +473,46 @@ public class Main {
     
     assert verified;
   }
+  
+  private void example14() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example14: Custom curve specification.");
+    
+    LOGGER.log(Level.INFO, "Defining curve ...");
+    BigInteger a = new BigInteger("10");
+    BigInteger b = new BigInteger("1343632762150092499701637438970764818528075565078");
+    BigInteger p = new BigInteger("2").pow(160).add(new BigInteger("7"));
+    BigInteger order = new BigInteger("1461501637330902918203683518218126812711137002561");
+    OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b));
+    PrimeField primeField = ShortWeierstrass.makePrimeField(new BigInt(p));
+    ShortWeierstrass.Curve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
+    CurveSpec curveSpec = new CurveSpec(curve, order, BigInteger.ONE, null);
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+    ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(curveSpec, true);
+    keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    
+    ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+    LOGGER.log(Level.INFO, "bitlength = {0}", new Object[]{publicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bitLength()});
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("ECSchnorrSignature");
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
     LOGGER.info("Adding provider ...");
@@ -488,6 +534,7 @@ public class Main {
       main.example11();
       main.example12();
       main.example13();
+      main.example14();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -530,6 +577,9 @@ public class Main {
         break;
       case 13:
         main.example13();
+        break;
+      case 14:
+        main.example14();
         break;
       default:
         break;

@@ -414,19 +414,19 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
       OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b));
       PrimeField primeField = ShortWeierstrass.makePrimeField(new BigInt(p));
       ShortWeierstrass.Curve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
-      AffinePoint basePoint = curve.randomPoint();
       
-      tracer.out().printfIndentln("basePoint = %s", basePoint);
       tracer.out().printfIndentln("p(%s) = %s", p.bitLength(), p);
       
-      AffineCoordinates affineCoordinates = ShortWeierstrass.makeAffineCoordinates(basePoint.x(), basePoint.y());
-      AffinePoint point = ShortWeierstrass.makePoint(affineCoordinates, curve);
-      CurveSpec curveSpec = new CurveSpec(curve, order, BigInteger.ONE, point);
-      
+      CurveSpec curveSpec = new CurveSpec(curve, order, BigInteger.ONE, null);
       java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(ALGORITHM_NAME);
-      ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(curveSpec);
+      ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(curveSpec, true);
       keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      ECSchnorrPrivateKey ecSchnorrPrivateKey = (ECSchnorrPrivateKey) keyPair.getPrivate();
+      ECSchnorrParams ecSchnorrParams = ecSchnorrPrivateKey.getEcSchnorrParams();
+      
+      tracer.out().printfIndentln("ecSchnorrParams.getgPoint() = %s", ecSchnorrParams.getgPoint());
+      
       validateKeyPair(keyPair, p.bitLength());
     }
     finally {

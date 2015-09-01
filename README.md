@@ -645,7 +645,7 @@ assert basePoint.multiply(order).isNeutralElement();
 #### <a name="EllipticCurveKeyPair3"></a>4.i.c SafeCurves
 
 [SafeCurves](http://safecurves.cr.yp.to/index.html) lists several curves which passes their criteria. I have included M-221, Curve25519, M-383 and M-511
-into this library to cover a wide range of security levels. Curve25519 has been introduced by Bernstein himself whereas M-221, M-383 and M-511 have
+into this library to cover a wide range of security levels. Curve25519 had been introduced by Bernstein himself whereas M-221, M-383 and M-511 have
 been designed by Aranha et al, see their paper [A note on high-security general-purpose elliptic curves](http://eprint.iacr.org/2013/647.pdf). All of
 these curves can be expressed as Montgomery curves and will be processed by the corresponding group law from this library. The next examples shows
 how someone may compute key pairs based upon the `M-551` curve with a random base point:
@@ -681,6 +681,42 @@ assert basePoint.multiply(order).isNeutralElement();
 All of these curves (M-221, Curve25519, M-383 and M-511) exhibit 8 as cofactor, hence #E(&#x1D53D;<sub>p</sub>)=n&#x22C5;8. 
 
 #### <a name="EllipticCurveKeyPair4"></a>4.i.d Custom Curves
+
+Someone might want to inject curves of his own choice. The subsequent example shows how this can be achieved by defining a ShortWeierstrass curve
+found in "Elliptic Curves in Cryptography" by Blake, Seroussi and Smart:
+
+```java
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.Security;
+import scala.math.BigInt;
+import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.PrimeField;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass;
+import de.christofreichardt.scala.ellipticcurve.affine.ShortWeierstrass.OddCharCoefficients;
+...
+BigInteger a = new BigInteger("10");
+BigInteger b = new BigInteger("1343632762150092499701637438970764818528075565078");
+BigInteger p = new BigInteger("2").pow(160).add(new BigInteger("7"));
+BigInteger order = new BigInteger("1461501637330902918203683518218126812711137002561");
+OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b));
+PrimeField primeField = ShortWeierstrass.makePrimeField(new BigInt(p));
+ShortWeierstrass.Curve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
+CurveSpec curveSpec = new CurveSpec(curve, order, BigInteger.ONE, null);
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(curveSpec, true);
+keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+AffinePoint basePoint = publicKey.getEcSchnorrParams().getgPoint();
+assert basePoint.multiply(order).isNeutralElement();
+```
+
 
 ### <a name="EllipticCurveSignature"></a>4.ii Signature Usage
 
