@@ -52,8 +52,8 @@ public class NIST {
         new BigInteger("11839296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650", 16),
         };
     for (int i=0; i<curveIds.length; i++) {
-      OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a), new BigInt(b[i]));
       PrimeField primeField = ShortWeierstrass.makePrimeField(new BigInt(p[i]));
+      OddCharCoefficients coefficients = new OddCharCoefficients(new BigInt(a).mod(primeField.p()), new BigInt(b[i]));
       ShortWeierstrass.Curve curve = ShortWeierstrass.makeCurve(coefficients, primeField);
       AffineCoordinates affineCoordinates = ShortWeierstrass.makeAffineCoordinates(new BigInt(x[i]), new BigInt(y[i]));
       AffinePoint point = ShortWeierstrass.makePoint(affineCoordinates, curve);
