@@ -601,7 +601,7 @@ KeyPair keyPair = keyPairGenerator.generateKeyPair();
 ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
 CurveSpec curveSpec = publicKey.getEcSchnorrParams().getCurveSpec();
 BigInteger p = curveSpec.getCurve().p().bigInteger();
-AffinePoint basePoint = curveSpec.getgPoint();
+AffinePoint basePoint = publicKey.getEcSchnorrParams().getgPoint();
 BigInteger order = curveSpec.getOrder();
 assert p.isProbablePrime(100) && order.isProbablePrime(100);
 assert p.bitLength() == BIT_LENGTH;
@@ -611,7 +611,7 @@ assert basePoint.multiply(order).isNeutralElement();
 #### <a name="EllipticCurveKeyPair2"></a>4.i.b NIST Curves
 
 [FIPS PUB 186-4](http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf) specifies five curves over prime fields: P-192, P-224, P-256, P-384 and P-521.
-The next example shows how someone may create key pairs based upon `P-384` and the specified default base point:
+The next example shows how someone may create key pairs based upon the `P-384` curve and the specified default base point:
 
 ```java
 import java.math.BigInteger;
@@ -643,6 +643,42 @@ assert basePoint.multiply(order).isNeutralElement();
 ```
 
 #### <a name="EllipticCurveKeyPair3"></a>4.i.c SafeCurves
+
+[SafeCurves](http://safecurves.cr.yp.to/index.html) lists several curves which passes their criteria. I have included M-221, Curve25519, M-383 and M-511
+into this library to cover a wide range of security levels. Curve25519 has been introduced by Bernstein himself whereas M-221, M-383 and M-511 have
+been designed by Aranha et al, see their paper [A note on high-security general-purpose elliptic curves](http://eprint.iacr.org/2013/647.pdf). All of
+these curves can be expressed as Montgomery curves and will be processed by the corresponding group law from this library. The next examples shows
+how someone may compute key pairs based upon the `M-551` curve with a random base point:
+
+```java
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.Security;
+import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
+import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
+...
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+final int BIT_LENGTH = 511;
+final String CURVE_ID = "M-511";
+ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.SAFECURVES, CURVE_ID, true);
+keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+CurveSpec curveSpec = publicKey.getEcSchnorrParams().getCurveSpec();
+BigInteger p = curveSpec.getCurve().p().bigInteger();
+AffinePoint basePoint = publicKey.getEcSchnorrParams().getgPoint();
+BigInteger order = curveSpec.getOrder();
+assert p.isProbablePrime(100) && order.isProbablePrime(100);
+assert p.bitLength() == BIT_LENGTH;
+assert basePoint.multiply(order).isNeutralElement();
+```
+
+All of these curves (M-221, Curve25519, M-383 and M-511) exhibit 8 as cofactor, hence #E(&#x1D53D;<sub>p</sub>)=n&#x22C5;8. 
 
 #### <a name="EllipticCurveKeyPair4"></a>4.i.d Custom Curves
 
@@ -677,6 +713,8 @@ assert basePoint.multiply(order).isNeutralElement();
 - [Technical Guideline TR-03111](https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/Publications/TechGuidelines/TR03111/BSI-TR-03111_pdf.pdf?__blob=publicationFile)
 - [RFC 5639](https://tools.ietf.org/html/rfc5639)
 - [SafeCurves: choosing safe curves for elliptic-curve cryptography](http://safecurves.cr.yp.to/index.html)
+- [A note on high-security general-purpose elliptic curves](http://eprint.iacr.org/2013/647.pdf)
+
 
 
 

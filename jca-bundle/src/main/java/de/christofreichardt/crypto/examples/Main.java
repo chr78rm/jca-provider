@@ -412,7 +412,38 @@ public class Main {
     LOGGER.log(Level.INFO, "Generating key pair ...");
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
     final String CURVE_ID = "P-384";
-    ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, CURVE_ID, true);
+    ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, CURVE_ID);
+    keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    
+    ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+    LOGGER.log(Level.INFO, "bitlength = {0}", new Object[]{publicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bitLength()});
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("ECSchnorrSignature");
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
+  
+  private void example13() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example13: Safecurve M-511 with random base point.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+    final String CURVE_ID = "M-511";
+    ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.SAFECURVES, CURVE_ID, true);
     keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
     KeyPair keyPair = keyPairGenerator.generateKeyPair();
     
@@ -456,6 +487,7 @@ public class Main {
       main.example10();
       main.example11();
       main.example12();
+      main.example13();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -495,6 +527,9 @@ public class Main {
         break;
       case 12:
         main.example12();
+        break;
+      case 13:
+        main.example13();
         break;
       default:
         break;
