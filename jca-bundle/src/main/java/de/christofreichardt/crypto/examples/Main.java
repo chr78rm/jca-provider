@@ -317,7 +317,7 @@ public class Main {
   }
   
   private void example9() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
-    LOGGER.log(Level.INFO, "-> Example9: Brainpool Curves.");
+    LOGGER.log(Level.INFO, "-> Example9: Default Brainpool Curve.");
     
     LOGGER.log(Level.INFO, "Generating key pair ...");
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
@@ -325,6 +325,35 @@ public class Main {
     
     ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
     LOGGER.log(Level.INFO, "bitlength(brainpoolP256r1) = {0}", new Object[]{publicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bitLength()});
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("ECSchnorrSignature");
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
+  
+  private void example10() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example10: Brainpool Curve with certain bit length.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+    keyPairGenerator.initialize(384);
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    
+    ECSchnorrPublicKey publicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+    LOGGER.log(Level.INFO, "bitlength = {0}", new Object[]{publicKey.getEcSchnorrParams().getCurveSpec().getCurve().p().bitLength()});
 
     LOGGER.log(Level.INFO, "Reading message bytes ...");
     File file = new File("../data/loremipsum.txt");
@@ -360,6 +389,7 @@ public class Main {
       main.example7();
       main.example8();
       main.example9();
+      main.example10();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -390,6 +420,9 @@ public class Main {
         break;
       case 9:
         main.example9();
+        break;
+      case 10:
+        main.example10();
         break;
       default:
         break;
