@@ -726,7 +726,7 @@ within this chapter will focus on examples.
 
 #### <a name="EllipticCurveSignature1"></a>4.ii.a Simple Use
 
-This works very similar as [Simple Use](#PrimeFieldsSignature1) in chapter [Schnorr Signatures on prime fields](#PrimeFields). In fact, since the JCA architecture is generic
+This works very similar as 3.ii.a [Simple Use](#PrimeFieldsSignature1) in chapter 3. [Schnorr Signatures on prime fields](#PrimeFields). In fact, since the JCA architecture is generic
 regarding algorithms this isn't surprising.
 
 ```java
