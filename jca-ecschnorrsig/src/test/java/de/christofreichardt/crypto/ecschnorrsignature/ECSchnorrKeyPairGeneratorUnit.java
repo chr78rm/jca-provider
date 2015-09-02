@@ -332,7 +332,7 @@ public class ECSchnorrKeyPairGeneratorUnit implements Traceable {
         AffineCurve curve = curveSpec.getCurve();
         AffinePoint point = curve.randomPoint();
         
-        tracer.out().printfIndentln("curve(%s) = %s", curveId, curve);
+        tracer.out().printfIndentln("curve(%s) = %s", curveId, curveSpec);
         tracer.out().printfIndentln("point = %s", point);
         
         Element element = point.multiply(curveSpec.getOrder());
