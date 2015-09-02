@@ -717,10 +717,40 @@ AffinePoint basePoint = publicKey.getEcSchnorrParams().getgPoint();
 assert basePoint.multiply(order).isNeutralElement();
 ```
 
-
 ### <a name="EllipticCurveSignature"></a>4.ii Signature Usage
 
+Once you have generated a key pair with one of the methods outlined above, you may create digital signatures. Signing is done with the private key whereas the
+verification process is done with the public key. All considerations regarding the generation of the nonces are the same as in the sections 3.ii.b [Custom SecureRandom](#PrimeFieldsSignature2)
+and 3.ii.e [(Deterministic) NonceGenerators](#PrimeFieldsSignature5) of the chapter 3. [Schnorr Signatures on prime fields](#PrimeFields) and therefore the corresponding sections
+within this chapter will focus on examples.
+
 #### <a name="EllipticCurveSignature1"></a>4.ii.a Simple Use
+
+This works very similar as [Simple Use](#PrimeFieldsSignature1) in chapter [Schnorr Signatures on prime fields](#PrimeFields). In fact, since the JCA architecture is generic
+regarding algorithms this isn't surprising.
+
+```java
+import java.io.File;
+import java.nio.file.Files;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.Security;
+import java.security.Signature;
+...
+KeyPair keyPair = ...
+File file = new File("loremipsum.txt");
+byte[] bytes = Files.readAllBytes(file.toPath());
+Signature signature = Signature.getInstance("ECSchnorrSignature");
+signature.initSign(keyPair.getPrivate());
+signature.update(bytes);
+byte[] signatureBytes = signature.sign();
+signature.initVerify(keyPair.getPublic());
+signature.update(bytes);
+boolean verified = signature.verify(signatureBytes);
+assert verified;
+```
+
 
 #### <a name="EllipticCurveSignature2"></a>4.ii.b Custom SecureRandom
 
