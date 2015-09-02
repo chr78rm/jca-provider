@@ -36,6 +36,6 @@ public class CurveSpec {
 
   @Override
   public String toString() {
-    return "CurveSpec[curve=" + this.curve + ", order=" + this.order + ", coFactor=" + this.coFactor + ", gPoint=" + this.gPoint + "]";
+    return "CurveSpec[curve=" + this.curve + ", order(" + this.order.bitLength() + ")=" + this.order + ", coFactor=" + this.coFactor + ", gPoint=" + this.gPoint + "]";
   }
 }
