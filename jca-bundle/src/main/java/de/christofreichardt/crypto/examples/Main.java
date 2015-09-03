@@ -513,6 +513,58 @@ public class Main {
     
     assert verified;
   }
+  
+  private void example15() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example15: ECSchnorrSignature with NIO.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+    LOGGER.log(Level.INFO, "Checking specified file ...");
+    assert this.properties.containsKey("de.christofreichardt.crypto.examples.largeFile");
+    File file = new File(this.properties.getProperty("de.christofreichardt.crypto.examples.largeFile"));
+    assert file.exists();
+    
+    LOGGER.log(Level.INFO, "Processing {0} ...", file.getPath());
+    Signature signature = Signature.getInstance("ECSchnorrSignature");
+    signature.initSign(keyPair.getPrivate());
+    int bufferSize = 512;
+    ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+    try (FileInputStream fileInputStream = new FileInputStream(file)) {
+      FileChannel fileChannel = fileInputStream.getChannel();
+      do {
+        int read = fileChannel.read(buffer);
+        if (read == -1)
+          break;
+        buffer.flip();
+        signature.update(buffer);
+        buffer.clear();
+      } while(true);
+    }
+    
+    LOGGER.log(Level.INFO, "Signing ...");
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Processing {0} ...", file.getPath());
+    signature.initVerify(keyPair.getPublic());
+    try (FileInputStream fileInputStream = new FileInputStream(file)) {
+      FileChannel fileChannel = fileInputStream.getChannel();
+      do {
+        int read = fileChannel.read(buffer);
+        if (read == -1)
+          break;
+        buffer.flip();
+        signature.update(buffer);
+        buffer.clear();
+      } while(true);
+    }
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
     LOGGER.info("Adding provider ...");
@@ -535,6 +587,7 @@ public class Main {
       main.example12();
       main.example13();
       main.example14();
+      main.example15();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -580,6 +633,9 @@ public class Main {
         break;
       case 14:
         main.example14();
+        break;
+      case 15:
+        main.example15();
         break;
       default:
         break;

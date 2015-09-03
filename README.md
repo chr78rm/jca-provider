@@ -402,10 +402,13 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.Security;
 import java.security.Signature;
-import de.christofreichardt.crypto.schnorrsignature.HmacSHA256PRNGNonceGenerator;
-import de.christofreichardt.crypto.schnorrsignature.NonceGenerator;
+import de.christofreichardt.crypto.HmacSHA256PRNGNonceGenerator;
+import de.christofreichardt.crypto.NonceGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
+import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec.Strength;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
 ...
 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
@@ -443,10 +446,12 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.Security;
 import java.security.Signature;
-import de.christofreichardt.crypto.schnorrsignature.NonceGenerator;
+import de.christofreichardt.crypto.NonceGenerator;
+import de.christofreichardt.crypto.UniformRandomNonceGenerator;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigParameterSpec;
-import de.christofreichardt.crypto.schnorrsignature.UniformRandomNonceGenerator;
 ...
 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SchnorrSignature");
 KeyPair keyPair = keyPairGenerator.generateKeyPair();
@@ -642,6 +647,8 @@ assert basePoint.equals(publicKey.getEcSchnorrParams().getgPoint());
 assert basePoint.multiply(order).isNeutralElement();
 ```
 
+Again, all curves of the NIST compilation exhibit a prime number as group order.
+
 #### <a name="EllipticCurveKeyPair3"></a>4.i.c SafeCurves
 
 [SafeCurves](http://safecurves.cr.yp.to/index.html) lists several curves which passes their criteria. I have included M-221, Curve25519, M-383 and M-511
@@ -734,7 +741,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
 import java.security.Security;
 import java.security.Signature;
 ...
@@ -751,10 +757,75 @@ boolean verified = signature.verify(signatureBytes);
 assert verified;
 ```
 
-
 #### <a name="EllipticCurveSignature2"></a>4.ii.b Custom SecureRandom
 
+Someone might pursue her own strategy regarding RNGs, seeds and entropy sources. It is therefore possible to inject a custom `SecureRandom`
+implementation into the signature algorithm:
+
+```java
+import java.io.File;
+import java.nio.file.Files;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.Signature;
+...
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+File file = new File("../data/loremipsum.txt");
+byte[] bytes = Files.readAllBytes(file.toPath());
+SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+Signature signature = Signature.getInstance("ECSchnorrSignature");
+signature.initSign(keyPair.getPrivate(), secureRandom);
+signature.update(bytes);
+byte[] signatureBytes = signature.sign();
+signature.initVerify(keyPair.getPublic());
+signature.update(bytes);
+boolean verified = signature.verify(signatureBytes);
+assert verified;    
+```
+
+See also 3.ii.b [Custom SecureRandom](#PrimeFieldsSignature2) to understand why the nonces must be unpredictable, unique and confidential.
+
 #### <a name="EllipticCurveSignature3"></a>4.ii.c NIO
+
+Suppose that you want protect a [SEPA](https://de.wikipedia.org/wiki/SEPA) payment file with several thousand payment records against subsequent
+modification by applying a digital signature. The above shown approach wouldn't work well since the method `byte[] readAllBytes(Path path)`
+is not intended for reading in large files. Use NIO to efficiently process potentially large files instead:
+
+```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Security;
+import java.security.Signature;
+...
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+File file = new File("SEPA-payment.xml");
+Signature signature = Signature.getInstance("ECSchnorrSignature");
+signature.initSign(keyPair.getPrivate());
+int bufferSize = 512;
+ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+try (FileInputStream fileInputStream = new FileInputStream(file)) {
+  FileChannel fileChannel = fileInputStream.getChannel();
+  do {
+    int read = fileChannel.read(buffer);
+    if (read == -1)
+      break;
+    buffer.flip();
+    signature.update(buffer);
+    buffer.clear();
+  } while(true);
+}
+byte[] signatureBytes = signature.sign();
+...
+```
 
 #### <a name="EllipticCurveSignature4"></a>4.ii.d Message Digest configuration
 
