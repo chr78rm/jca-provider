@@ -534,7 +534,6 @@ as basepoints. Nevertheless [RFC 5639](https://tools.ietf.org/html/rfc5639) spec
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
 import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
@@ -559,7 +558,6 @@ The next examples demonstrates how someone may retrieve a Brainpool curve with a
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
 import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
@@ -588,7 +586,6 @@ instance:
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
@@ -622,7 +619,6 @@ The next example shows how someone may create key pairs based upon the `P-384` c
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
 import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
@@ -661,7 +657,6 @@ how someone may compute key pairs based upon the `M-551` curve with a random bas
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
 import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
@@ -696,7 +691,6 @@ found in "Elliptic Curves in Cryptography" by Blake, Seroussi and Smart:
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
 import java.security.Security;
 import scala.math.BigInt;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
