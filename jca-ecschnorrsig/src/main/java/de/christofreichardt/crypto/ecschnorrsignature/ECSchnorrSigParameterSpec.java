@@ -25,6 +25,11 @@ public class ECSchnorrSigParameterSpec implements AlgorithmParameterSpec {
     this.pointMultiplicationStrategy = pointMultiplicationStrategy;
     this.nonceGenerator = nonceGenerator;
   }
+  
+  public ECSchnorrSigParameterSpec(NonceGenerator nonceGenerator) {
+    this.pointMultiplicationStrategy = PointMultiplicationStrategy.UNKNOWN_POINT;
+    this.nonceGenerator = nonceGenerator;
+  }
 
   public PointMultiplicationStrategy getPointMultiplicationStrategy() {
     return pointMultiplicationStrategy;
