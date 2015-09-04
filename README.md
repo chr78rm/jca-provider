@@ -832,7 +832,7 @@ the new `SHA3-512` standard.
 
 #### <a name="EllipticCurveSignature5"></a>4.ii.e (Deterministic) NonceGenerators
 
-A flaw within the underlying RNG may cause your nonces to be predictable and hence expose your private key. Therefore, it might make sense to create deterministic
+A flaw within the underlying RNG may cause your nonces to be predictable and hence may expose your private key. Therefore, it might make sense to create deterministic
 nonces which are nevertheless unpredictable, unique and confidential. I have followed [RFC 6979](https://tools.ietf.org/html/rfc6979) and provide a deterministic
 `NonceGenerator` based upon a HmacSha256 PRNG. The deterministic `HmacSHA256PRNGNonceGenerator` can be injected as follows:
 
@@ -853,7 +853,7 @@ KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSigna
 ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.SAFECURVES, "M-383", false, true);
 keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
 KeyPair keyPair = keyPairGenerator.generateKeyPair();
-File file = new File("../data/loremipsum.txt");
+File file = new File("loremipsum.txt");
 byte[] bytes = Files.readAllBytes(file.toPath());
 Signature signature = Signature.getInstance("ECSchnorrSignature");
 NonceGenerator nonceGenerator = new HmacSHA256PRNGNonceGenerator();
@@ -871,6 +871,55 @@ assert verified;
 See also 3.ii.e [(Deterministic) NonceGenerators](#PrimeFieldsSignature5) for a more detailed discussion.
 
 #### <a name="EllipticCurveSignature6"></a>4.ii.f Point Multiplication methods
+
+There exists several point multiplication methods beginning with the simple binary methods up to complex windowed methods. Some of these may leak secret data through
+timing. For example, the simple binary method applies a point doubling operation and depending on the just being processed bit of the scalar multiplier additionally a point addition.
+Hence switched on bits of the scalar multiplier are more expensive than turned off bits. Thus, timing attacks may reveal the secret nonce and furthermore the private key.
+At present this library provides two countermeasures against simple timing attacks: the Montgomery ladder and the Double-and-add-always method.
+
+Since the signature scheme repeatedly requires multiplications of the same base point for different signatures some computations can be preprocessed. This is known
+as fixed point multiplication. This may be advantageous if many signatures are processed with the same private key.
+
+In case of the unknown point multiplication the Montgomery ladder method is preselected. The subsequent example shows how someone can exchange the
+Montgomery ladder for the Double-and-add-always method:
+
+```java
+import java.security.Provider;
+import java.security.Security;
+...
+Provider provider = new de.christofreichardt.crypto.Provider();
+put("de.christofreichardt.scala.ellipticcurve.multiplicationMethod", "DoubleAndAddAlways");
+Security.addProvider(provider);
+```
+
+The subsequent code shows how someone can select the fixed point multiplication:
+
+```java
+import java.io.File;
+import java.nio.file.Files;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigParameterSpec;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigParameterSpec.PointMultiplicationStrategy;
+...
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+File file = new File("../data/loremipsum.txt");
+byte[] bytes = Files.readAllBytes(file.toPath());
+Signature signature = Signature.getInstance("ECSchnorrSignature");
+ECSchnorrSigParameterSpec ecSchnorrSigParameterSpec = new ECSchnorrSigParameterSpec(PointMultiplicationStrategy.FIXED_POINT);
+signature.setParameter(ecSchnorrSigParameterSpec);
+signature.initSign(keyPair.getPrivate());
+signature.update(bytes);
+byte[] signatureBytes = signature.sign();
+signature.initVerify(keyPair.getPublic());
+signature.update(bytes);
+boolean verified = signature.verify(signatureBytes);
+assert verified;
+```
+
+At present the only fixed point method available is the binary Double-and-add-always method
 
 [TOC](#TOC)
 

@@ -29,6 +29,7 @@ import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigParameterSpec.PointMultiplicationStrategy;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigParameterSpec;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrPublicKey;
 import de.christofreichardt.crypto.schnorrsignature.SchnorrSigKeyGenParameterSpec;
@@ -596,6 +597,33 @@ public class Main {
     
     assert verified;
   }
+  
+  private void example17() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
+    LOGGER.log(Level.INFO, "-> Example16: ECSchnorrSignature with fixed point multiplication.");
+    
+    LOGGER.log(Level.INFO, "Generating key pair ...");
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+    LOGGER.log(Level.INFO, "Reading message bytes ...");
+    File file = new File("../data/loremipsum.txt");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+
+    LOGGER.log(Level.INFO, "Signing ...");
+    Signature signature = Signature.getInstance("ECSchnorrSignature");
+    ECSchnorrSigParameterSpec ecSchnorrSigParameterSpec = new ECSchnorrSigParameterSpec(PointMultiplicationStrategy.FIXED_POINT);
+    signature.setParameter(ecSchnorrSigParameterSpec);
+    signature.initSign(keyPair.getPrivate());
+    signature.update(bytes);
+    byte[] signatureBytes = signature.sign();
+    
+    LOGGER.log(Level.INFO, "Verifying ...");
+    signature.initVerify(keyPair.getPublic());
+    signature.update(bytes);
+    boolean verified = signature.verify(signatureBytes);
+    
+    assert verified;
+  }
 
   public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
     LOGGER.info("Adding provider ...");
@@ -620,6 +648,7 @@ public class Main {
       main.example14();
       main.example15();
       main.example16();
+      main.example17();
     }
     else {
       int nr = Integer.parseInt(args[0]);
@@ -671,6 +700,9 @@ public class Main {
         break;
       case 16:
         main.example16();
+        break;
+      case 17:
+        main.example17();
         break;
       default:
         break;
