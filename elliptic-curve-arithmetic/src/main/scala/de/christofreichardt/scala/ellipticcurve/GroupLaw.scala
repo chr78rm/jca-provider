@@ -143,7 +143,7 @@ abstract class GroupLaw {
     }
   }
 
-  class MontgomeryLadder2 extends UnknownPointMultiplication {
+  class DoubleAndAddAlways extends UnknownPointMultiplication {
     override def multiply(multiplier: BigInt, point: AbstractPoint): Element = {
       val tracer = getCurrentTracer()
       

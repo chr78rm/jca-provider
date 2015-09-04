@@ -11,15 +11,15 @@ package affine {
     lazy val multiplicationMethod: UnknownPointMultiplication = detectMultiplicationMethod()
     def detectMultiplicationMethod(): UnknownPointMultiplication = {
       val provider = java.security.Security.getProvider(de.christofreichardt.crypto.Provider.NAME)
-      val multiplicationKey = "de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod"
+      val multiplicationKey = "de.christofreichardt.scala.ellipticcurve.multiplicationMethod"
       val method: UnknownPointMultiplication =
         if (provider != null) {
           val multiplicationValue = provider.getProperty(multiplicationKey)
           multiplicationValue match {
-            case "MontgomeryLadder"  => new MontgomeryLadder
-            case "MontgomeryLadder2" => new MontgomeryLadder2
-            case "BinaryMethod"      => new BinaryMethod
-            case _                   => new MontgomeryLadder
+            case "MontgomeryLadder"   => new MontgomeryLadder
+            case "DoubleAndAddAlways" => new DoubleAndAddAlways
+            case "BinaryMethod"       => new BinaryMethod
+            case _                    => new MontgomeryLadder
           }
         }
         else {

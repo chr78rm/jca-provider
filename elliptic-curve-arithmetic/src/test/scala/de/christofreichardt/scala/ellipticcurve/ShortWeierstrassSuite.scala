@@ -443,7 +443,7 @@ package affine {
       })
     }
     
-    testWithTracing(this, "Montgomery Ladder (1)") {
+    testWithTracing(this, "Montgomery Ladder") {
       val tracer = getCurrentTracer()
       
       val point = this.curve2.randomPoint
@@ -467,11 +467,11 @@ package affine {
       })
     }
     
-    testWithTracing(this, "Montgomery Ladder (2)") {
+    testWithTracing(this, "DoubleAndAddAlways") {
       val tracer = getCurrentTracer()
       
       val point = this.curve2.randomPoint
-      val montgomeryLadder = new ShortWeierstrass.MontgomeryLadder2
+      val doubleAnAddAlways = new ShortWeierstrass.DoubleAndAddAlways
       val binaryMethod = new ShortWeierstrass.BinaryMethod
       val randomGenerator = new RandomGenerator
       val TESTS = 5
@@ -482,7 +482,7 @@ package affine {
       (0 until TESTS).foreach(i => {
         tracer.out().printfIndentln("i = %d", i: Integer)
         val scalar = randomGenerator.bigIntStream(this.curve2.p.bitLength*2, this.curve2.p).head
-        val productByLadder = montgomeryLadder.multiply(scalar, point)      
+        val productByLadder = doubleAnAddAlways.multiply(scalar, point)      
         val productByBinary = binaryMethod.multiply(scalar, point)
         
         tracer.out().printfIndentln("%s*%s = %s", point, scalar, productByLadder)
@@ -502,7 +502,7 @@ package affine {
       
       val provider = java.security.Security.getProvider(de.christofreichardt.crypto.Provider.NAME)
       assert(provider != null, "Expected the crypto provider.")
-      val multiplicationKey = "de.christofreichardt.scala.ellipticcurve.affine.multiplicationMethod"
+      val multiplicationKey = "de.christofreichardt.scala.ellipticcurve.multiplicationMethod"
       assert(provider.containsKey(multiplicationKey), "Expected the key '" + multiplicationKey + "'.")
       val multiplicationValue = provider.getProperty(multiplicationKey)
       
