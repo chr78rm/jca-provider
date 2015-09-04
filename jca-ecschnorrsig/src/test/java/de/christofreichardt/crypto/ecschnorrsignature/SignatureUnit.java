@@ -165,7 +165,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
         String[] curveIds = {"brainpoolP160r1", "brainpoolP160t1", "brainpoolP192r1", "brainpoolP192t1", "brainpoolP224r1", "brainpoolP224t1",
             "brainpoolP256r1", "brainpoolP256t1", "brainpoolP320r1", "brainpoolP320t1", "brainpoolP384r1", "brainpoolP384t1", "brainpoolP512r1",
             "brainpoolP512t1"};
-        String[] digestAlgos = {"SHA-256", "SHA-512", "Skein-1024-1024"};
+        String[] digestAlgos = {"SHA-256", "SHA-512", "SHA3-512"};
         NonceGenerator[] nonceGenerators = {new AlmostUniformRandomNonceGenerator(), new HmacSHA256PRNGNonceGenerator(), new SHA1PRNGNonceGenerator(), 
             new UniformRandomNonceGenerator()
         };
@@ -236,7 +236,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       
       try {
         java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
-        String[] digestAlgos = {"SHA-256", "SHA-512", "Skein-1024-1024"};
+        String[] digestAlgos = {"SHA-256", "SHA-512", "SHA3-512"};
         NonceGenerator[] nonceGenerators = {new AlmostUniformRandomNonceGenerator(), new HmacSHA256PRNGNonceGenerator(), new SHA1PRNGNonceGenerator(), 
             new UniformRandomNonceGenerator()
         };
@@ -307,7 +307,7 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
       
       try {
         java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
-        String[] digestAlgos = {"SHA-256", "SHA-512", "Skein-1024-1024"};
+        String[] digestAlgos = {"SHA-256", "SHA-512", "SHA3-512"};
         NonceGenerator[] nonceGenerators = {new AlmostUniformRandomNonceGenerator(), new HmacSHA256PRNGNonceGenerator(), new SHA1PRNGNonceGenerator(), 
             new UniformRandomNonceGenerator()
         };
