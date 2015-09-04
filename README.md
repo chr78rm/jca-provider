@@ -35,9 +35,11 @@ A provider for the Java Cryptography Architecture. Implementations are intended 
 
 ## <a name="Build"></a>1. Build
 
-[Maven](https://maven.apache.org/) is required to compile the library. A whole build will take some time - currently up to five minutes on my laptop. 
+[Maven](https://maven.apache.org/) is required to compile the library. A whole build will take some time - currently up to eight minutes on my laptop. 
 This is mainly due to the unit tests belonging to the jca-schnorrsig and jca-ecschnorrsig sub-modules. For example, the to be tested custom domain parameter generation includes the 
-costly search for random [Schnorr Groups](https://en.wikipedia.org/wiki/Schnorr_group) satisfying specified security limits. 
+costly search for random [Schnorr Groups](https://en.wikipedia.org/wiki/Schnorr_group) satisfying specified security limits. The suite for Schnorr Signatures
+over Elliptic Curves, however, will test every provided curve together with three different message digests and four different NonceGenerators. This results
+in 168 to be tested configurations for the Brainpool curves alone.
 
 The build will need a JDK 8 since I'm using the -Xdoclint:none option to turn off the new doclint. This option doesn't exist in pre Java 8.
 Aside from that, the build targets JDK 7+. Use
@@ -527,7 +529,7 @@ therefore provides some curves recommended by this site as well. So long as all 
 #### <a name="EllipticCurveKeyPair1"></a>4.i.a Brainpool Curves
 
 [RFC 5639](https://tools.ietf.org/html/rfc5639) defines curves for each of the bit lengths 160, 192, 224, 256, 320, 384 and 512 together with corresponding twist curves. 
-The 256-bit curve 'brainpoolP256r1' is used as default. All curves exhibit a prime number as group order, hence all points of a particular curve may serve
+The 256-bit curve `brainpoolP256r1` is used as default. All curves exhibit a prime number as group order, hence all points of a particular curve may serve
 as basepoints. Nevertheless [RFC 5639](https://tools.ietf.org/html/rfc5639) specifies additionally a basepoint for each curve. This one will be used as default:
 
 ```java
@@ -822,6 +824,24 @@ byte[] signatureBytes = signature.sign();
 ```
 
 #### <a name="EllipticCurveSignature4"></a>4.ii.d Message Digest configuration
+
+The default curve `brainpoolP256r1` exhibits a 256-bit number as group order. Hence the output length of the default hash function SHA-256 is adequate. 
+In fact SHA-256 should be sufficient even for the curves `brainpoolP512r1`, 
+`brainpoolP512t1` and `M-511` to provide a security level of 256 bits, see [Hash Function Requirements for Schnorr Signatures](http://www.neven.org/papers/schnorr.pdf)
+by Neven et al for more details. It is however possible to configure another message digest by editing the appropriate property on the `Provider` class, for example
+
+```java
+import java.security.Provider;
+import java.security.Security;
+...
+Provider provider = new de.christofreichardt.crypto.Provider();
+provider.put("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", "SHA-512");
+Security.addProvider(provider);
+```
+
+configures SHA-512 as message digest for the `ECSchnorrSignature` algorithm. The property value must be a valid algorithm name for message digests, that is to say an
+installed JCA provider must supply the corresponding algorithm. By using the [Bouncy Castle](https://www.bouncycastle.org/java.html) provider someone can even configure
+the new `SHA3-512` standard.
 
 #### <a name="EllipticCurveSignature5"></a>4.ii.e (Deterministic) NonceGenerators
 
