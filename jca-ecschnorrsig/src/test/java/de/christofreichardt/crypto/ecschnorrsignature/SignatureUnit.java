@@ -123,28 +123,36 @@ public class SignatureUnit extends BaseSignatureUnit implements Traceable {
     tracer.entry("void", this, "fixedPointStrategy()");
     
     try {
+      ECSchnorrSigKeyGenParameterSpec[] ecSchnorrSigKeyGenParameterSpecs = {
+          new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.BRAINPOOL, "brainpoolP256r1"),
+          new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.NIST, "P-256"),
+          new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.SAFECURVES, "Curve25519"),
+      };
+      
       java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance(this.keyPairAlgorithmName);
-      KeyPair keyPair = keyPairGenerator.generateKeyPair();
-      ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
-      BigInteger order = ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec().getOrder();
-      
-      tracer.out().printfIndentln("order(%d) = %s", order.bitLength(), order);
-      
-      Signature signature = Signature.getInstance(this.signatureAlgorithmName);
-      signature.setParameter(new ECSchnorrSigParameterSpec(PointMultiplicationStrategy.FIXED_POINT));
-      byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
-      boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
-      
-      Assert.assertTrue("Expected a valid signature.", verified);
-      
-      verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
-      
-      Assert.assertTrue("Expected an invalid signature.", !verified);
-      
-      keyPair = keyPairGenerator.generateKeyPair();
-      verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
-      
-      Assert.assertTrue("Expected an invalid signature.", !verified);
+      for (ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec : ecSchnorrSigKeyGenParameterSpecs) {
+        keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        ECSchnorrPublicKey ecSchnorrPublicKey = (ECSchnorrPublicKey) keyPair.getPublic();
+        
+        tracer.out().printfIndentln("curveSpec = %s", ecSchnorrPublicKey.getEcSchnorrParams().getCurveSpec());
+        
+        Signature signature = Signature.getInstance(this.signatureAlgorithmName);
+        signature.setParameter(new ECSchnorrSigParameterSpec(PointMultiplicationStrategy.FIXED_POINT));
+        byte[] signatureBytes = sign(signature, keyPair.getPrivate(), this.msgBytes);
+        boolean verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+        
+        Assert.assertTrue("Expected a valid signature.", verified);
+        
+        verified = verify(signature, keyPair.getPublic(), this.spoiledMsgBytes, signatureBytes);
+        
+        Assert.assertTrue("Expected an invalid signature.", !verified);
+        
+        keyPair = keyPairGenerator.generateKeyPair();
+        verified = verify(signature, keyPair.getPublic(), this.msgBytes, signatureBytes);
+        
+        Assert.assertTrue("Expected an invalid signature.", !verified);
+      }
     }
     finally {
       tracer.wayout();
