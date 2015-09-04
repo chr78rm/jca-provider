@@ -404,8 +404,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
-import java.security.Security;
 import java.security.Signature;
 import de.christofreichardt.crypto.HmacSHA256PRNGNonceGenerator;
 import de.christofreichardt.crypto.NonceGenerator;
@@ -448,8 +446,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Provider;
-import java.security.Security;
 import java.security.Signature;
 import de.christofreichardt.crypto.NonceGenerator;
 import de.christofreichardt.crypto.UniformRandomNonceGenerator;
@@ -536,7 +532,6 @@ as basepoints. Nevertheless [RFC 5639](https://tools.ietf.org/html/rfc5639) spec
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
@@ -560,7 +555,6 @@ The next examples demonstrates how someone may retrieve a Brainpool curve with a
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
 import de.christofreichardt.scala.ellipticcurve.affine.AffineCoordinatesWithPrimeField.AffinePoint;
@@ -589,7 +583,6 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
-import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
@@ -621,7 +614,6 @@ The next example shows how someone may create key pairs based upon the `P-384` c
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
@@ -659,7 +651,6 @@ how someone may compute key pairs based upon the `M-551` curve with a random bas
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Security;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
@@ -693,7 +684,6 @@ found in "Elliptic Curves in Cryptography" by Blake, Seroussi and Smart:
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Security;
 import scala.math.BigInt;
 import de.christofreichardt.crypto.ecschnorrsignature.CurveSpec;
 import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrPublicKey;
@@ -737,7 +727,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Security;
 import java.security.Signature;
 ...
 KeyPair keyPair = ...
@@ -764,12 +753,11 @@ import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
-import java.security.Security;
 import java.security.Signature;
 ...
 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
 KeyPair keyPair = keyPairGenerator.generateKeyPair();
-File file = new File("../data/loremipsum.txt");
+File file = new File("loremipsum.txt");
 byte[] bytes = Files.readAllBytes(file.toPath());
 SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
 Signature signature = Signature.getInstance("ECSchnorrSignature");
@@ -798,7 +786,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.Security;
 import java.security.Signature;
 ...
 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
@@ -839,11 +826,49 @@ provider.put("de.christofreichardt.crypto.ecschnorrsignature.messageDigest", "SH
 Security.addProvider(provider);
 ```
 
-configures SHA-512 as message digest for the `ECSchnorrSignature` algorithm. The property value must be a valid algorithm name for message digests, that is to say an
+configures `SHA-512` as message digest for the `ECSchnorrSignature` algorithm. The property value must be a valid algorithm name for message digests, that is to say an
 installed JCA provider must supply the corresponding algorithm. By using the [Bouncy Castle](https://www.bouncycastle.org/java.html) provider someone can even configure
 the new `SHA3-512` standard.
 
 #### <a name="EllipticCurveSignature5"></a>4.ii.e (Deterministic) NonceGenerators
+
+A flaw within the underlying RNG may cause your nonces to be predictable and hence expose your private key. Therefore, it might make sense to create deterministic
+nonces which are nevertheless unpredictable, unique and confidential. I have followed [RFC 6979](https://tools.ietf.org/html/rfc6979) and provide a deterministic
+`NonceGenerator` based upon a HmacSha256 PRNG. The deterministic `HmacSHA256PRNGNonceGenerator` can be injected as follows:
+
+```java
+import java.io.File;
+import java.nio.file.Files;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
+import de.christofreichardt.crypto.HmacSHA256PRNGNonceGenerator;
+import de.christofreichardt.crypto.NonceGenerator;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigKeyGenParameterSpec.CurveCompilation;
+import de.christofreichardt.crypto.ecschnorrsignature.ECSchnorrSigParameterSpec;
+...
+KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
+// requests the 'M-383' curve together with the default base point and extra key bytes:
+ECSchnorrSigKeyGenParameterSpec ecSchnorrSigKeyGenParameterSpec = new ECSchnorrSigKeyGenParameterSpec(CurveCompilation.SAFECURVES, "M-383", false, true);
+keyPairGenerator.initialize(ecSchnorrSigKeyGenParameterSpec);
+KeyPair keyPair = keyPairGenerator.generateKeyPair();
+File file = new File("../data/loremipsum.txt");
+byte[] bytes = Files.readAllBytes(file.toPath());
+Signature signature = Signature.getInstance("ECSchnorrSignature");
+NonceGenerator nonceGenerator = new HmacSHA256PRNGNonceGenerator();
+ECSchnorrSigParameterSpec ecSchnorrSigParameterSpec = new ECSchnorrSigParameterSpec(nonceGenerator);
+signature.setParameter(ecSchnorrSigParameterSpec);
+signature.initSign(keyPair.getPrivate());
+signature.update(bytes);
+byte[] signatureBytes = signature.sign();
+signature.initVerify(keyPair.getPublic());
+signature.update(bytes);
+boolean verified = signature.verify(signatureBytes);
+assert verified;
+```
+
+See also 3.ii.e [(Deterministic) NonceGenerators](#PrimeFieldsSignature5) for a more detailed discussion.
 
 #### <a name="EllipticCurveSignature6"></a>4.ii.f Point Multiplication methods
 
