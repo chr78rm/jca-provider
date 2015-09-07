@@ -5,7 +5,7 @@
   <parent>
     <groupId>de.christofreichardt</groupId>
     <artifactId>jca-provider</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.1.0-beta</version>
   </parent>
 
   <artifactId>elliptic-curve-arithmetic</artifactId>
@@ -41,7 +41,7 @@
     <dependency>
       <groupId>de.christofreichardt</groupId>
       <artifactId>jca-master</artifactId>
-      <version>0.0.4-SNAPSHOT</version>
+      <version>0.1.0-beta</version>
     </dependency>
   </dependencies>
 
