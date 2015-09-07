@@ -599,7 +599,7 @@ public class Main {
   }
   
   private void example17() throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException {
-    LOGGER.log(Level.INFO, "-> Example16: ECSchnorrSignature with fixed point multiplication.");
+    LOGGER.log(Level.INFO, "-> Example17: ECSchnorrSignature with fixed point multiplication.");
     
     LOGGER.log(Level.INFO, "Generating key pair ...");
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECSchnorrSignature");
