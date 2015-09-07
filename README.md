@@ -833,7 +833,7 @@ the new `SHA3-512` standard.
 #### <a name="EllipticCurveSignature5"></a>4.ii.e (Deterministic) NonceGenerators
 
 A flaw within the underlying RNG may cause your nonces to be predictable and hence may expose your private key. Therefore, it might make sense to create deterministic
-nonces which are nevertheless unpredictable, unique and confidential. I have followed [RFC 6979](https://tools.ietf.org/html/rfc6979) and provide a deterministic
+nonces which are nevertheless unpredictable, unique and confidential. I have followed [RFC 6979](https://tools.ietf.org/html/rfc6979) and have provided a deterministic
 `NonceGenerator` based upon a HmacSha256 PRNG. The deterministic `HmacSHA256PRNGNonceGenerator` can be injected as follows:
 
 ```java
@@ -919,7 +919,8 @@ boolean verified = signature.verify(signatureBytes);
 assert verified;
 ```
 
-At present the only fixed point method available is the binary Double-and-add-always method
+At present the only fixed point method available is the binary method with some built-in resistance against simple timing attacks - that is to say the `multiplicationMethod` property
+won't take effect when doing fixed point multiplication.
 
 [TOC](#TOC)
 
