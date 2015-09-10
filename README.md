@@ -1,6 +1,6 @@
 # JCA-Provider
 
-A provider for the Java Cryptography Architecture. Implementations are intended for the Schnorr Signature based on prime fields and elliptic curves.
+A provider for the Java Cryptography Architecture. Implementations are available for the Schnorr Signature based on prime fields and elliptic curves.
 
 ## <a name="TOC"></a>1. Table of Contents
 
